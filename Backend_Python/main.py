@@ -18,7 +18,7 @@ import string
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime, Float, case
 import asyncio
 import requests
-from database import SessionLocal # Arka plan görevleri için bağımsız bir DB oturumu lazım
+from database import SessionLocal # Arka plan görevleri için bağımsız bir DB oturumu lazım.
 from datetime import date, datetime, time
 from typing import Optional
 from fastapi import Query
