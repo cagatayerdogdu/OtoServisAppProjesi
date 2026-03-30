@@ -486,19 +486,81 @@ def arac_guncelle(arac_id: int, arac_data: schemas.AracCreate, db: Session = Dep
 
 
 # --- SERVİS TALEBİ İŞLEMLERİ ---
-@app.post("/servis-talepleri/")
-def servis_talebi_olustur(talep: schemas.ServisTalebiCreate, db: Session = Depends(get_db)):
+# @app.post("/servis-talepleri/")
+# def servis_talebi_olustur(talep: schemas.ServisTalebiCreate, db: Session = Depends(get_db)):
+#     try:
+#         # Pydantic modelini veritabanı nesnesine çeviriyoruz (Temiz, yeni yöntem)
+#         yeni_talep = models.ServisTalebi(**talep.model_dump())
+#         db.add(yeni_talep)
+#         db.commit()
+#         db.refresh(yeni_talep)
+#         return yeni_talep
+    
+ # @app.post("/servis-talepleri/", response_model=schemas.ServisTalebi)
+# def servis_talebi_olustur(istek: schemas.ServisTalebiCreate, db: Session = Depends(get_db)):
+#     yeni_talep = models.ServisTalebi(**istek.model_dump())
+#     db.add(yeni_talep)
+#     db.commit()
+#     db.refresh(yeni_talep)
+#     return yeni_talep
+
+@app.post("/servis-talepleri/", response_model=schemas.ServisTalebi)
+def servis_talebi_olustur(istek: schemas.ServisTalebiCreate, db: Session = Depends(get_db)):
     try:
-        # Pydantic modelini veritabanı nesnesine çeviriyoruz (Temiz, yeni yöntem)
-        yeni_talep = models.ServisTalebi(**talep.model_dump())
+        # 1. Yeni servis talebini oluşturuyoruz
+        yeni_talep = models.ServisTalebi(**istek.model_dump())
         db.add(yeni_talep)
+        # YENİ REVİZE: commit() yerine flush() kullanıyoruz. 
+        # Böylece talep beklemeye alınıyor, hata olursa geri alınabilecek (rollback).
+        db.flush() 
+
+        # 2. Admin'e Yeni Talep Bildirimi Oluşturma ve Push Bildirimi (FCM) Gönderme
+        istegi_yapan = db.query(models.Kullanici).filter(models.Kullanici.id == istek.kullanici_id).first()
+        hizmet_detay = db.query(models.Hizmet).filter(models.Hizmet.id == istek.hizmet_id).first()
+        
+        if istegi_yapan and hizmet_detay:
+            adminler = db.query(models.Kullanici).filter(models.Kullanici.rol == "Admin").all()
+            
+            for admin in adminler:
+                bildirim_mesaji = f"{istegi_yapan.ad_soyad} adlı müşteri '{hizmet_detay.ad}' için yeni bir servis talebi oluşturdu."
+                
+                yeni_bildirim = models.SistemBildirimleri(
+                    kullanici_id=admin.id,
+                    baslik="Yeni Servis Talebi",
+                    mesaj=bildirim_mesaji
+                )
+                db.add(yeni_bildirim)
+                
+                if admin.fcm_token:
+                    mesaj_fcm = messaging.Message(
+                        notification=messaging.Notification(title="Yeni Servis Talebi", body=bildirim_mesaji),
+                        token=admin.fcm_token
+                    )
+                    messaging.send(mesaj_fcm)
+
+        # 3. YENİ REVİZE: Eğer buraya kadar hiç hata çıkmadıysa, hem talebi hem bildirimleri aynı anda kaydediyoruz.
         db.commit()
         db.refresh(yeni_talep)
         return yeni_talep
+
     except Exception as e:
-        # İşlem başarısız olursa veritabanını geri al ve C# tarafına net hatayı fırlat																
+        # 4. YENİ REVİZE: Hata anında yukarıdaki db.add ile hafızaya alınan tüm işlemleri iptal ediyoruz (Atomic Rollback)
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Veritabanı Kayıt Hatası: {str(e)}")
+
+        # Hatayı log tablomuza kaydediyoruz
+        hata_mesaji = str(e)
+        yeni_log = models.SistemLog(
+            kullanici_ad_soyad="Sistem",
+            seviye="ERROR",
+            islem="Admin Yeni Talep Bildirimi Gönderme / Talep Oluşturma",
+            detay=f"FCM Push, DB Bildirim veya Talep kaydı sırasında hata oluştu: {hata_mesaji}",
+            tarih=datetime.now()
+        )
+        db.add(yeni_log)
+        db.commit() # Sadece SistemLog tablosundaki kaydı kalıcı hale getiriyoruz
+
+        # Senin istediğin gibi işlemi tamamen durdurup kullanıcıya 500 hatası fırlatıyoruz
+        raise HTTPException(status_code=500, detail=f"İşlem sırasında bir hata oluştu ve talep iptal edildi: {hata_mesaji}")
     
 # --- KULLANICININ SERVİS TALEPLERİ (LİSTELE, GÜNCELLE, SİL) ---
 

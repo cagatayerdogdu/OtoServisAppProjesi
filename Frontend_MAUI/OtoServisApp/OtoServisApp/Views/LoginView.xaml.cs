@@ -1,5 +1,6 @@
 ﻿using OtoServisApp.Services;
 using OtoServisApp.Models;
+using System;
 namespace OtoServisApp.Views;
 
 public partial class LoginView : ContentPage
@@ -46,7 +47,13 @@ public partial class LoginView : ContentPage
                 SecureStorage.Default.Remove("kayitli_sifre");
             }
             // Herkes (Admin dahil) önce ana merkeze (Dashboard) gider!
-            Application.Current.MainPage = new NavigationPage(new DashboardView(kullanici));
+            /* ESKİ KOD: Rengi siyah bırakan varsayılan sayfa yönlendirmesi
+            Application.Current.MainPage = new NavigationPage(new DashboardView(kullanici)); */
+            // YENİ EKLENEN REVİZE: Yeni sayfayı oluştururken üst barı turkuaz (#00BCD4) olarak yapılandırıyoruz
+            var dashNavPage = new NavigationPage(new DashboardView(kullanici));
+            dashNavPage.BarBackgroundColor = Color.FromArgb("#00BCD4");
+            dashNavPage.BarTextColor = Colors.White;
+            Application.Current.MainPage = dashNavPage;
 
             /*
             if (kullanici.rol == "Admin")
@@ -91,7 +98,11 @@ public partial class LoginView : ContentPage
         };
 
         // Doğrudan Ana Sayfaya (Dashboard) yönlendir
-        Application.Current.MainPage = new NavigationPage(new DashboardView(misafirKullanici));
+        // Application.Current.MainPage = new NavigationPage(new DashboardView(misafirKullanici));
+        var dashNavPage = new NavigationPage(new DashboardView(misafirKullanici));
+        dashNavPage.BarBackgroundColor = Color.FromArgb("#00BCD4");
+        dashNavPage.BarTextColor = Colors.White;
+        Application.Current.MainPage = dashNavPage;
     }
 
     protected override async void OnAppearing()
@@ -137,7 +148,14 @@ public partial class LoginView : ContentPage
             // YENİ EKLENEN KOD: Otomatik giriş başarılıysa Firebase Token'ı güncelle
             await _apiService.FcmTokenGuncelle(kullanici.id);
 
-            Application.Current.MainPage = new NavigationPage(new DashboardView(kullanici));
+            /*ESKİ KOD: Rengi siyah bırakan varsayılan sayfa yönlendirmesi
+            Application.Current.MainPage = new NavigationPage(new DashboardView(kullanici)); */
+
+            // YENİ EKLENEN REVİZE: Yeni sayfayı oluştururken üst barı turkuaz (#00BCD4) olarak yapılandırıyoruz.
+            var dashNavPage = new NavigationPage(new DashboardView(kullanici));
+            dashNavPage.BarBackgroundColor = Color.FromArgb("#00BCD4");
+            dashNavPage.BarTextColor = Colors.White;
+            Application.Current.MainPage = dashNavPage;
         }
         else
         {
