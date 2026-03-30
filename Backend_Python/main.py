@@ -37,7 +37,7 @@ if not firebase_admin._apps:
     firebase_admin.initialize_app(cred)
 
 # --- DOSYA TABANLI LOGLAMA AYARLARI ---
-# Hataları "app_error.log" dosyasına yazar. Dosya 5MB olunca yeni dosyaya geçer (maksimum 5 yedek tutar).
+# Hataları "app_error.log" dosyasına yazar. Dosya 5MB olunca yeni dosyaya geçer (maksimum 5 yedek tutar)..
 log_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 log_handler = RotatingFileHandler('app_error.log', maxBytes=5000000, backupCount=5)
 log_handler.setFormatter(log_formatter)
