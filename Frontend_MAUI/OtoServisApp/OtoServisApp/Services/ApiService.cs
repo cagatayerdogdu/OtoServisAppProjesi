@@ -12,7 +12,7 @@ namespace OtoServisApp.Services
         public ApiService()
         {
             _httpClient = new HttpClient();
-            // ApiConfig sınıfımızdan doğru IP adresini (127.0.0.1 veya 10.0.2.2) alıyoruz
+            // ApiConfig sınıfımızdan doğru IP adresini (127.0.0.1 veya 10.0.2.2) alıyoruz.
             //_httpClient.BaseAddress = new Uri(ApiConfig.BaseUrl);
 
             // ApiConfig dosyasını tamamen eziyoruz ve telefonun hedefini doğrudan senin bilgisayarına (192.168.0.13) kilitliyoruz:
