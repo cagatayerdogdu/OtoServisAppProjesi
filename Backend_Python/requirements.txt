@@ -10,3 +10,4 @@ schedule
 selenium
 SQLAlchemy
 starlette
+uvicorn
