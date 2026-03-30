@@ -5,9 +5,13 @@ firebase_admin
 mysql_connector_repackaged
 pydantic
 python-dotenv
-Requests
+requests
 schedule
 selenium
 SQLAlchemy
 starlette
 uvicorn
+pymysql
+email-validator
+firebase-admin
+mysql-connector-repackaged
