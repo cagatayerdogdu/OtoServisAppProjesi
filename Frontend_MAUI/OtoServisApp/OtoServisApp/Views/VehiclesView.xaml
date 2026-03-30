@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:helpers="clr-namespace:OtoServisApp.Helpers"
+             x:Class="OtoServisApp.Views.VehiclesView"
+             BackgroundColor="#F4F6F8"
+             Title="Araçlarım">
+
+    <Grid RowDefinitions="*, Auto" Padding="20">
+
+        <CollectionView x:Name="VehiclesList" Grid.Row="0">
+            <CollectionView.EmptyView>
+                <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="10">
+                    <Label Text="{x:Static helpers:IconFont.Car}" FontFamily="FASolid" FontSize="50" TextColor="#888888" HorizontalOptions="Center" Opacity="0.5"/>
+                    <Label Text="Henüz kayıtlı bir aracınız bulunmuyor." TextColor="{StaticResource Gray500}" FontSize="16"/>
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border BackgroundColor="#FAFAFA" StrokeShape="RoundRectangle 15" Padding="20" Margin="0,0,0,15" Stroke="Transparent">
+                        <Border.Shadow>
+                            <Shadow Brush="Black" Offset="0,3" Radius="8" Opacity="0.05" />
+                        </Border.Shadow>
+                        <VerticalStackLayout Spacing="5">
+                            
+                            <Label Text="{Binding yil}" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource PrimaryDarkText}"/>
+                            <Label Text="{Binding marka_model_yazi}" TextColor="{StaticResource Gray500}"/>
+                            <HorizontalStackLayout Spacing="5">
+                                <Label Text="{x:Static helpers:IconFont.GasPump}" FontFamily="FASolid" FontSize="14" TextColor="{StaticResource Tertiary}" VerticalOptions="Center"/>
+                                <Label Text="{Binding yakit_tipi}" TextColor="{StaticResource Tertiary}" VerticalOptions="Center"/>
+                            </HorizontalStackLayout>
+
+                            <HorizontalStackLayout Spacing="5">
+                                <Label Text="{x:Static helpers:IconFont.Road}" FontFamily="FASolid" FontSize="14" TextColor="{StaticResource Tertiary}" VerticalOptions="Center"/>
+                                <Label Text="{Binding kilometre, StringFormat='{0:N0} km'}" TextColor="{StaticResource Tertiary}" VerticalOptions="Center"/>
+                            </HorizontalStackLayout>
+                            
+                            <BoxView HeightRequest="1" Color="#EEEEEE" Margin="0,15,0,10"/>
+                            <Grid ColumnDefinitions="*, *">
+                                <Button Grid.Column="0" Text="Düzenle" BackgroundColor="#00BCD4" TextColor="White" CornerRadius="8" Margin="0,0,5,0" 
+                                        Clicked="OnEditVehicleClicked" CommandParameter="{Binding .}"/>
+                                
+                                <Button Grid.Column="1" Text="Sil" BackgroundColor="#FFEBEE" TextColor="#D32F2F" CornerRadius="8" Margin="5,0,0,0" 
+                                        Clicked="OnDeleteVehicleClicked" CommandParameter="{Binding .}"/>
+                            </Grid>
+
+                        </VerticalStackLayout>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <Button Grid.Row="1" 
+                Text="+ YENİ ARAÇ EKLE" 
+                Clicked="OnAddVehicleClicked"
+                BackgroundColor="{StaticResource Primary}" 
+                TextColor="White" 
+                CornerRadius="10"
+                HeightRequest="55"
+                FontSize="16"
+                FontAttributes="Bold"/>
+    </Grid>
+
+</ContentPage>

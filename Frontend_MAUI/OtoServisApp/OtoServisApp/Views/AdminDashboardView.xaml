@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:helpers="clr-namespace:OtoServisApp.Helpers"
+             x:Class="OtoServisApp.Views.AdminDashboardView"
+             BackgroundColor="#1E272E"
+             Title="Yönetim Paneli">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="15" Padding="20,30">
+            <HorizontalStackLayout HorizontalOptions="Center" Spacing="10" Margin="0,0,0,15">
+                <Label Text="{x:Static helpers:IconFont.Crown}" FontFamily="FASolid" FontSize="24" TextColor="#FAFAFA" VerticalOptions="Center"/>
+                <Label Text="Yönetim Paneli" FontSize="26" FontAttributes="Bold" TextColor="#FAFAFA" VerticalOptions="Center"/>
+                <Label Text="{x:Static helpers:IconFont.Crown}" FontFamily="FASolid" FontSize="24" TextColor="#FAFAFA" VerticalOptions="Center"/>
+            </HorizontalStackLayout>
+
+            <Border BackgroundColor="#2C3E50" StrokeShape="RoundRectangle 12" Padding="15" Stroke="Transparent">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnManageRequestsTapped" />
+                </Border.GestureRecognizers>
+                <HorizontalStackLayout Spacing="15">
+                    <Label Text="{x:Static helpers:IconFont.ClipboardList}" FontFamily="FASolid" FontSize="26" TextColor="#FAFAFA" VerticalOptions="Center"/>
+                    <VerticalStackLayout VerticalOptions="Center">
+                        <Label Text="Servis Talepleri" FontSize="16" FontAttributes="Bold" TextColor="#FAFAFA"/>
+                        <Label Text="Talepleri onayla, tamamla veya iptal et." TextColor="#95A5A6" FontSize="11"/>
+                    </VerticalStackLayout>
+                </HorizontalStackLayout>
+            </Border>
+
+            <Border BackgroundColor="#2C3E50" StrokeShape="RoundRectangle 12" Padding="15" Stroke="Transparent">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnPastRequestsTapped" />
+                </Border.GestureRecognizers>
+                <HorizontalStackLayout Spacing="15">
+                    <Label Text="{x:Static helpers:IconFont.History}" FontFamily="FASolid" FontSize="26" TextColor="#FAFAFA" VerticalOptions="Center"/>
+                    <VerticalStackLayout VerticalOptions="Center">
+                        <Label Text="Geçmiş Talepler" FontSize="16" FontAttributes="Bold" TextColor="#FAFAFA"/>
+                        <Label Text="Tamamlanan veya iptal olan talepler." TextColor="#95A5A6" FontSize="11"/>
+                    </VerticalStackLayout>
+                </HorizontalStackLayout>
+            </Border>
+
+            <Border BackgroundColor="#2C3E50" StrokeShape="RoundRectangle 12" Padding="15" Stroke="Transparent">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnShowcaseManageTapped" />
+                </Border.GestureRecognizers>
+                <HorizontalStackLayout Spacing="15">
+                    <Label Text="{x:Static helpers:IconFont.Camera}" FontFamily="FASolid" FontSize="26" TextColor="#FAFAFA" VerticalOptions="Center"/>
+                    <VerticalStackLayout VerticalOptions="Center">
+                        <Label Text="Vitrin / İşlerimiz" FontSize="16" FontAttributes="Bold" TextColor="#FAFAFA"/>
+                        <Label Text="Ana sayfadaki fotoğraf galerisini yönet." TextColor="#95A5A6" FontSize="11"/>
+                    </VerticalStackLayout>
+                </HorizontalStackLayout>
+            </Border>
+
+            <Border BackgroundColor="#2C3E50" StrokeShape="RoundRectangle 12" Padding="15" Stroke="Transparent" Opacity="0.6">
+                <HorizontalStackLayout Spacing="15">
+                    <Label Text="{x:Static helpers:IconFont.SackDollar}" FontFamily="FASolid" FontSize="26" TextColor="#FAFAFA" VerticalOptions="Center"/>
+                    <Label Text="Fiyat Yönetimi (Yakında)" FontSize="15" FontAttributes="Bold" TextColor="#FAFAFA" VerticalOptions="Center"/>
+                </HorizontalStackLayout>
+            </Border>
+
+            <Border BackgroundColor="#2C3E50" StrokeShape="RoundRectangle 12" Padding="15" Stroke="Transparent" Opacity="0.6">
+                <HorizontalStackLayout Spacing="15">
+                    <Label Text="{x:Static helpers:IconFont.Users}" FontFamily="FASolid" FontSize="26" TextColor="#FAFAFA" VerticalOptions="Center"/>
+                    <VerticalStackLayout VerticalOptions="Center">
+                        <Label Text="Kullanıcı Yönetimi (Yakında)" FontSize="16" FontAttributes="Bold" TextColor="#FAFAFA"/>
+                        <Label Text="Müşterileri ve yetkileri yönet." TextColor="#95A5A6" FontSize="11"/>
+                    </VerticalStackLayout>
+                </HorizontalStackLayout>
+            </Border>
+
+            <Button Text="Sistem Logları (İzleme)" 
+                    ImageSource="{FontImage FontFamily=FASolid, Glyph={x:Static helpers:IconFont.Desktop}, Color=White, Size=20}"
+                    ContentLayout="Left, 10"
+                    Clicked="OnSistemLoglariClicked" 
+                    BackgroundColor="#34495E" TextColor="#FAFAFA" CornerRadius="10" HeightRequest="55" FontAttributes="Bold" FontSize="15" Margin="0,10,0,0"/>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

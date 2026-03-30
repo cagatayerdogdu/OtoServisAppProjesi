@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:helpers="clr-namespace:OtoServisApp.Helpers"
+             x:Class="OtoServisApp.Views.DashboardView"
+             BackgroundColor="#F4F6F8"
+             Title="Ana Sayfa">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="25" Padding="20,30">
+
+            <Grid ColumnDefinitions="*, Auto" Margin="0,0,0,20">
+
+                <Border Grid.Column="0" BackgroundColor="#00BCD4" StrokeShape="RoundRectangle 10" Padding="20" Stroke="Transparent">
+                    <VerticalStackLayout>
+                        <Label Text="Hoş Geldiniz," TextColor="#FAFAFA" FontSize="14" Opacity="0.9" />
+                        <Label x:Name="WelcomeLabel" Text="..." TextColor="#FAFAFA" FontSize="22" FontAttributes="Bold" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" HorizontalOptions="Center" Padding="15,5" BackgroundColor="Transparent">
+                    <VerticalStackLayout.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnBildirimlerTapped" />
+                    </VerticalStackLayout.GestureRecognizers>
+
+                    <Grid WidthRequest="35" HeightRequest="30">
+                        <Label Text="{x:Static helpers:IconFont.Bell}" FontFamily="FASolid" FontSize="26" TextColor="#00BCD4" HorizontalOptions="Center" VerticalOptions="Center"/>
+
+                        <Border x:Name="NotificationBadgeBorder" IsVisible="False" BackgroundColor="#D32F2F" StrokeShape="RoundRectangle 10" WidthRequest="18" HeightRequest="18" HorizontalOptions="End" VerticalOptions="Start" Margin="-5,-5,0,0">
+                            <Label x:Name="NotificationCountLabel" Text="0" FontSize="10" TextColor="White" FontAttributes="Bold" HorizontalOptions="Center" VerticalOptions="Center"/>
+                        </Border>
+                    </Grid>
+
+                    <Label Text="Bildirimler" FontSize="11" TextColor="#00BCD4" FontAttributes="Bold" HorizontalOptions="Center" Margin="0,2,0,0"/>
+                </VerticalStackLayout>
+            </Grid>
+
+            <Label Text="Hızlı İşlemler" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource Tertiary}" Margin="5,10,0,0"/>
+
+                <Border BackgroundColor="#E0F7FA" StrokeShape="RoundRectangle 15" Padding="20" Margin="0,0,0,15" Stroke="Transparent">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnShowcaseTapped" />
+                    </Border.GestureRecognizers>
+                    <HorizontalStackLayout Spacing="15">
+                        <Label Text="{x:Static helpers:IconFont.Camera}" FontFamily="FASolid" FontSize="30" TextColor="#00796B" VerticalOptions="Center"/>
+                        <VerticalStackLayout VerticalOptions="Center">
+                            <Label Text="Tamamlanan İşlerimiz" FontSize="18" FontAttributes="Bold" TextColor="#00796B"/>
+                            <Label Text="Vitrindeki başarı hikayelerimize göz atın." TextColor="#004D40" FontSize="12"/>
+                        </VerticalStackLayout>
+                    </HorizontalStackLayout>
+            </Border>
+
+            <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto" ColumnSpacing="15" RowSpacing="15">
+
+                <Border Grid.Row="0" Grid.Column="0" BackgroundColor="#FAFAFA" StrokeShape="RoundRectangle 15" Padding="15,25" Stroke="Transparent">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnServiceRequestTapped" />
+                    </Border.GestureRecognizers>
+                    <Border.Shadow>
+                        <Shadow Brush="Black" Offset="0,3" Radius="8" Opacity="0.05" />
+                    </Border.Shadow>                   
+                    <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
+                        <Label Text="{x:Static helpers:IconFont.Wrench}" FontFamily="FASolid" FontSize="36" TextColor="{StaticResource Tertiary}" HorizontalOptions="Center"/>
+                        <Label Text="Servis Talebi" FontSize="15" FontAttributes="Bold" TextColor="{StaticResource Tertiary}" HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border Grid.Row="0" Grid.Column="1" BackgroundColor="#FAFAFA" StrokeShape="RoundRectangle 15" Padding="15,25" Stroke="Transparent">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnVehiclesTapped" />
+                    </Border.GestureRecognizers>
+                    <Border.Shadow>
+                        <Shadow Brush="Black" Offset="0,3" Radius="8" Opacity="0.05" />
+                    </Border.Shadow>
+                    <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
+                        <Label Text="{x:Static helpers:IconFont.Car}" FontFamily="FASolid" FontSize="36" TextColor="{StaticResource Tertiary}" HorizontalOptions="Center"/>
+                        <Label Text="Araçlarım" FontSize="15" FontAttributes="Bold" TextColor="{StaticResource Tertiary}" HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border Grid.Row="1" Grid.Column="0" BackgroundColor="#FAFAFA" StrokeShape="RoundRectangle 15" Padding="15,25" Stroke="Transparent">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnMyRequestsTapped" />
+                    </Border.GestureRecognizers>
+                    <Border.Shadow>
+                        <Shadow Brush="Black" Offset="0,3" Radius="8" Opacity="0.05" />
+                    </Border.Shadow>
+                    <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
+                        <Label Text="{x:Static helpers:IconFont.CalendarAlt}" FontFamily="FASolid" FontSize="36" TextColor="{StaticResource Tertiary}" HorizontalOptions="Center"/>
+                        <Label Text="Durum Takibi" FontSize="15" FontAttributes="Bold" TextColor="{StaticResource Tertiary}" HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border Grid.Row="1" Grid.Column="1" BackgroundColor="#FAFAFA" StrokeShape="RoundRectangle 15" Padding="15,25" Stroke="Transparent">
+
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnProfileTapped" />
+                    </Border.GestureRecognizers>
+                    
+                    <Border.Shadow>
+                        <Shadow Brush="Black" Offset="0,3" Radius="8" Opacity="0.05" />
+                    </Border.Shadow>
+                    <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
+                        <Label Text="{x:Static helpers:IconFont.User}" FontFamily="FASolid" FontSize="36" TextColor="{StaticResource Tertiary}" HorizontalOptions="Center"/>
+                        <Label Text="Hesabım" FontSize="15" FontAttributes="Bold" TextColor="{StaticResource Tertiary}" HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
+                </Border>
+
+            </Grid>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="OtoServisApp.Views.EditServiceRequestView"
+             Title="Talebi Düzenle"
+             BackgroundColor="#F4F6F8">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="15">
+
+            <Border BackgroundColor="#E0F7FA" Stroke="#00BCD4" StrokeShape="RoundRectangle 8" Padding="15">
+                <HorizontalStackLayout Spacing="10">
+                    <Label Text="Mevcut Durum:" FontAttributes="Bold" TextColor="#006064" VerticalOptions="Center"/>
+                    <Label x:Name="DurumLabel" FontAttributes="Bold" TextColor="#00BCD4" VerticalOptions="Center"/>
+                </HorizontalStackLayout>
+            </Border>
+
+            <Label x:Name="ReadOnlyWarningLabel" Text="Bu talep sonlandığı için üzerinde değişiklik yapılamaz." TextColor="#D32F2F" FontAttributes="Bold" IsVisible="False" HorizontalOptions="Center"/>
+
+            <VerticalStackLayout x:Name="StandartDuzenlemeFormu" Spacing="15">
+
+                <Label Text="Hizmet Seçimi" FontSize="14" FontAttributes="Bold" TextColor="#333333"/>
+                <Button x:Name="SecilenHizmetButonu" 
+                        Text="Lütfen bir hizmet seçin..." 
+                        BackgroundColor="#FAFAFA" 
+                        TextColor="#666666" 
+                        BorderColor="#CCCCCC" 
+                        BorderWidth="1" 
+                        CornerRadius="8" 
+                        HeightRequest="45" 
+                        Clicked="OnHizmetSecimButonuClicked" 
+                        HorizontalOptions="FillAndExpand"/>
+
+                <Border x:Name="HizmetAramaKutusu" IsVisible="False" BackgroundColor="#FAFAFA" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10" Margin="0,5,0,10">
+                    <VerticalStackLayout Spacing="5">
+                        <SearchBar x:Name="HizmetAramaBar" 
+                                   Placeholder="Hizmet ara... (Örn: Fren, Yağ)" 
+                                   TextChanged="OnHizmetAramaDegisti" 
+                                   BackgroundColor="#F9F9F9" 
+                                   TextColor="#111111" 
+                                   CancelButtonColor="#D32F2F" />
+
+                        <CollectionView x:Name="HizmetListesi" HeightRequest="200" SelectionMode="Single" SelectionChanged="OnHizmetSecildi">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <VerticalStackLayout Padding="10">
+                                        <Label Text="{Binding ad}" FontSize="14" FontAttributes="Bold" TextColor="#111111"/>
+                                        <Label Text="{Binding aciklama}" FontSize="11" TextColor="#888888" LineBreakMode="WordWrap"/>
+                                        <BoxView HeightRequest="1" Color="#EEEEEE" Margin="0,5,0,0"/>
+                                    </VerticalStackLayout>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Label Text="Araç Seçimi" FontSize="14" FontAttributes="Bold" TextColor="#333333"/>
+                <Button x:Name="SecilenAracButonu" 
+                        Text="Lütfen bir araç seçin..." 
+                        BackgroundColor="#FAFAFA" 
+                        TextColor="#666666" 
+                        BorderColor="#CCCCCC" 
+                        BorderWidth="1" 
+                        CornerRadius="8" 
+                        HeightRequest="45" 
+                        Clicked="OnAracSecimButonuClicked" 
+                        HorizontalOptions="FillAndExpand"/>
+
+                <Border x:Name="AracAramaKutusu" IsVisible="False" BackgroundColor="#FAFAFA" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10" Margin="0,5,0,10">
+                    <VerticalStackLayout Spacing="5">
+                        <CollectionView x:Name="AracListesi" HeightRequest="150" SelectionMode="Single" SelectionChanged="OnAracSecildi">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <VerticalStackLayout Padding="10">
+                                        <Label Text="{Binding marka_model_yazi}" FontSize="14" FontAttributes="Bold" TextColor="#111111"/>
+                                        <Label Text="{Binding yil, StringFormat='{0} Model'}" FontSize="11" TextColor="#888888"/>
+                                        <BoxView HeightRequest="1" Color="#EEEEEE" Margin="0,5,0,0"/>
+                                    </VerticalStackLayout>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Label Text="Talep Edilen Tarih" FontSize="14" FontAttributes="Bold" TextColor="#333333"/>
+                <DatePicker x:Name="TarihPicker" MinimumDate="{Binding Source={x:Static x:DateTime.Today}}" BackgroundColor="#FAFAFA" TextColor="#111111"/>
+
+                <Label Text="Adresiniz" FontSize="14" FontAttributes="Bold" TextColor="#333333"/>
+                <Editor x:Name="AdresEditor" HeightRequest="80" BackgroundColor="#FAFAFA" TextColor="#111111" PlaceholderColor="#888888"/>
+
+                <Label Text="Ek Notlar" FontSize="14" FontAttributes="Bold" TextColor="#333333"/>
+                <Editor x:Name="NotlarEditor" HeightRequest="80" BackgroundColor="#FAFAFA" TextColor="#111111" PlaceholderColor="#888888"/>
+            </VerticalStackLayout>
+
+            <VerticalStackLayout x:Name="DuzeltmeTalebiFormu" Spacing="15" IsVisible="False">
+                <Label Text="Yöneticiye Düzeltme İletin" FontSize="16" FontAttributes="Bold" TextColor="#F57C00"/>
+                <Label Text="Talebiniz onaylandığı için doğrudan değiştiremezsiniz. Lütfen düzeltmek istediğiniz kısımları (örn: adres değişikliği) aşağıya yazarak yöneticiye iletin." FontSize="12" TextColor="#666666"/>
+                <Editor x:Name="DuzeltmeNotuEditor" HeightRequest="100" Placeholder="Düzeltme talebinizi buraya yazın..." BackgroundColor="#FAFAFA" TextColor="#111111" PlaceholderColor="#888888"/>
+            </VerticalStackLayout>
+
+            <Button x:Name="KaydetButton" Text="Değişiklikleri Kaydet" BackgroundColor="#4CAF50" TextColor="White" CornerRadius="8" HeightRequest="50" FontAttributes="Bold" Clicked="OnKaydetClicked" Margin="0,20,0,0"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
