@@ -103,7 +103,7 @@
                             <Grid ColumnDefinitions="*, *, Auto">
 
                                 <VerticalStackLayout Grid.Column="0" Spacing="2">
-                                    <Label Text="Durum" FontSize="10" TextColor="#888888" Margin="5,0,0,0"/>
+                                    <Label Text="Mevcut Durum" FontSize="10" TextColor="#888888" Margin="5,0,0,0"/>
 
                                     <Button Text="{Binding durum}" 
                                             CommandParameter="{Binding .}"

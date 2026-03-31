@@ -27,7 +27,7 @@ public partial class AdminRequestsView : ContentPage
 
     private async Task VerileriYukle()
     {
-        // Veriler yüklenirken mevcut listeyi temizleyebiliriz
+        // Veriler yüklenirken mevcut listeyi temizleyebiliriz				   
         _tumHizmetler = await _apiService.HizmetleriGetirAsync();
         _orijinalTalepler = await _apiService.AdminAktifTalepleriGetirAsync();
         var markalar = await _apiService.MarkalariGetirAsync();
@@ -43,7 +43,7 @@ public partial class AdminRequestsView : ContentPage
                     if (h != null) talep.hizmet_adi = h.ad;
                 }
 
-                // 2. Araç Bilgilerini Detaylandırma (Kritik Blok Geri Eklendi)
+                // 2. Araç Bilgilerini Detaylandırma (Kritik Blok)
                 var arac = await _apiService.AracGetirAsync(talep.arac_id);
                 if (arac != null)
                 {
@@ -71,7 +71,7 @@ public partial class AdminRequestsView : ContentPage
                 }
             }
 
-            // Veriler işlendikten sonra filtreyi uygula ve listeyi yapılandır
+            // Veriler işlendikten sonra filtreyi uygula ve listeyi yapılandır										 
             FiltreleriUygula();
         }
     }
@@ -107,7 +107,7 @@ public partial class AdminRequestsView : ContentPage
             filtrelenmisListe = filtrelenmisListe.Where(t => t.durum == _secilenDurum);
         }
 
-        // Arama Barı Filtresi
+        // Arama Barı Filtresi			   
         if (!string.IsNullOrWhiteSpace(AramaBar.Text))
         {
             var kelime = AramaBar.Text.ToLower();
@@ -117,6 +117,8 @@ public partial class AdminRequestsView : ContentPage
             );
         }
 
+        // Değişiklikleri ekrana yansıtmak için listeyi tazeliyoruz
+        RequestsList.ItemsSource = null;
         // 3. EFSANE SIRALAMA MANTIĞI (Geri Geldi!)
         // Önce duruma göre aciliyet sırası, sonra eskiden yeniye (ID sırası en güvenli tarih sırasıdır)
         filtrelenmisListe = filtrelenmisListe
@@ -140,6 +142,16 @@ public partial class AdminRequestsView : ContentPage
     private void OnFiltreDurumKutusuAcKapat(object sender, EventArgs e)
     {
         DurumSecimKutusu.IsVisible = !DurumSecimKutusu.IsVisible;
+
+        // REVİZE: Üst filtre açıldığında, kartların içindeki tüm açık dropdownları kapat ve ekranı tazele
+        if (DurumSecimKutusu.IsVisible && _orijinalTalepler != null)
+        {
+            foreach (var talep in _orijinalTalepler)
+            {
+                talep.DropdownAcikMi = false;
+            }
+            FiltreleriUygula();
+        }
     }
 
     private void OnFiltreDurumSecildi(object sender, SelectionChangedEventArgs e)
@@ -149,14 +161,14 @@ public partial class AdminRequestsView : ContentPage
         {
             _secilenDurum = secilen;
             SecilenDurumButonu.Text = secilen;
-            DurumSecimKutusu.IsVisible = false; // Kapat
-            DurumListesi.SelectedItem = null;   // Seçimi sıfırla
-            FiltreleriUygula();                 // Listeyi tazele
+            DurumSecimKutusu.IsVisible = false;
+            DurumListesi.SelectedItem = null;
+            FiltreleriUygula();
         }
     }
 
     // =========================================================
-    // KART İÇİ DURUM SEÇİM KONTROLLERİ (MADDE 46)
+    // KART İÇİ DURUM SEÇİM KONTROLLERİ
     // =========================================================
 
     private void OnItemDurumKutusuAc(object sender, EventArgs e)
@@ -166,19 +178,24 @@ public partial class AdminRequestsView : ContentPage
 
         if (tiklananTalep != null)
         {
-            // Aynı anda sadece bir kartın dropdown'ı açık kalsın
+            // REVİZE: Kart içindeki açılırken ÜST FİLTREYİ ZORLA KAPAT
+            DurumSecimKutusu.IsVisible = false;
+
             if (_orijinalTalepler != null)
             {
                 foreach (var talep in _orijinalTalepler)
                 {
-                    if (talep != tiklananTalep && talep.DropdownAcikMi)
+                    if (talep != tiklananTalep)
                     {
                         talep.DropdownAcikMi = false;
                     }
                 }
             }
-            // Tıklananı tersine çevir
+
             tiklananTalep.DropdownAcikMi = !tiklananTalep.DropdownAcikMi;
+
+            // REVİZE: Değişikliği ekranda göstermek için listeyi tazele
+            FiltreleriUygula();
         }
     }
 
@@ -193,15 +210,14 @@ public partial class AdminRequestsView : ContentPage
             if (secilenTalep != null)
             {
                 secilenTalep.durum = yeniDurum;
-                secilenTalep.DropdownAcikMi = false; // Seçim sonrası kapat
+                secilenTalep.DropdownAcikMi = false;
+                FiltreleriUygula(); // UI Tazele
             }
         }
     }
-
     // =========================================================
     // GÜNCELLEME İŞLEMİ
     // =========================================================
-
     private async void OnUpdateClicked(object sender, EventArgs e)
     {
         var button = sender as Button;
@@ -209,7 +225,7 @@ public partial class AdminRequestsView : ContentPage
 
         if (talep != null)
         {
-            // API üzerinden güncelleme isteği yapılandırılır
+            // API üzerinden güncelleme isteği yapılandırılır											
             bool basarili = await _apiService.AdminTalepGuncelleAsync(talep.id, talep.durum, talep.tahmini_tutar);
 
             if (basarili)
