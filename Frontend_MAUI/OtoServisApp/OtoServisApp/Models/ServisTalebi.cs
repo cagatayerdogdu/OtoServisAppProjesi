@@ -1,6 +1,11 @@
-﻿namespace OtoServisApp.Models
+﻿using System;
+using System.ComponentModel; // YENİ EKLENDİ
+using System.Runtime.CompilerServices; // YENİ EKLENDİ
+
+namespace OtoServisApp.Models
 {
-    public class ServisTalebi
+    // Sınıfımıza INotifyPropertyChanged yeteneği kazandırdık
+    public class ServisTalebi : INotifyPropertyChanged
     {
         public int id { get; set; }
         public int kullanici_id { get; set; }
@@ -27,5 +32,28 @@
         // Ekranda göstermek için C# tarafında dolduracağımız yardımcı özellikler
         public string hizmet_adi { get; set; } = "Yükleniyor...";
         public string arac_adi { get; set; } = "Yükleniyor...";
+
+        // --- YENİ EKLENEN KISIM (MADDE 46 - DROPDOWN KONTROLÜ) ---
+        private bool _dropdownAcikMi = false;
+        public bool DropdownAcikMi
+        {
+            get => _dropdownAcikMi;
+            set
+            {
+                if (_dropdownAcikMi != value)
+                {
+                    _dropdownAcikMi = value;
+                    OnPropertyChanged(); // Değer değiştiğinde arayüze haber ver
+                }
+            }
+        }
+
+        // Arayüzü tetikleyecek olay yapılandırması
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+        // ---------------------------------------------------------
     }
 }
