@@ -12,8 +12,6 @@ public partial class AdminRequestsView : ContentPage
     private List<string> _durumFiltreleri = new List<string> { "Tümü", "Bekliyor", "Onaylandı", "İşlemde", "Tamamlandı", "İptal Edildi" };
     private string _secilenDurum = "Tümü";
 
-    private Border _acikKartKutusu = null;
-
     public AdminRequestsView()
     {
         InitializeComponent();
@@ -29,6 +27,7 @@ public partial class AdminRequestsView : ContentPage
 
     private async Task VerileriYukle()
     {
+        // Veriler yüklenirken mevcut listeyi temizleyebiliriz
         _tumHizmetler = await _apiService.HizmetleriGetirAsync();
         _orijinalTalepler = await _apiService.AdminAktifTalepleriGetirAsync();
         var markalar = await _apiService.MarkalariGetirAsync();
@@ -37,12 +36,14 @@ public partial class AdminRequestsView : ContentPage
         {
             foreach (var talep in _orijinalTalepler)
             {
+                // 1. Hizmet Adı Eşleştirme
                 if (_tumHizmetler != null)
                 {
                     var h = _tumHizmetler.FirstOrDefault(x => x.id == talep.hizmet_id);
                     if (h != null) talep.hizmet_adi = h.ad;
                 }
 
+                // 2. Araç Bilgilerini Detaylandırma (Kritik Blok Geri Eklendi)
                 var arac = await _apiService.AracGetirAsync(talep.arac_id);
                 if (arac != null)
                 {
@@ -69,38 +70,17 @@ public partial class AdminRequestsView : ContentPage
                     talep.arac_adi_tam = "Sistemden Silinmiş Araç";
                 }
             }
-        }
 
-        FiltreleriUygula();
-    }
-
-    private void OnDurumSecimButonuClicked(object sender, EventArgs e)
-    {
-        if (_acikKartKutusu != null)
-        {
-            _acikKartKutusu.IsVisible = false;
-            _acikKartKutusu = null;
-        }
-
-        DurumSecimKutusu.IsVisible = !DurumSecimKutusu.IsVisible;
-    }
-
-    private void OnDurumSecildi(object sender, SelectionChangedEventArgs e)
-    {
-        var secilen = e.CurrentSelection.FirstOrDefault() as string;
-        if (secilen != null)
-        {
-            _secilenDurum = secilen;
-            SecilenDurumButonu.Text = secilen;
-
-            DurumSecimKutusu.IsVisible = false;
-            DurumListesi.SelectedItem = null;
-
+            // Veriler işlendikten sonra filtreyi uygula ve listeyi yapılandır
             FiltreleriUygula();
         }
     }
 
-    private void OnFiltreDegisti(object sender, EventArgs e)
+    // =========================================================
+    // FİLTRELEME SİSTEMİ
+    // =========================================================
+
+    private void OnFiltreDegisti(object sender, TextChangedEventArgs e)
     {
         FiltreleriUygula();
     }
@@ -127,6 +107,16 @@ public partial class AdminRequestsView : ContentPage
             filtrelenmisListe = filtrelenmisListe.Where(t => t.durum == _secilenDurum);
         }
 
+        // Arama Barı Filtresi
+        if (!string.IsNullOrWhiteSpace(AramaBar.Text))
+        {
+            var kelime = AramaBar.Text.ToLower();
+            filtrelenmisListe = filtrelenmisListe.Where(t =>
+                (t.kullanici_ad_soyad != null && t.kullanici_ad_soyad.ToLower().Contains(kelime)) ||
+                (t.arac_adi_tam != null && t.arac_adi_tam.ToLower().Contains(kelime))
+            );
+        }
+
         // 3. EFSANE SIRALAMA MANTIĞI (Geri Geldi!)
         // Önce duruma göre aciliyet sırası, sonra eskiden yeniye (ID sırası en güvenli tarih sırasıdır)
         filtrelenmisListe = filtrelenmisListe
@@ -140,29 +130,55 @@ public partial class AdminRequestsView : ContentPage
                 _ => 6
             })
             .ThenBy(t => t.id); // Aynı durumdaki talepleri en eskiden (ilk eklenen) en yeniye doğru sıralar
-
         RequestsList.ItemsSource = filtrelenmisListe.ToList();
     }
 
+    // =========================================================
+    // ÜST TARAF FİLTRE DROPDOWN KONTROLLERİ
+    // =========================================================
+
+    private void OnFiltreDurumKutusuAcKapat(object sender, EventArgs e)
+    {
+        DurumSecimKutusu.IsVisible = !DurumSecimKutusu.IsVisible;
+    }
+
+    private void OnFiltreDurumSecildi(object sender, SelectionChangedEventArgs e)
+    {
+        var secilen = e.CurrentSelection.FirstOrDefault() as string;
+        if (secilen != null)
+        {
+            _secilenDurum = secilen;
+            SecilenDurumButonu.Text = secilen;
+            DurumSecimKutusu.IsVisible = false; // Kapat
+            DurumListesi.SelectedItem = null;   // Seçimi sıfırla
+            FiltreleriUygula();                 // Listeyi tazele
+        }
+    }
+
+    // =========================================================
+    // KART İÇİ DURUM SEÇİM KONTROLLERİ (MADDE 46)
+    // =========================================================
+
     private void OnItemDurumKutusuAc(object sender, EventArgs e)
     {
-        DurumSecimKutusu.IsVisible = false;
-
         var btn = sender as Button;
-        var layout = btn?.Parent as VerticalStackLayout;
-        if (layout != null && layout.Children.Count > 2)
-        {
-            var kutu = layout.Children[2] as Border;
-            if (kutu != null)
-            {
-                if (_acikKartKutusu != null && _acikKartKutusu != kutu)
-                {
-                    _acikKartKutusu.IsVisible = false;
-                }
+        var tiklananTalep = btn?.BindingContext as ServisTalebi;
 
-                kutu.IsVisible = !kutu.IsVisible;
-                _acikKartKutusu = kutu.IsVisible ? kutu : null;
+        if (tiklananTalep != null)
+        {
+            // Aynı anda sadece bir kartın dropdown'ı açık kalsın
+            if (_orijinalTalepler != null)
+            {
+                foreach (var talep in _orijinalTalepler)
+                {
+                    if (talep != tiklananTalep && talep.DropdownAcikMi)
+                    {
+                        talep.DropdownAcikMi = false;
+                    }
+                }
             }
+            // Tıklananı tersine çevir
+            tiklananTalep.DropdownAcikMi = !tiklananTalep.DropdownAcikMi;
         }
     }
 
@@ -172,28 +188,19 @@ public partial class AdminRequestsView : ContentPage
         if (btn != null)
         {
             var yeniDurum = btn.Text;
-            var talep = btn.BindingContext as ServisTalebi;
-            if (talep != null)
-            {
-                talep.durum = yeniDurum;
-            }
+            var secilenTalep = btn.BindingContext as ServisTalebi;
 
-            var innerStack = btn.Parent as VerticalStackLayout;
-            var kutu = innerStack?.Parent as Border;
-            var outerStack = kutu?.Parent as VerticalStackLayout;
-            if (outerStack != null && outerStack.Children.Count > 1)
+            if (secilenTalep != null)
             {
-                var anaButon = outerStack.Children[1] as Button;
-                if (anaButon != null) anaButon.Text = yeniDurum;
-            }
-
-            if (kutu != null)
-            {
-                kutu.IsVisible = false;
-                if (_acikKartKutusu == kutu) _acikKartKutusu = null;
+                secilenTalep.durum = yeniDurum;
+                secilenTalep.DropdownAcikMi = false; // Seçim sonrası kapat
             }
         }
     }
+
+    // =========================================================
+    // GÜNCELLEME İŞLEMİ
+    // =========================================================
 
     private async void OnUpdateClicked(object sender, EventArgs e)
     {
@@ -202,12 +209,13 @@ public partial class AdminRequestsView : ContentPage
 
         if (talep != null)
         {
+            // API üzerinden güncelleme isteği yapılandırılır
             bool basarili = await _apiService.AdminTalepGuncelleAsync(talep.id, talep.durum, talep.tahmini_tutar);
 
             if (basarili)
             {
                 await DisplayAlert("Başarılı", "Talep başarıyla güncellendi.", "Tamam");
-                await VerileriYukle();
+                await VerileriYukle(); // Listeyi son haliyle tazele
             }
             else
             {
