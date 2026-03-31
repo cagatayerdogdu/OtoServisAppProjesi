@@ -9,7 +9,7 @@ public partial class AdminRequestsView : ContentPage
     private List<Hizmet> _tumHizmetler;
     private List<ServisTalebi> _orijinalTalepler;
 
-    private List<string> _durumFiltreleri = new List<string> { "Tümü", "Bekliyor", "Onaylandı", "İşlemde", "Tamamlandı", "İptal Edildi" };
+    private List<string> _durumFiltreleri = new List<string> { "Tümü", "Bekliyor", "Onaylandı", "İşlemde"}; //, "Tamamlandı", "İptal Edildi" 
     private string _secilenDurum = "Tümü";
 
     public AdminRequestsView()

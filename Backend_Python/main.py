@@ -586,7 +586,7 @@ def kullanici_talep_guncelle(talep_id: int, istek: schemas.TalepGuncelleKullanic
         if istek.talep_tarihi: talep.talep_tarihi = istek.talep_tarihi
         if istek.adres: talep.adres = istek.adres
         if istek.notlar is not None: talep.notlar = istek.notlar
-        # KULLANICI DÜZELTMEYİ YAPTIĞI İÇİN BAYRAĞI İNDİRİYORUZ				 
+        # KULLANICI DÜZELTMEYİ YAPTIĞI İÇİN BAYRAĞI İNDİRİYORUZ                 
         talep.duzeltme_istendi_mi = False
         talep.duzeltme_notu = None
         log_kaydet(db, "Talep Güncelleme", f"Talep ID: {talep_id} kullanıcı tarafından düzeltildi.", "INFO", talep.kullanici_id)
@@ -595,18 +595,34 @@ def kullanici_talep_guncelle(talep_id: int, istek: schemas.TalepGuncelleKullanic
         if istek.duzeltme_istendi_mi:
             talep.duzeltme_istendi_mi = True
             talep.duzeltme_notu = istek.duzeltme_notu
-            log_kaydet(db, "Düzeltme Talebi", f"Talep ID: {talep_id} için düzeltme istendi: {istek.duzeltme_notu}", "WARNING", talep.kullanici_id)
+
+            # Müşteri ve Araç Bilgilerini Veritabanından Çekiyoruz
+            musteri = db.query(models.Kullanici).filter(models.Kullanici.id == talep.kullanici_id).first()
+            arac = db.query(models.Arac).filter(models.Arac.id == talep.arac_id).first()
             
-            # --- İŞTE DOĞRU YER! ADMİNE BİLDİRİM VE VERİTABANI KAYDI BURADA YAPILMALI ---            
-            # (Kullanıcı düzeltme kaydını db'ye attıktan sonra eklenecek kısım)        
+            musteri_adi = musteri.ad_soyad if musteri else "Bilinmeyen Müşteri"
+            
+            # Araç bilgisini toparlıyoruz
+            arac_bilgisi = "Kayıtlı Araç"
+            if arac:
+                if arac.ozel_marka and arac.ozel_model:
+                    arac_bilgisi = f"{arac.ozel_marka} {arac.ozel_model}"
+                else:
+                    arac_bilgisi = f"Araç ID: {arac.id}"
+
+            # Dinamik Bildirim Mesajı Hazırlanıyor
+            bildirim_mesaji = f"Müşteri {musteri_adi}, {arac_bilgisi} talebi için düzeltme istiyor. Not: {istek.duzeltme_notu}"
+
+            log_kaydet(db, "Düzeltme Talebi", bildirim_mesaji, "WARNING", talep.kullanici_id)
+            
             # Admini (veya adminleri) bul
-            admin_kullanici = db.query(models.Kullanici).filter(models.Kullanici.rol == 'admin').first()
+            admin_kullanici = db.query(models.Kullanici).filter(models.Kullanici.rol == 'Admin').first()
             if admin_kullanici:
                 # 1. Bildirimi Veritabanına Yaz
                 yeni_bildirim = models.SistemBildirimleri(
                     kullanici_id=admin_kullanici.id,
                     baslik="Müşteri Düzeltme Talebi",
-                    mesaj=f"Talep ID: {talep_id} için müşteri düzeltme istiyor. Not: {istek.duzeltme_notu}",
+                    mesaj=bildirim_mesaji,
                     okundu_mu=False
                 )
                 db.add(yeni_bildirim)
@@ -618,7 +634,7 @@ def kullanici_talep_guncelle(talep_id: int, istek: schemas.TalepGuncelleKullanic
                         admin_mesaj = messaging.Message(
                             notification=messaging.Notification(
                                 title="Müşteri Düzeltme İstiyor",
-                                body=f"Talep ID: {talep_id} numaralı işlem için düzeltme talebi var.",
+                                body=bildirim_mesaji,
                             ),
                             token=admin_kullanici.fcm_token,
                         )
@@ -628,6 +644,7 @@ def kullanici_talep_guncelle(talep_id: int, istek: schemas.TalepGuncelleKullanic
 
     db.commit()
     return {"mesaj": "İşlem başarılı"}
+
 
 # TALEP SİLME (Soft Delete)
 @app.delete("/servis-talepleri/{talep_id}")

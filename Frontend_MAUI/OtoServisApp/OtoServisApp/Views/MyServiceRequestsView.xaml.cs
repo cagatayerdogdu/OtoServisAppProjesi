@@ -9,6 +9,11 @@ public partial class MyServiceRequestsView : ContentPage
     private readonly ApiService _apiService;
     private List<Hizmet> _tumHizmetler;
     private List<Marka> _tumMarkalar;
+    private List<ServisTalebi> _orijinalTalepler;
+
+    // Filtre Değişkenleri
+    private List<string> _durumFiltreleri = new List<string> { "Tümü", "Bekliyor", "Onaylandı", "İşlemde", "Tamamlandı", "İptal Edildi" };
+    private string _secilenDurum = "Tümü";
 
     public MyServiceRequestsView(Kullanici kullanici)
     {
@@ -20,53 +25,101 @@ public partial class MyServiceRequestsView : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+        DurumListesi.ItemsSource = _durumFiltreleri;
         await VerileriYukle();
     }
 
     private async Task VerileriYukle()
     {
         _tumHizmetler = await _apiService.HizmetleriGetirAsync();
-        _tumMarkalar = await _apiService.MarkalariGetirAsync(); // Araç isimleri için markaları çekiyoruz
+        _tumMarkalar = await _apiService.MarkalariGetirAsync();
 
-        var talepler = await _apiService.ServisTalepleriniGetirAsync(_aktifKullanici.id);
+        _orijinalTalepler = await _apiService.ServisTalepleriniGetirAsync(_aktifKullanici.id);
 
-        if (talepler != null)
+        if (_orijinalTalepler != null)
         {
-            foreach (var talep in talepler)
+            foreach (var talep in _orijinalTalepler)
             {
                 var hizmet = _tumHizmetler?.FirstOrDefault(h => h.id == talep.hizmet_id);
                 if (hizmet != null) talep.hizmet_adi = hizmet.ad;
-
                 // Aracın Aktifler (A) listesinde olup olmadığına bak
-                var arac = _aktifKullanici.araclar?.FirstOrDefault(a => a.id == talep.arac_id);
+                var aracAktif = _aktifKullanici.araclar?.FirstOrDefault(a => a.id == talep.arac_id);
 
                 // Eğer araç listede yoksa (Yani Soft Delete 'X' yapılmışsa) API'den geçmiş kaydını bul!
-                if (arac == null)
+                if (aracAktif == null)
                 {
-                    arac = await _apiService.AracGetirAsync(talep.arac_id);
+                    aracAktif = await _apiService.AracGetirAsync(talep.arac_id);
                 }
 
-                // Şimdi aracı bulduğumuza göre ismini parçalayıp yazalım
+                var arac = await _apiService.AracGetirAsync(talep.arac_id);
                 if (arac != null)
                 {
-                    var marka = _tumMarkalar?.FirstOrDefault(m => m.id == arac.marka_id);
-                    var model = marka?.modeller?.FirstOrDefault(md => md.id == arac.model_id);
+                    string gosterimAd = "";
+                    if (arac.marka_id != null && arac.model_id != null && _tumMarkalar != null)
+                    {
+                        var marka = _tumMarkalar.FirstOrDefault(m => m.id == arac.marka_id);
+                        if (marka != null)
+                        {
+                            var model = marka.modeller?.FirstOrDefault(m => m.id == arac.model_id);
+                            if (model != null) gosterimAd = $"{marka.ad} {model.ad}";
+                        }
+                    }
 
-                    if (marka != null && model != null)
-                        talep.arac_adi = $"{marka.ad} {model.ad}";
-                    else
-                        talep.arac_adi = $"{arac.ozel_marka} {arac.ozel_model}";
-                }
-                else
-                {
-                    talep.arac_adi = "Silinmiş Araç";
+                    if (string.IsNullOrWhiteSpace(gosterimAd) && !string.IsNullOrWhiteSpace(arac.ozel_marka))
+                    {
+                        gosterimAd = $"{arac.ozel_marka} {arac.ozel_model}";
+                    }
+                    talep.arac_adi = string.IsNullOrWhiteSpace(gosterimAd) ? $"Araç ID: {arac.id}" : gosterimAd;
                 }
             }
-
-            // YENİ KURAL (Madde 16): Talepleri ID'ye (veya tarihe) göre en yeniden en eskiye sırala
-            RequestsList.ItemsSource = null;
-            RequestsList.ItemsSource = talepler.OrderByDescending(t => t.id).ToList();
+            FiltreleriUygula();
         }
+    }
+
+    private void OnFiltreAcKapat(object sender, EventArgs e)
+    {
+        DurumSecimKutusu.IsVisible = !DurumSecimKutusu.IsVisible;
+    }
+
+    private void OnFiltreSecildi(object sender, SelectionChangedEventArgs e)
+    {
+        var secilen = e.CurrentSelection.FirstOrDefault() as string;
+        if (secilen != null)
+        {
+            _secilenDurum = secilen;
+            SecilenDurumButonu.Text = secilen;
+            DurumSecimKutusu.IsVisible = false;
+            DurumListesi.SelectedItem = null;
+            FiltreleriUygula();
+        }
+    }
+
+    private void FiltreleriUygula()
+    {
+        if (_orijinalTalepler == null) return;
+
+        var filtrelenmisListe = _orijinalTalepler.AsEnumerable();
+
+        if (_secilenDurum != "Tümü")
+        {
+            filtrelenmisListe = filtrelenmisListe.Where(t => t.durum == _secilenDurum);
+        }
+
+        filtrelenmisListe = filtrelenmisListe
+            .OrderBy(t => t.durum switch
+            {
+                "Bekliyor" => 1,
+                "Onaylandı" => 2,
+                "İşlemde" => 3,
+                "Tamamlandı" => 4,
+                "İptal Edildi" => 5,
+                _ => 6
+            })
+            .ThenByDescending(t => t.id);
+
+        // YENİ KURAL (Madde 16): Talepleri ID'ye (veya tarihe) göre en yeniden en eskiye sırala
+        RequestsList.ItemsSource = null;
+        RequestsList.ItemsSource = filtrelenmisListe.ToList();
     }
 
     private async void OnEditClicked(object sender, EventArgs e)
@@ -76,10 +129,11 @@ public partial class MyServiceRequestsView : ContentPage
 
         if (secilenTalep != null)
         {
-            // İleride buraya "EditServiceRequestView" sayfasına yönlendirme koyacağız.
-            // await DisplayAlert("Bilgi", "Düzenleme ekranı yakında eklenecek.", "Tamam");
-            
-            // Yeni oluşturduğumuz sayfaya yönlendir ve seçili talebi beraberinde yolla            
+            if (secilenTalep.durum == "Tamamlandı" || secilenTalep.durum == "İptal Edildi")
+            {
+                await DisplayAlert("İşlem Engellendi", "Bu talep sonlandığı için üzerinde değişiklik yapılamaz.", "Tamam");
+                return;
+            }
             await Navigation.PushAsync(new EditServiceRequestView(secilenTalep, _aktifKullanici));
         }
     }
@@ -91,7 +145,7 @@ public partial class MyServiceRequestsView : ContentPage
 
         if (secilenTalep != null)
         {
-            // YENİ KURAL: Sadece Bekliyor olanlar iptal edilebilir
+            // YENİ KURAL: Sadece Bekliyor olanlar iptal edilebilir										
             if (secilenTalep.durum != "Bekliyor")
             {
                 await DisplayAlert("İşlem Engellendi", "Sadece 'Bekliyor' durumundaki talepler iptal edilebilir.", "Tamam");
@@ -106,11 +160,11 @@ public partial class MyServiceRequestsView : ContentPage
                 if (basarili)
                 {
                     await DisplayAlert("Başarılı", "Talebiniz iptal edildi.", "Tamam");
-                    await VerileriYukle(); // Listeyi yenile
+                    await VerileriYukle();
                 }
                 else
                 {
-                    await DisplayAlert("Hata", "İşlem sırasında bir hata oluştu.", "Tamam");
+                    await DisplayAlert("Hata", "Talebiniz iptal edilirken bir sorun oluştu.", "Tamam");
                 }
             }
         }

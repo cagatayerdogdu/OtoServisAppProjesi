@@ -1,4 +1,4 @@
-using OtoServisApp.Models;
+﻿using OtoServisApp.Models;
 using OtoServisApp.Services;
 
 namespace OtoServisApp.Views;
@@ -7,6 +7,10 @@ public partial class AdminPastRequestsView : ContentPage
 {
     private readonly ApiService _apiService;
     private List<Hizmet> _tumHizmetler;
+    private List<ServisTalebi> _orijinalTalepler;
+
+    private List<string> _durumFiltreleri = new List<string> { "Tümü", "Tamamlandı", "İptal Edildi" };
+    private string _secilenDurum = "Tümü";
 
     public AdminPastRequestsView()
     {
@@ -17,22 +21,71 @@ public partial class AdminPastRequestsView : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+        DurumListesi.ItemsSource = _durumFiltreleri;
         await VerileriYukle();
     }
 
     private async Task VerileriYukle()
     {
         _tumHizmetler = await _apiService.HizmetleriGetirAsync();
-        var talepler = await _apiService.AdminGecmisTalepleriGetirAsync();
+        _orijinalTalepler = await _apiService.AdminGecmisTalepleriGetirAsync();
 
-        if (talepler != null)
+        if (_orijinalTalepler != null)
         {
-            foreach (var talep in talepler)
+            foreach (var talep in _orijinalTalepler)
             {
                 var hizmet = _tumHizmetler?.FirstOrDefault(h => h.id == talep.hizmet_id);
                 if (hizmet != null) talep.hizmet_adi = hizmet.ad;
             }
-            PastRequestsList.ItemsSource = talepler;
+            FiltreleriUygula();
+        }
+    }
+
+    private void OnFiltreDegisti(object sender, TextChangedEventArgs e)
+    {
+        FiltreleriUygula();
+    }
+
+    private void FiltreleriUygula()
+    {
+        if (_orijinalTalepler == null) return;
+
+        var filtrelenmisListe = _orijinalTalepler.AsEnumerable();
+
+        if (_secilenDurum != "Tümü")
+        {
+            filtrelenmisListe = filtrelenmisListe.Where(t => t.durum == _secilenDurum);
+        }
+
+        if (!string.IsNullOrWhiteSpace(AramaBar.Text))
+        {
+            var kelime = AramaBar.Text.ToLower();
+            filtrelenmisListe = filtrelenmisListe.Where(t =>
+                (t.kullanici_ad_soyad != null && t.kullanici_ad_soyad.ToLower().Contains(kelime)) ||
+                (t.arac_adi_tam != null && t.arac_adi_tam.ToLower().Contains(kelime)) ||
+                (t.hizmet_adi != null && t.hizmet_adi.ToLower().Contains(kelime))
+            );
+        }
+
+        PastRequestsList.ItemsSource = null;
+        PastRequestsList.ItemsSource = filtrelenmisListe.ToList();
+    }
+
+    private void OnFiltreDurumKutusuAcKapat(object sender, EventArgs e)
+    {
+        DurumSecimKutusu.IsVisible = !DurumSecimKutusu.IsVisible;
+    }
+
+    private void OnFiltreDurumSecildi(object sender, SelectionChangedEventArgs e)
+    {
+        var secilen = e.CurrentSelection.FirstOrDefault() as string;
+        if (secilen != null)
+        {
+            _secilenDurum = secilen;
+            SecilenDurumButonu.Text = secilen;
+            DurumSecimKutusu.IsVisible = false;
+            DurumListesi.SelectedItem = null;
+            FiltreleriUygula();
         }
     }
 }
