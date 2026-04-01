@@ -40,6 +40,15 @@
         </Border>
 
         <CollectionView x:Name="PastRequestsList" Grid.Row="1" Margin="15,10,15,0">
+
+            <CollectionView.EmptyView>
+                <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Start" Spacing="10" Margin="0,50,0,0">
+                    <Label Text="{x:Static helpers:IconFont.Search}" FontFamily="FASolid" FontSize="50" TextColor="#BDC3C7" HorizontalOptions="Center" Opacity="0.6"/>
+                    <Label Text="Arama kriterlerinize uygun talep bulunamadı." TextColor="#7F8C8D" FontSize="15" FontAttributes="Bold" HorizontalOptions="Center"/>
+                    <Label Text="Lütfen farklı bir kelime veya durum seçerek tekrar deneyin." TextColor="#95A5A6" FontSize="13" HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+
             <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <Border BackgroundColor="#FAFAFA" StrokeShape="RoundRectangle 12" Padding="15" Margin="0,0,0,15" Stroke="#E0E0E0" StrokeThickness="1">
@@ -81,5 +90,6 @@
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
+        
     </Grid>
 </ContentPage>

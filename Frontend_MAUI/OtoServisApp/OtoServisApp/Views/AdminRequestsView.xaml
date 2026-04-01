@@ -46,16 +46,21 @@
                         <VerticalStackLayout Spacing="10">
 
                             <Grid ColumnDefinitions="*, Auto">
-                                <VerticalStackLayout Grid.Column="0">
-                                    <Label Text="{x:Static helpers:IconFont.User}" FontFamily="FASolid" FontSize="13" TextColor="#333333" VerticalOptions="Center"/>
-                                    <Label Text="{Binding kullanici_ad_soyad}" FontSize="16" FontAttributes="Bold" TextColor="#111111"/>
+                                <VerticalStackLayout Grid.Column="0" Spacing="4">
+                                    <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
+                                        <Label Text="{x:Static helpers:IconFont.User}" FontFamily="FASolid" FontSize="14" TextColor="#888888" VerticalOptions="Center"/>
+                                        <Label Text="{Binding kullanici_ad_soyad}" FontSize="16" FontAttributes="Bold" TextColor="#111111" VerticalOptions="Center"/>
+                                    </HorizontalStackLayout>
 
-                                    <Label Text="{x:Static helpers:IconFont.Phone}" FontFamily="FASolid" FontSize="13" TextColor="#333333" VerticalOptions="Center"/>
-                                    <Label Text="Telefon (Kopyalanabilir)" FontSize="11" TextColor="#666666" FontAttributes="Bold" VerticalOptions="Center"/>
-                                    
-                                    <Entry Text="{Binding kullanici_telefon}" IsReadOnly="True" FontSize="12" TextColor="#00BCD4" BackgroundColor="Transparent" Margin="0" InputView.IsReadOnly="True"/>
+                                    <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
+                                        <Label Text="{x:Static helpers:IconFont.Phone}" FontFamily="FASolid" FontSize="12" TextColor="#00BCD4" VerticalOptions="Center"/>
+                                        <Label Text="{Binding kullanici_telefon}" FontSize="12" FontAttributes="Bold" TextColor="#00BCD4" VerticalOptions="Center" TextDecorations="Underline">
+                                            <Label.GestureRecognizers>
+                                                <TapGestureRecognizer Tapped="OnCopyTapped" CommandParameter="{Binding kullanici_telefon}" />
+                                            </Label.GestureRecognizers>
+                                        </Label>
+                                    </HorizontalStackLayout>
                                 </VerticalStackLayout>
-
                                 <VerticalStackLayout Grid.Column="1" HorizontalOptions="End">
                                     <HorizontalStackLayout Spacing="5" VerticalOptions="Start">
                                         <Label Text="{x:Static helpers:IconFont.CalendarAlt}" FontFamily="FASolid" FontSize="12" TextColor="#888888" VerticalOptions="Center"/>
@@ -80,9 +85,13 @@
                             <VerticalStackLayout Spacing="2">
                                 <HorizontalStackLayout Spacing="5">
                                     <Label Text="{x:Static helpers:IconFont.MapMarkerAlt}" FontFamily="FASolid" FontSize="11" TextColor="#666666" VerticalOptions="Center"/>
-                                    <Label Text="Adres (Kopyalanabilir)" FontSize="11" TextColor="#666666" FontAttributes="Bold" VerticalOptions="Center"/>
+                                    <Label Text="Adres (Üzerine basılı Tutulduğunda Kopyalanabilir)" FontSize="11" TextColor="#666666" FontAttributes="Bold" VerticalOptions="Center"/>
                                 </HorizontalStackLayout>
-                                <Editor Text="{Binding adres}" IsReadOnly="True" AutoSize="TextChanges" FontSize="12" TextColor="#333333" BackgroundColor="Transparent" Margin="0"/>
+                                <Label Text="{Binding adres}" FontSize="12" TextColor="#333333" LineBreakMode="WordWrap" BackgroundColor="#FAFAFA" Padding="5">
+                                    <Label.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnCopyTapped" CommandParameter="{Binding adres}" />
+                                    </Label.GestureRecognizers>
+                                </Label>
                             </VerticalStackLayout>
 
                             <VerticalStackLayout Spacing="2">

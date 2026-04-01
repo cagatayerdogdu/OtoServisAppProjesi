@@ -9,20 +9,28 @@
     <Grid RowDefinitions="Auto, *">
 
         <Border Grid.Row="0" BackgroundColor="#FAFAFA" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="5" Margin="10,10,10,5">
-            <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
-                <Label Text="Filtrele:" VerticalOptions="Center" FontSize="13" FontAttributes="Bold" TextColor="#333333"/>
-                <VerticalStackLayout>
-                    <Button x:Name="SecilenDurumButonu" Text="Tümü" BackgroundColor="White" TextColor="#111111" BorderColor="#CCCCCC" BorderWidth="1" CornerRadius="15" HeightRequest="35" WidthRequest="120" FontSize="12" Clicked="OnFiltreAcKapat" />
-                    <Border x:Name="DurumSecimKutusu" IsVisible="False" BackgroundColor="White" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="5" Margin="0,5,0,0" ZIndex="99">
-                        <CollectionView x:Name="DurumListesi" HeightRequest="180" WidthRequest="120" SelectionMode="Single" SelectionChanged="OnFiltreSecildi">
-                            <CollectionView.ItemTemplate>
-                                <DataTemplate>
-                                    <Label Text="{Binding .}" Padding="10" FontSize="12" TextColor="#111111"/>
-                                </DataTemplate>
-                            </CollectionView.ItemTemplate>
-                        </CollectionView>
-                    </Border>
-                </VerticalStackLayout>
+            <HorizontalStackLayout Spacing="10" HorizontalOptions="FillAndExpand">
+
+                <Grid WidthRequest="200" VerticalOptions="Center" HorizontalOptions="Start">
+                    <SearchBar x:Name="AramaBar" Placeholder="Araç veya Hizmet..." TextChanged="OnFiltreDegisti" BackgroundColor="#FAFAFA" TextColor="#111111" Margin="30,0,0,0"/>
+                    <Label Text="{x:Static helpers:IconFont.Search}" FontFamily="FASolid" FontSize="14" TextColor="#888888" HorizontalOptions="Start" VerticalOptions="Center" Margin="10,0,0,0"/>
+                </Grid>
+
+                <HorizontalStackLayout Spacing="5" VerticalOptions="Center" HorizontalOptions="EndAndExpand">
+                    <Label Text="Durum:" VerticalOptions="Center" FontSize="13" FontAttributes="Bold" TextColor="#333333"/>
+                    <VerticalStackLayout>
+                        <Button x:Name="SecilenDurumButonu" Text="Tümü" BackgroundColor="White" TextColor="#111111" BorderColor="#CCCCCC" BorderWidth="1" CornerRadius="15" HeightRequest="35" WidthRequest="110" FontSize="12" Padding="5,0" Clicked="OnFiltreAcKapat" />
+                        <Border x:Name="DurumSecimKutusu" IsVisible="False" BackgroundColor="White" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="5" Margin="0,5,0,0" ZIndex="99">
+                            <CollectionView x:Name="DurumListesi" HeightRequest="180" WidthRequest="110" SelectionMode="Single" SelectionChanged="OnFiltreSecildi">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Label Text="{Binding .}" Padding="10" FontSize="12" TextColor="#111111"/>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </Border>
+                    </VerticalStackLayout>
+                </HorizontalStackLayout>
             </HorizontalStackLayout>
         </Border>
 

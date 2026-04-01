@@ -81,6 +81,12 @@ public partial class MyServiceRequestsView : ContentPage
         DurumSecimKutusu.IsVisible = !DurumSecimKutusu.IsVisible;
     }
 
+    // Arama barı tetikleyicisi
+    private void OnFiltreDegisti(object sender, TextChangedEventArgs e)
+    {
+        FiltreleriUygula();
+    }
+
     private void OnFiltreSecildi(object sender, SelectionChangedEventArgs e)
     {
         var secilen = e.CurrentSelection.FirstOrDefault() as string;
@@ -103,6 +109,16 @@ public partial class MyServiceRequestsView : ContentPage
         if (_secilenDurum != "Tümü")
         {
             filtrelenmisListe = filtrelenmisListe.Where(t => t.durum == _secilenDurum);
+        }
+
+        // YENİ EKLENEN ARAMA KONTROLÜ
+        if (!string.IsNullOrWhiteSpace(AramaBar.Text))
+        {
+            var kelime = AramaBar.Text.ToLower();
+            filtrelenmisListe = filtrelenmisListe.Where(t =>
+                (t.hizmet_adi != null && t.hizmet_adi.ToLower().Contains(kelime)) ||
+                (t.arac_adi != null && t.arac_adi.ToLower().Contains(kelime))
+            );
         }
 
         filtrelenmisListe = filtrelenmisListe

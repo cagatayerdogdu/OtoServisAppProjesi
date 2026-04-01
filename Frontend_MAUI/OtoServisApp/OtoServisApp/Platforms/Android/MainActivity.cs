@@ -14,6 +14,7 @@ namespace OtoServisApp
         {
             base.OnCreate(savedInstanceState);
 
+            /* ESKİ KOD (MAUI Program.cs'e taşındığı ve native crash'i önlemek için yorum satırına alındı)
             // DİKKAT: Cloud Messaging (Bildirim) modülünü aktif ederek başlatıyoruz!
             //CrossFirebase.Initialize(this, new CrossFirebaseSettings(isCloudMessagingEnabled: true));
             try
@@ -26,6 +27,7 @@ namespace OtoServisApp
                 // Çökerse arka planda kalsın, uygulamayı kapatmasın
                 Console.WriteLine($"Firebase Başlatılma Hatası: {ex.Message}");
             }
+            */
         }
     }
 }

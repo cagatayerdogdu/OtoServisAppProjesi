@@ -504,41 +504,45 @@ def arac_guncelle(arac_id: int, arac_data: schemas.AracCreate, db: Session = Dep
 #     db.refresh(yeni_talep)
 #     return yeni_talep
 
+# --- 2. YENİ SERVİS TALEBİ OLUŞTURMA METODU ---
 @app.post("/servis-talepleri/", response_model=schemas.ServisTalebi)
 def servis_talebi_olustur(istek: schemas.ServisTalebiCreate, db: Session = Depends(get_db)):
     try:
-        # 1. Yeni servis talebini oluşturuyoruz
+        # 1. Yeni servis talebini oluşturuyoruz						
         yeni_talep = models.ServisTalebi(**istek.model_dump())
         db.add(yeni_talep)
         # YENİ REVİZE: commit() yerine flush() kullanıyoruz. 
-        # Böylece talep beklemeye alınıyor, hata olursa geri alınabilecek (rollback).
+        # Böylece talep beklemeye alınıyor, hata olursa geri alınabilecek (rollback).													 
         db.flush() 
 
-        # 2. Admin'e Yeni Talep Bildirimi Oluşturma ve Push Bildirimi (FCM) Gönderme
+        # 2. Admin'e Yeni Talep Bildirimi Oluşturma ve Push Bildirimi (FCM) Gönderme													  
         istegi_yapan = db.query(models.Kullanici).filter(models.Kullanici.id == istek.kullanici_id).first()
         hizmet_detay = db.query(models.Hizmet).filter(models.Hizmet.id == istek.hizmet_id).first()
+        arac_detay = db.query(models.Arac).filter(models.Arac.id == istek.arac_id).first()
         
         if istegi_yapan and hizmet_detay:
-            adminler = db.query(models.Kullanici).filter(models.Kullanici.rol == "Admin").all()
+            # Araç ve Hizmet bilgisini log ve bildirim için zenginleştiriyoruz
+            arac_bilgisi = f"{arac_detay.ozel_marka} {arac_detay.ozel_model}" if (arac_detay and arac_detay.ozel_marka) else "Kayıtlı Araç"
+            bildirim_mesaji = f"Müşteri {istegi_yapan.ad_soyad}, {arac_bilgisi} aracı için '{hizmet_detay.ad}' (Talep ID: {yeni_talep.id}) talebi oluşturdu."
             
+            # Log kaydına da detaylı şekilde yazdırıyoruz
+            log_kaydet(db, "Yeni Talep", bildirim_mesaji, "INFO", yeni_talep.kullanici_id)
+
+            adminler = db.query(models.Kullanici).filter(models.Kullanici.rol == "Admin").all()
             for admin in adminler:
-                bildirim_mesaji = f"{istegi_yapan.ad_soyad} adlı müşteri '{hizmet_detay.ad}' için yeni bir servis talebi oluşturdu."
-                
                 yeni_bildirim = models.SistemBildirimleri(
                     kullanici_id=admin.id,
                     baslik="Yeni Servis Talebi",
                     mesaj=bildirim_mesaji
                 )
                 db.add(yeni_bildirim)
-                
                 if admin.fcm_token:
                     mesaj_fcm = messaging.Message(
                         notification=messaging.Notification(title="Yeni Servis Talebi", body=bildirim_mesaji),
                         token=admin.fcm_token
                     )
                     messaging.send(mesaj_fcm)
-
-        # 3. YENİ REVİZE: Eğer buraya kadar hiç hata çıkmadıysa, hem talebi hem bildirimleri aynı anda kaydediyoruz.
+        # 3. YENİ REVİZE: Eğer buraya kadar hiç hata çıkmadıysa, hem talebi hem bildirimleri aynı anda kaydediyoruz.		
         db.commit()
         db.refresh(yeni_talep)
         return yeni_talep
@@ -562,8 +566,8 @@ def servis_talebi_olustur(istek: schemas.ServisTalebiCreate, db: Session = Depen
         # Senin istediğin gibi işlemi tamamen durdurup kullanıcıya 500 hatası fırlatıyoruz
         raise HTTPException(status_code=500, detail=f"İşlem sırasında bir hata oluştu ve talep iptal edildi: {hata_mesaji}")
     
+    
 # --- KULLANICININ SERVİS TALEPLERİ (LİSTELE, GÜNCELLE, SİL) ---
-
 # TALEPLERİ GETİRİRKEN (Sadece A olanlar)
 @app.get("/servis-talepleri/kullanici/{kullanici_id}")
 def kullanici_taleplerini_getir(kullanici_id: int, db: Session = Depends(get_db)):
@@ -580,45 +584,77 @@ def kullanici_talep_guncelle(talep_id: int, istek: schemas.TalepGuncelleKullanic
     if not talep:
         raise HTTPException(status_code=404, detail="Talep bulunamadı")
         
+    # Ortak detayları veritabanından çekiyoruz (Bildirim ve loglarda kullanmak için)
+    musteri = db.query(models.Kullanici).filter(models.Kullanici.id == talep.kullanici_id).first()
+    arac = db.query(models.Arac).filter(models.Arac.id == talep.arac_id).first()
+    hizmet = db.query(models.Hizmet).filter(models.Hizmet.id == talep.hizmet_id).first()
+    admin_kullanici = db.query(models.Kullanici).filter(models.Kullanici.rol == 'Admin').first()
+    
+    musteri_adi = musteri.ad_soyad if musteri else "Bilinmeyen Müşteri"
+    hizmet_adi = hizmet.ad if hizmet else "Bilinmeyen Hizmet"
+    
+    # ARAÇ BİLGİSİNİ DOĞRU FORMATTA OLUŞTURUYORUZ (MARKALAR/MODELLER TABLOSU DESTEKLİ)
+    if arac:
+        if arac.ozel_marka:
+            arac_bilgisi = f"{arac.ozel_marka} {arac.ozel_model}"
+        elif arac.marka and arac.model:
+            arac_bilgisi = f"{arac.marka.ad} {arac.model.ad}"
+        else:
+            arac_bilgisi = f"Araç ID: {arac.id}"
+    else:
+        arac_bilgisi = "Bilinmeyen Araç"
+
     if talep.durum == "Bekliyor":
         if istek.hizmet_id: talep.hizmet_id = istek.hizmet_id
         if istek.arac_id: talep.arac_id = istek.arac_id
         if istek.talep_tarihi: talep.talep_tarihi = istek.talep_tarihi
         if istek.adres: talep.adres = istek.adres
         if istek.notlar is not None: talep.notlar = istek.notlar
-        # KULLANICI DÜZELTMEYİ YAPTIĞI İÇİN BAYRAĞI İNDİRİYORUZ                 
+        
+        # KULLANICI DÜZELTMEYİ YAPTIĞI İÇİN BAYRAĞI İNDİRİYORUZ                                                                                                                              
         talep.duzeltme_istendi_mi = False
         talep.duzeltme_notu = None
-        log_kaydet(db, "Talep Güncelleme", f"Talep ID: {talep_id} kullanıcı tarafından düzeltildi.", "INFO", talep.kullanici_id)
+        
+        # LOG KAYDINI YENİ ARAÇ BİLGİSİYLE OLUŞTUR (Object hatası çözüldü)
+        log_mesaji = f"Talep ID: {talep_id} 'li Araç: {arac_bilgisi} için açılan Hizmet: {hizmet_adi} {musteri_adi} kullanıcısı tarafından düzeltildi."
+        log_kaydet(db, "Talep Güncelleme", log_mesaji, "INFO", talep.kullanici_id)
+        
+        # EKSİK OLAN ADMİN BİLDİRİMİNİ ATIYORUZ
+        if admin_kullanici:
+            yeni_bildirim = models.SistemBildirimleri(
+                kullanici_id=admin_kullanici.id,
+                baslik="Müşteri Talebini Güncelledi",
+                mesaj=log_mesaji,
+                okundu_mu=False
+            )
+            db.add(yeni_bildirim)
+            db.commit() # Hemen kaydet ki listeye düşsün
+            
+            if admin_kullanici.fcm_token:
+                try:
+                    admin_mesaj = messaging.Message(
+                        notification=messaging.Notification(
+                            title="Müşteri Talebini Güncelledi",
+                            body=log_mesaji,
+                        ),
+                        token=admin_kullanici.fcm_token,
+                    )
+                    messaging.send(admin_mesaj)
+                except Exception as e:
+                    print("Admin FCM Gönderim Hatası:", e)
         
     elif talep.durum in ["Onaylandı", "İşlemde"]:
         if istek.duzeltme_istendi_mi:
             talep.duzeltme_istendi_mi = True
             talep.duzeltme_notu = istek.duzeltme_notu
 
-            # Müşteri ve Araç Bilgilerini Veritabanından Çekiyoruz
-            musteri = db.query(models.Kullanici).filter(models.Kullanici.id == talep.kullanici_id).first()
-            arac = db.query(models.Arac).filter(models.Arac.id == talep.arac_id).first()
-            
-            musteri_adi = musteri.ad_soyad if musteri else "Bilinmeyen Müşteri"
-            
-            # Araç bilgisini toparlıyoruz
-            arac_bilgisi = "Kayıtlı Araç"
-            if arac:
-                if arac.ozel_marka and arac.ozel_model:
-                    arac_bilgisi = f"{arac.ozel_marka} {arac.ozel_model}"
-                else:
-                    arac_bilgisi = f"Araç ID: {arac.id}"
-
-            # Dinamik Bildirim Mesajı Hazırlanıyor
-            bildirim_mesaji = f"Müşteri {musteri_adi}, {arac_bilgisi} talebi için düzeltme istiyor. Not: {istek.duzeltme_notu}"
+            # Dinamik ve Zengin Bildirim Mesajı
+            bildirim_mesaji = f"Müşteri {musteri_adi}, {arac_bilgisi} aracı için '{hizmet_adi}' (Talep ID: {talep_id}) talebine düzeltme istiyor. Not: {istek.duzeltme_notu}"
 
             log_kaydet(db, "Düzeltme Talebi", bildirim_mesaji, "WARNING", talep.kullanici_id)
-            
-            # Admini (veya adminleri) bul
-            admin_kullanici = db.query(models.Kullanici).filter(models.Kullanici.rol == 'Admin').first()
+
             if admin_kullanici:
-                # 1. Bildirimi Veritabanına Yaz
+                # 1. Bildirimi Veritabanına Yaz            
                 yeni_bildirim = models.SistemBildirimleri(
                     kullanici_id=admin_kullanici.id,
                     baslik="Müşteri Düzeltme Talebi",
@@ -626,9 +662,8 @@ def kullanici_talep_guncelle(talep_id: int, istek: schemas.TalepGuncelleKullanic
                     okundu_mu=False
                 )
                 db.add(yeni_bildirim)
-                db.commit() # Hemen kaydet ki listeye düşsün
-                
-                # 2. Bildirimi Telefona At
+                db.commit() 
+                # 2. Bildirimi Telefona At  
                 if admin_kullanici.fcm_token:
                     try:
                         admin_mesaj = messaging.Message(

@@ -239,4 +239,20 @@ public partial class AdminRequestsView : ContentPage
             }
         }
     }
+
+    // =========================================================
+    // MAUI'nin yerleşik panoya kopyalama özelliği
+    // =========================================================    
+    private async void OnCopyTapped(object sender, EventArgs e)
+    {
+        var label = sender as Label;
+        var gesture = label?.GestureRecognizers.FirstOrDefault() as TapGestureRecognizer;
+        var kopyalanacakMetin = gesture?.CommandParameter as string;
+
+        if (!string.IsNullOrWhiteSpace(kopyalanacakMetin))
+        {
+            await Clipboard.Default.SetTextAsync(kopyalanacakMetin);
+            await DisplayAlert("Kopyalandı", "Bilgi panoya kopyalandı.", "Tamam");
+        }
+    }
 }

@@ -3,6 +3,7 @@ using Microsoft.Maui.LifecycleEvents;
 using Plugin.Firebase.CloudMessaging;
 #if ANDROID
 using Plugin.Firebase.Core.Platforms.Android;
+using Plugin.Firebase.Core;
 #endif
 
 namespace OtoServisApp
@@ -23,19 +24,25 @@ namespace OtoServisApp
                     fonts.AddFont("FontAwesomeSolid.otf", "FASolid");
 
                 });
-            /*builder.ConfigureLifecycleEvents(events =>
+
+            // YENİ REVİZE: Firebase yapılandırmasını MAUI standartlarına uygun olarak burada oluşturuyoruz.
+            builder.ConfigureLifecycleEvents(events =>
             {
 #if ANDROID
                 events.AddAndroid(android => android.OnCreate((activity, state) =>
-                    CrossFirebase.Initialize(activity)));
+                {
+                    CrossFirebase.Initialize(activity);
+                }));
 #endif
-            });*/
+            });
 
-            /*.ConfigureFonts(fonts =>
+            /* ESKİ KOD (Korundu)
+            .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-            });*/
+            });
+            */
 
 #if DEBUG
             builder.Logging.AddDebug();
