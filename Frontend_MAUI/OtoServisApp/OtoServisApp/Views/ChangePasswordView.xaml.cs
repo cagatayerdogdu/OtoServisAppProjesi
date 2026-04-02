@@ -11,8 +11,8 @@ public partial class ChangePasswordView : ContentPage
     public ChangePasswordView(Kullanici kullanici)
     {
         InitializeComponent();
-        _apiService = new ApiService();
         _aktifKullanici = kullanici;
+        _apiService = new ApiService();
     }
 
     private async void OnSaveClicked(object sender, EventArgs e)

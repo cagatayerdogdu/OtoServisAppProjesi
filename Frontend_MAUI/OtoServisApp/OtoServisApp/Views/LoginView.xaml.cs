@@ -18,6 +18,15 @@ public partial class LoginView : ContentPage
         string email = EmailEntry.Text?.Trim().ToLower(); // Senin değişken isimlerin
         string password = PasswordEntry.Text?.Trim();
 
+
+        // Sadece Android ve iOS (Mobil) tarafında internet kontrolü yapıyoruz
+#if ANDROID || IOS
+        if (Microsoft.Maui.Networking.Connectivity.Current.NetworkAccess != Microsoft.Maui.Networking.NetworkAccess.Internet)
+        {
+            await DisplayAlert("Bağlantı Hatası", "Lütfen internet bağlantınızı kontrol edin.", "Tamam");
+        }
+#endif
+
         if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
         {
             await DisplayAlert("Uyarı", "Lütfen e-posta ve şifrenizi giriniz.", "Tamam");
@@ -109,6 +118,21 @@ public partial class LoginView : ContentPage
     {
         base.OnAppearing();
 
+
+        // YENİ REVİZE: Arayüzün (UI) donmasını ve uygulamanın çökmesini engellemek için 
+        // veri çekme işlemine geçmeden önce çok kısa bir süre (100ms) bekleyip thread'i rahatlatıyoruz.
+        await Task.Delay(100);
+
+        // Yükleme işlemini bu rahatlamadan sonra tetikliyoruz.
+
+        // Sadece Android ve iOS (Mobil) tarafında internet kontrolü yapıyoruz
+#if ANDROID || IOS
+        if (Microsoft.Maui.Networking.Connectivity.Current.NetworkAccess != Microsoft.Maui.Networking.NetworkAccess.Internet)
+        {
+            await DisplayAlert("Bağlantı Hatası", "Lütfen internet bağlantınızı kontrol edin.", "Tamam");
+        }
+#endif
+    
         // Cihazın şifreli kasasına bakıyoruz, kayıt var mı?
         string kayitliEposta = await SecureStorage.Default.GetAsync("kayitli_eposta");
         string kayitliSifre = await SecureStorage.Default.GetAsync("kayitli_sifre");
@@ -126,6 +150,14 @@ public partial class LoginView : ContentPage
 
     private async void OtomatikGirisYap(string eposta, string sifre)
     {
+        // Sadece Android ve iOS (Mobil) tarafında internet kontrolü yapıyoruz
+#if ANDROID || IOS
+        if (Microsoft.Maui.Networking.Connectivity.Current.NetworkAccess != Microsoft.Maui.Networking.NetworkAccess.Internet)
+        {
+            await DisplayAlert("Bağlantı Hatası", "Lütfen internet bağlantınızı kontrol edin.", "Tamam");
+        }
+#endif
+
         LoginButton.IsEnabled = false;
         LoginButton.Text = "OTOMATİK GİRİŞ YAPILIYOR...";
 

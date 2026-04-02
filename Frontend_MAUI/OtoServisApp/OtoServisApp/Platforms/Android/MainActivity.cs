@@ -28,6 +28,12 @@ namespace OtoServisApp
                 Console.WriteLine($"Firebase Başlatılma Hatası: {ex.Message}");
             }
             */
+
+            // Durum Çubuğu (Status Bar) rengini mor yerine turkuaz yapıyoruz.
+            if (Window != null)
+            {
+                Window.SetStatusBarColor(Android.Graphics.Color.ParseColor("#00BCD4"));
+            }
         }
     }
 }
