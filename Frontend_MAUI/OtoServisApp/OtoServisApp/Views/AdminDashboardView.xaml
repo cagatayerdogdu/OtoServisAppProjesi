@@ -53,10 +53,16 @@
                 </HorizontalStackLayout>
             </Border>
 
-            <Border BackgroundColor="#2C3E50" StrokeShape="RoundRectangle 12" Padding="15" Stroke="Transparent" Opacity="0.6">
+            <Border BackgroundColor="#2C3E50" StrokeShape="RoundRectangle 12" Padding="15" Stroke="Transparent">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnPriceManagementTapped" />
+                </Border.GestureRecognizers>
                 <HorizontalStackLayout Spacing="15">
                     <Label Text="{x:Static helpers:IconFont.SackDollar}" FontFamily="FASolid" FontSize="26" TextColor="#FAFAFA" VerticalOptions="Center"/>
-                    <Label Text="Fiyat Yönetimi (Yakında)" FontSize="15" FontAttributes="Bold" TextColor="#FAFAFA" VerticalOptions="Center"/>
+                    <VerticalStackLayout VerticalOptions="Center">
+                        <Label Text="Fiyat Yönetimi" FontSize="16" FontAttributes="Bold" TextColor="#FAFAFA"/>
+                        <Label Text="Sistemdeki hizmetlerin ücretlerini belirle." TextColor="#95A5A6" FontSize="11"/>
+                    </VerticalStackLayout>
                 </HorizontalStackLayout>
             </Border>
 

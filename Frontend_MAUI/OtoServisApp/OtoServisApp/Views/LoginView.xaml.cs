@@ -121,9 +121,23 @@ public partial class LoginView : ContentPage
 
         // YENİ REVİZE: Arayüzün (UI) donmasını ve uygulamanın çökmesini engellemek için 
         // veri çekme işlemine geçmeden önce çok kısa bir süre (100ms) bekleyip thread'i rahatlatıyoruz.
-        await Task.Delay(100);
+        await Task.Delay(20);
 
         // Yükleme işlemini bu rahatlamadan sonra tetikliyoruz.
+
+        // --- YENİ REVİZE BAŞLANGICI: Bildirim İzni İsteme (Madde 48) ---
+#if ANDROID
+    // Sadece Android 13 (API 33) ve üzeri için bu izin penceresi zorunludur
+    if (DeviceInfo.Version.Major >= 13)
+    {
+        var status = await Permissions.CheckStatusAsync<Permissions.PostNotifications>();
+        if (status != PermissionStatus.Granted)
+        {
+            await Permissions.RequestAsync<Permissions.PostNotifications>();
+        }
+    }
+#endif
+        // --- YENİ REVİZE BİTİŞİ ---
 
         // Sadece Android ve iOS (Mobil) tarafında internet kontrolü yapıyoruz
 #if ANDROID || IOS

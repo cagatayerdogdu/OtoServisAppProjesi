@@ -532,5 +532,18 @@ namespace OtoServisApp.Services
                 return false;
             }
         }
+
+        public async Task<HttpResponseMessage> GetAsync(string endpoint)
+        {
+            // Eğer token ekleme mantığı varsa buraya dahil olur, yoksa direkt atar
+            return await _httpClient.GetAsync(endpoint);
+        }
+
+        public async Task<HttpResponseMessage> PutAsync(string endpoint, object data)
+        {
+            var json = System.Text.Json.JsonSerializer.Serialize(data);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+            return await _httpClient.PutAsync(endpoint, content);
+        }
     }
 }

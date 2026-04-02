@@ -1263,7 +1263,7 @@ def admin_talep_guncelle(talep_id: int, durum: str, tahmini_tutar: float, db: Se
     return {"mesaj": "Talep güncellendi"}
 
 #################################################################
-#################################################################
+######################### ADMİN PANELİ ##########################
 #################################################################
 
 @app.get("/bildirimler/{kullanici_id}", response_model=List[schemas.BildirimResponse])
@@ -1299,6 +1299,14 @@ def token_kaydet(istek: schemas.TokenKayitIstegi, db: Session = Depends(get_db))
         if not kullanici:
             raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
         
+        # --- YENİ REVİZE: (Madde 44) Token Optimizasyonu ---
+        # Eğer gelen token veritabanındakiyle aynıysa db'yi yormadan çık.
+        if kullanici.fcm_token == istek.fcm_token:
+            print(f"Token zaten güncel (Değişiklik yok) -> Kullanıcı ID: {istek.kullanici_id}")
+            return {"basari": True, "mesaj": "Token zaten güncel, kayıt atlandı"}
+        # ---------------------------------------------------
+
+        # Eğer token farklıysa veya ilk defa ekleniyorsa kaydet:        
         kullanici.fcm_token = istek.fcm_token
         db.commit()
         
@@ -1309,3 +1317,97 @@ def token_kaydet(istek: schemas.TokenKayitIstegi, db: Session = Depends(get_db))
         db.rollback()
         print(f"Token kayıt hatası: {str(e)}")
         raise HTTPException(status_code=500, detail="Token kaydedilemedi")
+
+# ==========================================
+# --- MADDE 33: ADMİN FİYAT YÖNETİMİ ---
+# ==========================================
+
+# --- ESKİ KOD BAŞLANGICI (Yoruma Alındı) ---
+# @app.put("/admin/hizmetler/{hizmet_id}/fiyat")
+# def admin_hizmet_fiyat_guncelle(hizmet_id: int, istek: dict, db: Session = Depends(get_db)):
+#     hizmet = db.query(models.Hizmet).filter(models.Hizmet.id == hizmet_id).first()
+#     if not hizmet:
+#         raise HTTPException(status_code=404, detail="Hizmet bulunamadı")
+#     yeni_fiyat = istek.get("yeni_fiyat")
+#     if yeni_fiyat is None:
+#         raise HTTPException(status_code=400, detail="Yeni fiyat belirtilmedi")
+#     hizmet.onceki_fiyat = hizmet.varsayilan_fiyat
+#     hizmet.varsayilan_fiyat = yeni_fiyat 
+#     db.commit()
+#     return {"mesaj": "Fiyat başarıyla güncellendi", "yeni_fiyat": hizmet.varsayilan_fiyat}
+# --- ESKİ KOD BİTİŞİ ---
+
+# --- YENİ REVİZE BAŞLANGICI (Madde 33 - Arşiv & Log Destekli) ---
+@app.put("/admin/hizmetler/{hizmet_id}/fiyat")
+def admin_hizmet_fiyat_guncelle(hizmet_id: int, istek: dict, db: Session = Depends(get_db)):
+    hizmet = db.query(models.Hizmet).filter(models.Hizmet.id == hizmet_id).first()
+    if not hizmet:
+        raise HTTPException(status_code=404, detail="Hizmet bulunamadı")
+    
+    yeni_fiyat = istek.get("yeni_fiyat")
+    if yeni_fiyat is None:
+        raise HTTPException(status_code=400, detail="Yeni fiyat belirtilmedi")
+        
+    eski_fiyat = hizmet.varsayilan_fiyat
+
+    # 1. Ana tablodaki fiyatı güncelle
+    hizmet.onceki_fiyat = eski_fiyat
+    hizmet.varsayilan_fiyat = yeni_fiyat 
+    
+    # 2. Arşiv (Hizmet Fiyat Geçmişi) tablosuna kaydı oluştur
+    fiyat_gecmisi_kayit = models.HizmetFiyatGecmisi(
+        hizmet_id=hizmet.id,
+        eski_fiyat=eski_fiyat,
+        yeni_fiyat=yeni_fiyat
+    )
+    db.add(fiyat_gecmisi_kayit)
+
+    # 3. Sistem Logları tablosuna INFO seviyesinde yapılandır
+    # Not: Tarihi metne gömmüyoruz, veritabanındaki insert_tarihi kolonu bunu otomatik hallediyor.
+    log_detay = f"'{hizmet.ad}' adlı hizmet {eski_fiyat} ₺ fiyatından {yeni_fiyat} ₺ fiyatına güncellenmiştir."
+    
+    sistem_log = models.SistemLog(
+        kullanici_id=1,
+        seviye="INFO",
+        islem="Fiyat Güncellemesi",
+        detay=log_detay
+    )
+    db.add(sistem_log)
+
+    # 4. Tüm insert ve update işlemlerini tek seferde onayla
+    db.commit()
+    
+    return {"mesaj": "Fiyat başarıyla güncellendi ve arşive işlendi", "yeni_fiyat": hizmet.varsayilan_fiyat}
+# --- YENİ REVİZE BİTİŞİ ---
+
+
+# ==========================================
+# --- MADDE 34: ADMİN KULLANICI YÖNETİMİ ---
+# ==========================================
+
+@app.get("/admin/kullanicilar")
+def admin_kullanicilari_getir(db: Session = Depends(get_db)):
+    kullanicilar = db.query(models.Kullanici).all()
+    return kullanicilar
+
+@app.put("/admin/kullanicilar/{kullanici_id}/durum")
+def admin_kullanici_durum_guncelle(kullanici_id: int, istek: dict, db: Session = Depends(get_db)):
+    kullanici = db.query(models.Kullanici).filter(models.Kullanici.id == kullanici_id).first()
+    if not kullanici:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
+        
+    aktif_mi = istek.get("aktif_mi")
+    if aktif_mi is None:
+        raise HTTPException(status_code=400, detail="Durum belirtilmedi")
+        
+    kullanici.aktif_mi = aktif_mi 
+    db.commit()
+    
+    durum_metni = "Aktifleştirildi" if aktif_mi else "Pasife Alındı"
+    return {"mesaj": f"Kullanıcı durumu güncellendi: {durum_metni}"}
+
+
+
+#################################################################
+######################### ADMİN PANELİ ##########################
+#################################################################

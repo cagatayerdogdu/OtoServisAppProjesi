@@ -153,4 +153,20 @@ public partial class ProfileView : ContentPage
             BarTextColor = Colors.White
         };
     }
+
+    // --- YENİ REVİZE BAŞLANGICI: Tema Değiştirme İşlemi (Madde 65) ---
+    private void OnThemeSwitchToggled(object sender, ToggledEventArgs e)
+    {
+        if (e.Value)
+        {
+            // Switch açıksa Karanlık Modu yapılandır
+            Application.Current.UserAppTheme = AppTheme.Dark;
+        }
+        else
+        {
+            // Switch kapalıysa Aydınlık Modu yapılandır
+            Application.Current.UserAppTheme = AppTheme.Light;
+        }
+    }
+    // --- YENİ REVİZE BİTİŞİ ---
 }
