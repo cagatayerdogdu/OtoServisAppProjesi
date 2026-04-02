@@ -21,6 +21,12 @@ public partial class AdminRequestsView : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+
+        // YENİ REVİZE: Arayüzün (UI) donmasını ve uygulamanın çökmesini engellemek için 
+        // veri çekme işlemine geçmeden önce çok kısa bir süre (100ms) bekleyip thread'i rahatlatıyoruz.
+        await Task.Delay(100);
+
+        // Yükleme işlemini bu rahatlamadan sonra tetikliyoruz.
         DurumListesi.ItemsSource = _durumFiltreleri;
         await VerileriYukle();
     }

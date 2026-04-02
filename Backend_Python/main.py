@@ -580,6 +580,7 @@ def kullanici_taleplerini_getir(kullanici_id: int, db: Session = Depends(get_db)
 # --- 1. KULLANICI TALEP GÜNCELLEME METODU ---
 @app.put("/servis-talepleri/{talep_id}")
 def kullanici_talep_guncelle(talep_id: int, istek: schemas.TalepGuncelleKullanici, db: Session = Depends(get_db)):
+    # İlgili talebi veritabanından çekiyoruz
     talep = db.query(models.ServisTalebi).filter(models.ServisTalebi.id == talep_id).first()
     if not talep:
         raise HTTPException(status_code=404, detail="Talep bulunamadı")
@@ -590,6 +591,7 @@ def kullanici_talep_guncelle(talep_id: int, istek: schemas.TalepGuncelleKullanic
     hizmet = db.query(models.Hizmet).filter(models.Hizmet.id == talep.hizmet_id).first()
     admin_kullanici = db.query(models.Kullanici).filter(models.Kullanici.rol == 'Admin').first()
     
+    # İsimleri ve hizmet adlarını ayarlıyoruz
     musteri_adi = musteri.ad_soyad if musteri else "Bilinmeyen Müşteri"
     hizmet_adi = hizmet.ad if hizmet else "Bilinmeyen Hizmet"
     
@@ -605,52 +607,103 @@ def kullanici_talep_guncelle(talep_id: int, istek: schemas.TalepGuncelleKullanic
         arac_bilgisi = "Bilinmeyen Araç"
 
     if talep.durum == "Bekliyor":
-        if istek.hizmet_id: talep.hizmet_id = istek.hizmet_id
-        if istek.arac_id: talep.arac_id = istek.arac_id
-        if istek.talep_tarihi: talep.talep_tarihi = istek.talep_tarihi
-        if istek.adres: talep.adres = istek.adres
-        if istek.notlar is not None: talep.notlar = istek.notlar
+        
+        # --- YENİ REVİZE BAŞLANGICI (MADDE 63) ---
+        # Hangi alanların değiştiğini takip etmek için boş bir liste oluşturuyoruz
+        degisen_alanlar = []
+
+        # Eski atama kodlarını yoruma aldık (Çalışan kodları silmemek adına referans bırakıldı):
+        # if istek.hizmet_id: talep.hizmet_id = istek.hizmet_id
+        # if istek.arac_id: talep.arac_id = istek.arac_id
+        # if istek.talep_tarihi: talep.talep_tarihi = istek.talep_tarihi
+        # if istek.adres: talep.adres = istek.adres
+        # if istek.notlar is not None: talep.notlar = istek.notlar
+        
+       # Yerine hem atama yapıp hem de değişikliği tespit eden kodları ekledik:
+        if istek.hizmet_id and talep.hizmet_id != istek.hizmet_id:
+            yeni_hizmet = db.query(models.Hizmet).filter(models.Hizmet.id == istek.hizmet_id).first()
+            degisen_alanlar.append(f"Hizmet ({yeni_hizmet.ad if yeni_hizmet else 'Bilinmeyen'})")
+            talep.hizmet_id = istek.hizmet_id
+            
+        if istek.arac_id and talep.arac_id != istek.arac_id:
+            yeni_arac = db.query(models.Arac).filter(models.Arac.id == istek.arac_id).first()
+            if yeni_arac:
+                arac_detay = f"{yeni_arac.ozel_marka} {yeni_arac.ozel_model}" if yeni_arac.ozel_marka else f"{yeni_arac.marka.ad} {yeni_arac.model.ad}"
+            else:
+                arac_detay = "Bilinmeyen Araç"
+            degisen_alanlar.append(f"Araç Bilgisi ({arac_detay})")
+            talep.arac_id = istek.arac_id
+            
+        if istek.talep_tarihi and str(talep.talep_tarihi) != str(istek.talep_tarihi):
+            degisen_alanlar.append(f"Randevu Tarihi ({istek.talep_tarihi})")
+            talep.talep_tarihi = istek.talep_tarihi
+            
+        if istek.adres and talep.adres != istek.adres:
+            degisen_alanlar.append(f"Adres ({istek.adres})")
+            talep.adres = istek.adres
+            
+        if istek.notlar is not None and talep.notlar != istek.notlar:
+            degisen_alanlar.append(f"Müşteri Notu ({istek.notlar})")
+            talep.notlar = istek.notlar
+        # --- YENİ REVİZE BİTİŞİ ---
         
         # KULLANICI DÜZELTMEYİ YAPTIĞI İÇİN BAYRAĞI İNDİRİYORUZ                                                                                                                              
         talep.duzeltme_istendi_mi = False
         talep.duzeltme_notu = None
         
-        # LOG KAYDINI YENİ ARAÇ BİLGİSİYLE OLUŞTUR (Object hatası çözüldü)
-        log_mesaji = f"Talep ID: {talep_id} 'li Araç: {arac_bilgisi} için açılan Hizmet: {hizmet_adi} {musteri_adi} kullanıcısı tarafından düzeltildi."
-        log_kaydet(db, "Talep Güncelleme", log_mesaji, "INFO", talep.kullanici_id)
-        
-        # EKSİK OLAN ADMİN BİLDİRİMİNİ ATIYORUZ
-        if admin_kullanici:
-            yeni_bildirim = models.SistemBildirimleri(
-                kullanici_id=admin_kullanici.id,
-                baslik="Müşteri Talebini Güncelledi",
-                mesaj=log_mesaji,
-                okundu_mu=False
-            )
-            db.add(yeni_bildirim)
-            db.commit() # Hemen kaydet ki listeye düşsün
+        # SADECE DEĞİŞİKLİK VARSA BİLDİRİM VE LOG İŞLEMİ YAP
+        if degisen_alanlar:
+            # Değişen alanları virgülle ayırarak metne dönüştürüyoruz
+            degisiklik_metni = ", ".join(degisen_alanlar)
             
-            if admin_kullanici.fcm_token:
-                try:
-                    admin_mesaj = messaging.Message(
-                        notification=messaging.Notification(
-                            title="Müşteri Talebini Güncelledi",
-                            body=log_mesaji,
-                        ),
-                        token=admin_kullanici.fcm_token,
-                    )
-                    messaging.send(admin_mesaj)
-                except Exception as e:
-                    print("Admin FCM Gönderim Hatası:", e)
+            # Eski Log Mesajı yoruma alındı:
+            # log_mesaji = f"Talep ID: {talep_id} 'li Araç: {arac_bilgisi} için açılan Hizmet: {hizmet_adi} {musteri_adi} kullanıcısı tarafından düzeltildi."
+            
+            # Yeni Log Mesajı (Değişen detayları içeriyor):
+            log_mesaji = f"(Talep ID: {talep_id} ) '{hizmet_adi}' için {musteri_adi} şu detayları güncelledi: {degisiklik_metni}."
+            
+            # Veritabanına logu kaydediyoruz
+            log_kaydet(db, "Talep Güncelleme", log_mesaji, "INFO", talep.kullanici_id)
+            
+            # EKSİK OLAN ADMİN BİLDİRİMİNİ ATIYORUZ
+            if admin_kullanici:
+                # Bildirimi veritabanında oluşturuyoruz
+                yeni_bildirim = models.SistemBildirimleri(
+                    kullanici_id=admin_kullanici.id,
+                    baslik="Müşteri Talebini Güncelledi",
+                    mesaj=log_mesaji,
+                    okundu_mu=False
+                )
+                db.add(yeni_bildirim)
+                db.commit() # Hemen kaydet ki listeye düşsün
+                
+                # Push Notification (FCM) gönderiyoruz
+                if admin_kullanici.fcm_token:
+                    try:
+                        admin_mesaj = messaging.Message(
+                            notification=messaging.Notification(
+                                title="Talep Detayları Değişti",
+                                body=log_mesaji,
+                            ),
+                            token=admin_kullanici.fcm_token,
+                        )
+                        messaging.send(admin_mesaj)
+                    except Exception as e:
+                        print("Admin FCM Gönderim Hatası:", e)
+        else:
+            # Hiçbir şey değişmemişse bile değişiklikleri (varsa bayrak inmesi vs.) onayla
+            db.commit()
         
     elif talep.durum in ["Onaylandı", "İşlemde"]:
+        # Müşteri düzeltme istiyorsa bayrağı ve notu güncelliyoruz
         if istek.duzeltme_istendi_mi:
             talep.duzeltme_istendi_mi = True
             talep.duzeltme_notu = istek.duzeltme_notu
 
-            # Dinamik ve Zengin Bildirim Mesajı
+            # Dinamik ve Zengin Bildirim Mesajı oluşturuyoruz
             bildirim_mesaji = f"Müşteri {musteri_adi}, {arac_bilgisi} aracı için '{hizmet_adi}' (Talep ID: {talep_id}) talebine düzeltme istiyor. Not: {istek.duzeltme_notu}"
 
+            # Log kaydını tutuyoruz
             log_kaydet(db, "Düzeltme Talebi", bildirim_mesaji, "WARNING", talep.kullanici_id)
 
             if admin_kullanici:
@@ -663,6 +716,7 @@ def kullanici_talep_guncelle(talep_id: int, istek: schemas.TalepGuncelleKullanic
                 )
                 db.add(yeni_bildirim)
                 db.commit() 
+                
                 # 2. Bildirimi Telefona At  
                 if admin_kullanici.fcm_token:
                     try:
@@ -679,7 +733,6 @@ def kullanici_talep_guncelle(talep_id: int, istek: schemas.TalepGuncelleKullanic
 
     db.commit()
     return {"mesaj": "İşlem başarılı"}
-
 
 # TALEP SİLME (Soft Delete)
 @app.delete("/servis-talepleri/{talep_id}")

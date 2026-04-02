@@ -10,9 +10,9 @@ public partial class ResetPasswordView : ContentPage
     public ResetPasswordView(string eposta)
     {
         InitializeComponent();
-        _apiService = new ApiService();
         _eposta = eposta;
         EmailEntry.Text = _eposta; // Önceki sayfadan gelen e-postayı ekrana yazdırıyoruz
+        _apiService = new ApiService();
     }
 
     private async void OnSaveClicked(object sender, EventArgs e)

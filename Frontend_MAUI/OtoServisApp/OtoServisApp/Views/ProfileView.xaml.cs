@@ -12,13 +12,13 @@ public partial class ProfileView : ContentPage
     {
         InitializeComponent();
         _aktifKullanici = kullanici;
-        _apiService = new ApiService();
 
         // Sayfa açıldığında giriş yapan kullanıcının bilgilerini kutulara doldur
         NameEntry.Text = _aktifKullanici.ad_soyad;
         EmailEntry.Text = _aktifKullanici.eposta;
         PhoneEntry.Text = _aktifKullanici.telefon;
         AddressEditor.Text = _aktifKullanici.adres;
+        _apiService = new ApiService();
     }
 
     private async void OnUpdateClicked(object sender, EventArgs e)
@@ -146,6 +146,11 @@ public partial class ProfileView : ContentPage
         // App.AktifKullanici = null;
 
         // Kullanıcıyı en baştaki Login ekranına geri fırlat ve geri dönmesini engelle
-        Application.Current.MainPage = new NavigationPage(new LoginView());
+        // Çıkış yapıldığında LoginView'a geçerken üst barın turkuaz kalmasını sağlar
+        Application.Current.MainPage = new NavigationPage(new LoginView())
+        {
+            BarBackgroundColor = Color.FromArgb("#00BCD4"),
+            BarTextColor = Colors.White
+        };
     }
 }

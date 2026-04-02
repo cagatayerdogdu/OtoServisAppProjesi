@@ -10,7 +10,6 @@ public partial class ShowcaseView : ContentPage
     public ShowcaseView()
     {
         InitializeComponent();
-        VerileriYukle();
     }
 
     private void VerileriYukle()
@@ -46,6 +45,14 @@ public partial class ShowcaseView : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+
+        // YENİ REVİZE: Arayüzün (UI) donmasını ve uygulamanın çökmesini engellemek için 
+        // veri çekme işlemine geçmeden önce çok kısa bir süre (100ms) bekleyip thread'i rahatlatıyoruz.
+        await Task.Delay(20);
+
+        // Yükleme işlemini bu rahatlamadan sonra tetikliyoruz.
+
+        VerileriYukle();
         // Üst başlığın premium şekilde belirmesi
         await HeaderAnim.FadeTo(1, 1200, Easing.CubicOut);
 
