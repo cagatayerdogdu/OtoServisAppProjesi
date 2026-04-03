@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="OtoServisApp.Views.AdminUserTrackingView"
+             Title="Müşteri Takibi"
+             BackgroundColor="#F5F6FA">
+
+    <Grid RowDefinitions="Auto, *, Auto" Margin="10">
+        <Label Grid.Row="0" Text="Uzun Süredir Girmeyenler" FontSize="18" FontAttributes="Bold" Margin="10,10,10,20" TextColor="#2C3E50"/>
+
+        <CollectionView Grid.Row="1" x:Name="TrackingList">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border BackgroundColor="White" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="15" Margin="5,5,5,10">
+                        <Grid ColumnDefinitions="*, Auto" ColumnSpacing="15" VerticalOptions="Center">
+
+                            <VerticalStackLayout Grid.Column="0" Spacing="4">
+                                <Label Text="{Binding ad_soyad}" FontSize="16" FontAttributes="Bold" TextColor="#333333"/>
+                                <Label Text="{Binding eposta}" FontSize="13" TextColor="#7F8C8D"/>
+                                <Label Text="{Binding SonGirisText}" FontSize="12" TextColor="#555555"/>
+                                <Label Text="{Binding KacGunText}" FontSize="12" TextColor="#E74C3C" FontAttributes="Bold"/>
+                                <Label Text="{Binding MailIzinDurum}" FontSize="11" TextColor="{Binding MailIzinRengi}" FontAttributes="Bold"/>
+                            </VerticalStackLayout>
+
+                            <Button Grid.Column="1" 
+                                    Text="Hatırlat" 
+                                    Clicked="OnSendReminderClicked" 
+                                    CommandParameter="{Binding .}" 
+                                    BackgroundColor="#00BCD4"
+                                    TextColor="White" 
+                                    HeightRequest="40" 
+                                    Padding="15,0" 
+                                    CornerRadius="8"
+                                    IsEnabled="{Binding mail_istiyor_mu}"
+                                    VerticalOptions="Center"/>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <HorizontalStackLayout Grid.Row="2" HorizontalOptions="Center" Spacing="20" Padding="10,20">
+            <Button x:Name="BtnGeri" Text="&lt; Geri" Clicked="OnPrev" BackgroundColor="#E0E6ED" TextColor="#2C3E50" FontAttributes="Bold" CornerRadius="8"/>
+            <Label x:Name="PageInfo" Text="1 / 1" VerticalOptions="Center" TextColor="#2C3E50" FontAttributes="Bold"/>
+            <Button x:Name="BtnIleri" Text="İleri &gt;" Clicked="OnNext" BackgroundColor="#E0E6ED" TextColor="#2C3E50" FontAttributes="Bold" CornerRadius="8"/>
+        </HorizontalStackLayout>
+    </Grid>
+</ContentPage>

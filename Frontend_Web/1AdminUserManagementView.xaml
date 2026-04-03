@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:helpers="clr-namespace:OtoServisApp.Helpers"
+             x:Class="OtoServisApp.Views.AdminUserManagementView"
+             BackgroundColor="#F5F6FA"
+             Title="Kullanıcı Yönetimi">
+
+    <Grid RowDefinitions="Auto, Auto, *, Auto">
+
+        <VerticalStackLayout Grid.Row="0" Margin="20,15" Spacing="5">
+            <Label Text="Müşteri ve Yetkili Listesi" FontSize="20" FontAttributes="Bold" TextColor="#2C3E50"/>
+            <Label Text="Kullanıcı durumlarını ve rollerini buradan yönetin." FontSize="13" TextColor="#7F8C8D"/>
+        </VerticalStackLayout>
+
+        <Border Grid.Row="1" BackgroundColor="White" Stroke="#DCDDE1" StrokeShape="RoundRectangle 8" Margin="15,0,15,10" Padding="10,0">
+            <Grid ColumnDefinitions="Auto, *">
+                <Label Grid.Column="0" Text="{x:Static helpers:IconFont.Search}" FontFamily="FASolid" TextColor="#3498DB" VerticalOptions="Center" Margin="5,0"/>
+                <Entry Grid.Column="1" x:Name="UserSearchBar" Placeholder="İsim veya E-posta ile ara..." TextChanged="OnSearchTextChanged" TextColor="#2F3640" PlaceholderColor="#A4B0BE" HeightRequest="45"/>
+            </Grid>
+        </Border>
+
+        <CollectionView Grid.Row="2" x:Name="UsersList" Margin="15,5">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border BackgroundColor="White" Stroke="#DCDDE1" StrokeShape="RoundRectangle 10" Padding="15" Margin="0,5">
+                        <Grid ColumnDefinitions="Auto, *, Auto" ColumnSpacing="15">
+                            
+                            <Border Grid.Column="0" WidthRequest="45" HeightRequest="45" StrokeShape="RoundRectangle 22.5" BackgroundColor="#EAF2F8" Stroke="Transparent">
+                                <Label Text="{x:Static helpers:IconFont.User}" FontFamily="FASolid" TextColor="#3498DB" HorizontalOptions="Center" VerticalOptions="Center" FontSize="18"/>
+                            </Border>
+
+                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                <Label Text="{Binding ad_soyad}" FontAttributes="Bold" FontSize="15" TextColor="#2F3640"/>
+                                <Label Text="{Binding eposta}" FontSize="12" TextColor="#7F8C8D"/>
+                                <Label Text="{Binding rol}" FontSize="11" TextColor="#3498DB" FontAttributes="Italic"/>
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout Grid.Column="2" VerticalOptions="Center" HorizontalOptions="End">
+                                <Label Text="Durum" FontSize="10" HorizontalOptions="Center" TextColor="#A4B0BE" Margin="0,0,0,2"/>
+                                <Switch IsToggled="{Binding aktif_mi}" Toggled="OnUserStatusToggled" Scale="0.8" ThumbColor="#3498DB" OnColor="#2ECC71"/>
+                            </VerticalStackLayout>
+
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <Border Grid.Row="3" BackgroundColor="White" Stroke="#DCDDE1" StrokeThickness="1,0,0,0" Padding="10">
+            <HorizontalStackLayout HorizontalOptions="Center" Spacing="20">
+                <Button x:Name="BtnGeri" Text="Geri" Clicked="OnPrevPageClicked" BackgroundColor="#EDF2F7" TextColor="#2C3E50" HeightRequest="40" CornerRadius="5"/>
+                <Label x:Name="PageInfoLabel" Text="Sayfa 1 / 1" VerticalOptions="Center" FontAttributes="Bold" TextColor="#2C3E50"/>
+                <Button x:Name="BtnIleri" Text="İleri" Clicked="OnNextPageClicked" BackgroundColor="#EDF2F7" TextColor="#2C3E50" HeightRequest="40" CornerRadius="5"/>
+            </HorizontalStackLayout>
+        </Border>
+
+    </Grid>
+</ContentPage>

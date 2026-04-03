@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:helpers="clr-namespace:OtoServisApp.Helpers"
+             x:Class="OtoServisApp.Views.AdminUserManagementView"
+             BackgroundColor="#F5F6FA"
+             Title="Kullanıcı Yönetimi">
+
+    <Grid RowDefinitions="Auto, Auto, *, Auto">
+
+        <VerticalStackLayout Grid.Row="0" Margin="20,15" Spacing="5">
+            <Label Text="Müşteri ve Yetkili Listesi" FontSize="20" FontAttributes="Bold" TextColor="#2C3E50"/>
+            <Label Text="Kullanıcı durumlarını ve rollerini buradan yönetin." FontSize="13" TextColor="#7F8C8D"/>
+        </VerticalStackLayout>
+
+        <Frame Grid.Row="1" BackgroundColor="White" BorderColor="#DCDDE1" CornerRadius="8" Margin="15,0,15,10" Padding="10,0" HasShadow="False">
+            <Grid ColumnDefinitions="Auto, *">
+                <Label Grid.Column="0" Text="{x:Static helpers:IconFont.Search}" FontFamily="FASolid" TextColor="#3498DB" VerticalOptions="Center" Margin="5,0"/>
+                <Entry Grid.Column="1" x:Name="UserSearchBar" Placeholder="İsim veya E-posta ile ara..." TextChanged="OnSearchTextChanged" TextColor="#2F3640" PlaceholderColor="#A4B0BE" HeightRequest="45"/>
+            </Grid>
+        </Frame>
+
+        <CollectionView Grid.Row="2" x:Name="UsersList" Margin="15,5">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Frame BackgroundColor="White" BorderColor="#DCDDE1" CornerRadius="10" Padding="15" Margin="0,5" HasShadow="False">
+                        <Grid RowDefinitions="Auto, Auto" RowSpacing="15">
+
+                            <Grid Grid.Row="0" ColumnDefinitions="*, Auto">
+                                <VerticalStackLayout Grid.Column="0" Spacing="4">
+                                    <Label Text="{Binding eposta}" FontSize="14" TextColor="#7F8C8D" FontAttributes="Bold"/>
+                                    <Label Text="{Binding telefon, StringFormat='Tel: {0}'}" FontSize="13" TextColor="#95A5A6"/>
+                                    <Label Text="{Binding rol, StringFormat='Rol: {0}'}" FontSize="12" TextColor="#3498DB"/>
+
+                                    <HorizontalStackLayout Spacing="10" Margin="0,5,0,0">
+                                        <Label Text="{Binding kayit_tarihi, StringFormat='Kayıt: {0}'}" FontSize="11" TextColor="#27AE60" FontAttributes="Bold"/>
+                                        <Label Text="{Binding silinme_tarihi, StringFormat='Silindi: {0}'}" FontSize="11" TextColor="#E74C3C" FontAttributes="Bold" IsVisible="{Binding IsSilinmis}"/>
+                                    </HorizontalStackLayout>
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Start" HorizontalOptions="Center" Spacing="2">
+                                    <Label Text="Durum" FontSize="11" TextColor="#555555" HorizontalOptions="Center"/> 
+
+                                    <Switch IsToggled="{Binding aktif_mi}" Scale="0.8" OnColor="#3498DB">
+                                        <Switch.Triggers>
+                                            <DataTrigger TargetType="Switch" Binding="{Binding aktif_mi}" Value="True">
+                                                <Setter Property="ThumbColor" Value="#3498DB" />
+                                            </DataTrigger>
+
+                                            <DataTrigger TargetType="Switch" Binding="{Binding aktif_mi}" Value="False">
+                                                <Setter Property="ThumbColor" Value="#666666" />
+                                            </DataTrigger>
+                                        </Switch.Triggers>
+                                    </Switch>
+                                </VerticalStackLayout>
+                                
+                            </Grid>
+
+                            <Grid Grid.Row="1" ColumnDefinitions="*, Auto" ColumnSpacing="10" VerticalOptions="End">
+                                <Frame Grid.Column="0" Padding="10,0" BorderColor="#BDC3C7" CornerRadius="8" HeightRequest="45" HasShadow="False">
+                                    <Entry Text="{Binding ad_soyad}" Placeholder="Kullanıcı Adı" TextColor="#2C3E50" VerticalOptions="Center" BackgroundColor="Transparent"/>
+                                </Frame>
+
+                                <Button Grid.Column="1" Text="Güncelle" Clicked="OnUpdateUserClicked" CommandParameter="{Binding .}" BackgroundColor="#00BCD4" TextColor="White" FontAttributes="Bold" CornerRadius="8" HeightRequest="45" Padding="20,0"/>
+                            </Grid>
+
+                        </Grid>
+                    </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <Frame Grid.Row="3" BackgroundColor="White" BorderColor="#DCDDE1" Padding="10" HasShadow="False" CornerRadius="0">
+            <HorizontalStackLayout HorizontalOptions="Center" Spacing="20">
+                <Button x:Name="BtnGeri" Text="Geri" Clicked="OnPrevPageClicked" BackgroundColor="#EDF2F7" TextColor="#2C3E50" HeightRequest="40" CornerRadius="5"/>
+                <Label x:Name="PageInfoLabel" Text="Sayfa 1 / 1" VerticalOptions="Center" FontAttributes="Bold" TextColor="#2C3E50"/>
+                <Button x:Name="BtnIleri" Text="İleri" Clicked="OnNextPageClicked" BackgroundColor="#EDF2F7" TextColor="#2C3E50" HeightRequest="40" CornerRadius="5"/>
+            </HorizontalStackLayout>
+        </Frame>
+
+    </Grid>
+</ContentPage>

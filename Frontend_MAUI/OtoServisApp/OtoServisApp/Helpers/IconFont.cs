@@ -26,5 +26,7 @@
         public const string Camera = "\uf030";       // 📸 Tamamlanan Hizmetler
         public const string History = "\uf1da";      // 🕒 Geçmiş Talepler
         public const string Bell = "\uf0f3"; // 🔔 Bildirim Çanı
+        public const string Moon = "\uf186";         // 🌙 Dark tema ikonu
+        public const string ChartLine = "\uf201"; // 📈 Müşteri Takip (CRM) İkonu
     }
 }

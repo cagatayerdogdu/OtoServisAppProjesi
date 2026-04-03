@@ -429,7 +429,7 @@ namespace OtoServisApp.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                    return JsonSerializer.Deserialize<List<BildirimResponse>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<BildirimResponse>();
+                    return await Task.Run(() => JsonSerializer.Deserialize<List<BildirimResponse>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<BildirimResponse>());
                 }
                 return new List<BildirimResponse>();
             }
@@ -531,6 +531,27 @@ namespace OtoServisApp.Services
                 Console.WriteLine($"Token Kayıt Hatası API: {ex.Message}");
                 return false;
             }
+        }
+
+        public async Task<HttpResponseMessage> GetAsync(string endpoint)
+        {
+            // Eğer token ekleme mantığı varsa buraya dahil olur, yoksa direkt atar
+            return await _httpClient.GetAsync(endpoint);
+        }
+
+        public async Task<HttpResponseMessage> PutAsync(string endpoint, object data)
+        {
+            var json = System.Text.Json.JsonSerializer.Serialize(data);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+            return await _httpClient.PutAsync(endpoint, content);
+        }
+
+        // Bu metot, CRM ekranından atacağımız manuel hatırlatmalar için gereklidir.
+        public async Task<HttpResponseMessage> PostAsync<T>(string endpoint, T data)
+        {
+            var json = System.Text.Json.JsonSerializer.Serialize(data);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+            return await _httpClient.PostAsync(endpoint, content);
         }
     }
 }

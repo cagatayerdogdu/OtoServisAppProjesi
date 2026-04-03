@@ -36,4 +36,23 @@ public partial class AdminDashboardView : ContentPage
         // Vitrin (İşlerimiz) sayfasına yönlendirme
         await Navigation.PushAsync(new ShowcaseView());
     }
+
+    private async void OnPriceManagementTapped(object sender, EventArgs e)
+    {
+        // Fiyat Yönetimi sayfasına geçiş yap
+        await Navigation.PushAsync(new AdminPriceManagementView());
+    }
+
+    private async void OnUserManagementTapped(object sender, EventArgs e)
+    {
+        // Kullanıcı yönetimi sayfasına yönlendir
+        await Navigation.PushAsync(new AdminUserManagementView());
+    }
+
+    private async void OnUserTrackingTapped(object sender, EventArgs e)
+    {
+        // Yeni oluşturduğumuz takip ekranına uçuyoruz
+        await Navigation.PushAsync(new AdminUserTrackingView());
+    }
+
 }

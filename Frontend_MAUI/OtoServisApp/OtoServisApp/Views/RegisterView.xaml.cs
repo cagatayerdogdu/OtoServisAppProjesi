@@ -22,6 +22,23 @@ public partial class RegisterView : ContentPage
         string sifre = PasswordEntry.Text?.Trim();
         string sifreTekrar = SifreTekrarEntry.Text?.Trim(); // YENİ: Tekrar alanı okundu
 
+        // --- YENİ REVİZE BAŞLANGICI: Email Doğrulama (Madde 51) ---
+        try
+        {
+            var addr = new System.Net.Mail.MailAddress(EmailEntry.Text);
+            if (addr.Address != EmailEntry.Text)
+            {
+                await DisplayAlert("Hata", "Lütfen geçerli bir e-posta adresi giriniz.", "Tamam");
+                return;
+            }
+        }
+        catch
+        {
+            await DisplayAlert("Hata", "Lütfen geçerli bir e-posta adresi giriniz.", "Tamam");
+            return;
+        }
+        // --- YENİ REVİZE BİTİŞİ ---
+
         // 1. BOŞLUK KONTROLÜ (Tekrar alanı da eklendi)
         if (string.IsNullOrEmpty(adSoyad) || string.IsNullOrEmpty(telefon) || string.IsNullOrEmpty(eposta) || string.IsNullOrEmpty(sifre) || string.IsNullOrEmpty(sifreTekrar))
         {
