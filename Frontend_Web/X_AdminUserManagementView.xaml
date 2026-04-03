@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:helpers="clr-namespace:OtoServisApp.Helpers"
+             x:Class="OtoServisApp.Views.AdminUserManagementView"
+             BackgroundColor="#F5F6FA"
+             Title="Kullanıcı Yönetimi">
+
+    <Grid RowDefinitions="Auto, Auto, *, Auto">
+
+        <!-- Başlık -->
+        <VerticalStackLayout Grid.Row="0" Margin="20,15" Spacing="5">
+            <Label Text="Müşteri ve Yetkili Listesi" FontSize="20" FontAttributes="Bold" TextColor="#2C3E50"/>
+            <Label Text="Kullanıcı durumlarını ve rollerini buradan yönetin." FontSize="13" TextColor="#7F8C8D"/>
+        </VerticalStackLayout>
+
+        <!-- Arama Çubuğu -->
+        <Border Grid.Row="1" BackgroundColor="White" Stroke="#DCDDE1" StrokeShape="RoundRectangle 8" Margin="15,0,15,10" Padding="10,0">
+            <Grid ColumnDefinitions="Auto, *">
+                <Label Grid.Column="0" Text="{x:Static helpers:IconFont.Search}" FontFamily="FASolid" TextColor="#3498DB" VerticalOptions="Center" Margin="5,0"/>
+                <Entry Grid.Column="1" x:Name="UserSearchBar" Placeholder="İsim veya E-posta ile ara..." TextChanged="OnSearchTextChanged" TextColor="#2F3640" PlaceholderColor="#A4B0BE" HeightRequest="45"/>
+            </Grid>
+        </Border>
+
+        <!-- Kullanıcı Listesi - CollectionView (Label kaldırıldı) -->
+        <ListView x:Name="UsersList" Grid.Row="2" HeightRequest="600" BackgroundColor="Yellow">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <ViewCell>
+                        <Label Text="{Binding ad_soyad}" TextColor="White" BackgroundColor="Blue" Padding="10" FontSize="20"/>
+                    </ViewCell>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
+
+        <Label x:Name="DebugLabel1" Text="Başlangıç" BackgroundColor="Black" TextColor="White" HeightRequest="30"/>
+        <Label x:Name="DebugLabel2" Text="..." BackgroundColor="Black" TextColor="White" HeightRequest="30"/>
+        <Label x:Name="DebugLabel3" Text="..." BackgroundColor="Black" TextColor="White" HeightRequest="30"/>
+        
+        <!-- Sayfalama -->
+        <Border Grid.Row="3" BackgroundColor="White" Stroke="#DCDDE1" StrokeThickness="1,0,0,0" Padding="10">
+            <HorizontalStackLayout HorizontalOptions="Center" Spacing="20">
+                <Button x:Name="BtnGeri" Text="Geri" Clicked="OnPrevPageClicked" BackgroundColor="#EDF2F7" TextColor="#2C3E50" HeightRequest="40" CornerRadius="5"/>
+                <Label x:Name="PageInfoLabel" Text="Sayfa 1 / 1" VerticalOptions="Center" FontAttributes="Bold" TextColor="#2C3E50"/>
+                <Button x:Name="BtnIleri" Text="İleri" Clicked="OnNextPageClicked" BackgroundColor="#EDF2F7" TextColor="#2C3E50" HeightRequest="40" CornerRadius="5"/>
+            </HorizontalStackLayout>
+        </Border>
+
+    </Grid>
+</ContentPage>

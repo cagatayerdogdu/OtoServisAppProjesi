@@ -11,9 +11,9 @@ public partial class AdminUserManagementView : ContentPage
     private int _gecerliSayfa = 1;
     private int _toplamSayfa = 1;
     private const int SayfaBoyutu = 10;
-
+    
     private bool _yukleniyor = false;
-    private bool _uiGuncelleniyor = false;
+    private bool _uiGuncelleniyor = false; // Switch krizini önleyecek kalkan
 
     public ObservableCollection<KullaniciSadelestirilmis> Kullanicilar { get; set; } = new ObservableCollection<KullaniciSadelestirilmis>();
 
@@ -21,22 +21,22 @@ public partial class AdminUserManagementView : ContentPage
     {
         InitializeComponent();
         _apiService = new ApiService();
-        // Ekrana listeyi bağladık
         UsersList.ItemsSource = Kullanicilar;
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        await Task.Delay(150); // Çizim için kısa bir bekleme
+        await Task.Delay(100);
         await VerileriGetir();
     }
 
     private async Task VerileriGetir()
     {
         if (_yukleniyor) return;
+        
         _yukleniyor = true;
-        _uiGuncelleniyor = true;
+        _uiGuncelleniyor = true; // Kalkanı kaldır: UI güncellenirken Switch'ler işlem yapmasın
 
         try
         {
@@ -50,42 +50,34 @@ public partial class AdminUserManagementView : ContentPage
                 var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
                 var result = JsonSerializer.Deserialize<KullaniciListeResponse>(content, options);
 
-                // Ana Thread üzerinde güvenli atama işlemi
-                MainThread.BeginInvokeOnMainThread(() =>
+                // Asenkron olarak UI Thread'i bekliyoruz
+                await MainThread.InvokeOnMainThreadAsync(() =>
                 {
                     Kullanicilar.Clear();
-
-                    /*if (result?.kullanicilar != null)
+                    if (result?.kullanicilar != null)
                     {
                         foreach (var k in result.kullanicilar)
                         {
                             Kullanicilar.Add(k);
                         }
-                    }*/
-                    // en üstte ObservableCollection ı çağırdığımız için bunu da yaz demişti kullanmadım. şundan istemiş; foreach ile ekleme sorun değil, 5 eleman için fark etmez. Ama ileride çok sayıda kullanıcı olursa performans için AddRange kullanmak daha iyidir. Üsttekini kapatıp alttaki eklemeyi yaptım.
-                    if (result?.kullanicilar != null)
-                        Kullanicilar.AddRange(result.kullanicilar);
+                    }
 
                     _toplamSayfa = (result?.toplam_sayfa > 0) ? result.toplam_sayfa : 1;
                     PageInfoLabel.Text = $"Sayfa {_gecerliSayfa} / {_toplamSayfa}";
-
                     BtnGeri.IsEnabled = _gecerliSayfa > 1;
                     BtnIleri.IsEnabled = _gecerliSayfa < _toplamSayfa;
-
-                    _uiGuncelleniyor = false; // Switch kalkanı indirilir
                 });
             }
         }
         catch (Exception ex)
         {
-            MainThread.BeginInvokeOnMainThread(() => {
-                DisplayAlert("Kullanıcı Listesi Hatası", ex.Message, "Tamam");
-            });
-            _uiGuncelleniyor = false;
+            await DisplayAlert("Kullanıcı Listesi Hatası", ex.Message, "Tamam");
         }
-        finally
-        {
-            _yukleniyor = false;
+        finally 
+        { 
+            // İşlemler tamamen bittiğinde kalkanları indiriyoruz
+            _uiGuncelleniyor = false; 
+            _yukleniyor = false; 
         }
     }
 
@@ -113,45 +105,20 @@ public partial class AdminUserManagementView : ContentPage
         }
     }
 
-    // YENİ EKLENEN GÜNCELLEME METODU
-    private async void OnUpdateUserClicked(object sender, EventArgs e)
+    private async void OnUserStatusToggled(object sender, ToggledEventArgs e)
     {
-        var button = sender as Button;
-        if (button?.CommandParameter is not KullaniciSadelestirilmis k) return;
+        // UI listeyi doldururken tetikleniyorsa doğrudan iptal et!
+        if (_uiGuncelleniyor || _yukleniyor) return;
 
-        bool onayla = await DisplayAlert("Güncelleme Onayı", $"{k.ad_soyad} kullanıcısının bilgilerini kaydetmek istiyor musunuz?", "Evet", "Hayır");
-        if (!onayla) return;
-
-        try
+        if (sender is Switch sw && sw.BindingContext is KullaniciSadelestirilmis k)
         {
-            // İsim ve durumu paketle
-            var payload = new
-            {
-                ad_soyad = k.ad_soyad,
-                aktif_mi = k.aktif_mi
-            };
-
-            // Yeni oluşturduğumuz Python endpoint'ine istek at
-            var res = await _apiService.PutAsync($"admin/kullanicilar/{k.id}/guncelle", payload);
-
-            if (res.IsSuccessStatusCode)
-            {
-                await DisplayAlert("Başarılı", "Kullanıcı başarıyla güncellendi.", "Tamam");
-                await VerileriGetir(); // Listeyi yenile ki silinme_tarihi UI'a yansısın
-            }
-            else
-            {
-                await DisplayAlert("Hata", "Güncelleme başarısız oldu.", "Tamam");
-            }
-        }
-        catch (Exception ex)
-        {
-            await DisplayAlert("Hata", ex.Message, "Tamam");
+            var data = new { aktif_mi = e.Value };
+            await _apiService.PutAsync($"admin/kullanicilar/{k.id}/durum", data);
         }
     }
-} // Sınıf Kapanışı
+}
 
-// JSON verisiyle Birebir Eşleşen YENİ Modeller
+// Backend ile %100 uyuşan sınıflar
 public class KullaniciListeResponse
 {
     public List<KullaniciSadelestirilmis> kullanicilar { get; set; }
@@ -165,14 +132,6 @@ public class KullaniciSadelestirilmis
     public int id { get; set; }
     public string ad_soyad { get; set; }
     public string eposta { get; set; }
-    public string telefon { get; set; }
     public string rol { get; set; }
     public bool aktif_mi { get; set; }
-
-    // YENİ EKLENEN TARİH ALANLARI
-    public string kayit_tarihi { get; set; }
-    public string silinme_tarihi { get; set; }
-
-    // Silinmişse (Pasifse) UI'da silinme tarihini göstermek için pratik bir tetikleyici
-    public bool IsSilinmis => !aktif_mi && silinme_tarihi != "-";
 }

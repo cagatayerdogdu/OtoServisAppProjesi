@@ -23,7 +23,7 @@ public partial class AdminPriceManagementView : ContentPage
         base.OnAppearing();
 
         // İlk çalışan koddaki hayat kurtaran gecikme (UI'ın kendine gelmesi için)
-        await Task.Delay(20);
+        // await Task.Delay(20);
 
         // Sayfa açıldığında arama kutusunu temizle
         if (HizmetSearchEntry != null)
@@ -45,20 +45,37 @@ public partial class AdminPriceManagementView : ContentPage
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-                _tumHizmetler = JsonSerializer.Deserialize<List<Hizmet>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                //_tumHizmetler = JsonSerializer.Deserialize<List<Hizmet>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                var hizmetler = await Task.Run(() => JsonSerializer.Deserialize<List<Hizmet>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }));
 
                 // İlk açılışta listeyi direkt ekrana basıyoruz
-                HizmetlerListesi.ItemsSource = _tumHizmetler;
+                //HizmetlerListesi.ItemsSource = _tumHizmetler;
+
+                _tumHizmetler = hizmetler ?? new List<Hizmet>();
+
+                // UI güncellemesini ana thread'de yap
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    HizmetlerListesi.ItemsSource = _tumHizmetler;
+                });
             }
             else
             {
-                // Eğer bir hata alırsak sessizce durmasın, ekranda görelim
-                await DisplayAlert("API Hatası", $"Veriler alınamadı. Durum: {response.StatusCode}", "Tamam");
+                // UI thread'inde alert göster
+                await MainThread.InvokeOnMainThreadAsync(async () =>
+                {
+                    await DisplayAlert("API Hatası", $"Veriler alınamadı. Durum: {response.StatusCode}", "Tamam");
+                });
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            await DisplayAlert("Hata", "Hizmetler yüklenirken bir hata oluştu.", "Tamam");
+            await MainThread.InvokeOnMainThreadAsync(async () =>
+            {
+                await DisplayAlert("Hata", "Hizmetler yüklenirken bir hata oluştu.", "Tamam");
+            });
+            System.Diagnostics.Debug.WriteLine($"Hata: {ex}");
         }
     }
 
@@ -105,7 +122,8 @@ public partial class AdminPriceManagementView : ContentPage
 
             if (response.IsSuccessStatusCode)
             {
-                await DisplayAlert("Başarılı", "Fiyat başarıyla güncellendi.", "Tamam");
+                // await DisplayAlert("Başarılı", "Fiyat başarıyla güncellendi.", "Tamam");
+                await MainThread.InvokeOnMainThreadAsync(() => DisplayAlert("Başarılı", "Fiyat başarıyla güncellendi.", "Tamam"));
 
                 // Güncellemeden sonra arama kutusunu temizleyip listeyi tazele
                 if (HizmetSearchEntry != null)
@@ -116,12 +134,14 @@ public partial class AdminPriceManagementView : ContentPage
             }
             else
             {
-                await DisplayAlert("Hata", "Fiyat güncellenemedi.", "Tamam");
+                // await DisplayAlert("Hata", "Fiyat güncellenemedi.", "Tamam");
+                await MainThread.InvokeOnMainThreadAsync(() => DisplayAlert("Hata", "Fiyat güncellenemedi.", "Tamam"));
             }
         }
         catch (Exception)
         {
-            await DisplayAlert("Hata", "Bağlantı hatası oluştu.", "Tamam");
+            // await DisplayAlert("Hata", "Bağlantı hatası oluştu.", "Tamam");
+            await MainThread.InvokeOnMainThreadAsync(() => DisplayAlert("Hata", "Bağlantı hatası oluştu.", "Tamam"));
         }
     }
 }

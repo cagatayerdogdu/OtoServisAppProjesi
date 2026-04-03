@@ -38,7 +38,7 @@
                             </Grid>
 
                             <Frame Grid.Column="1" Padding="0" BorderColor="#CCCCCC" CornerRadius="5" WidthRequest="90" HeightRequest="40" HasShadow="False" VerticalOptions="Center">
-                                <Entry Text="{Binding varsayilan_fiyat}" Keyboard="Numeric" HorizontalTextAlignment="Center" VerticalOptions="Center" TextColor="#111111" FontSize="15" BackgroundColor="Transparent" ClearButtonVisibility="Never"/>
+                                <Entry Text="{Binding varsayilan_fiyat, StringFormat='{0:F2}'}" Keyboard="Numeric" HorizontalTextAlignment="Center" VerticalOptions="Center" TextColor="#111111" FontSize="15" BackgroundColor="Transparent" ClearButtonVisibility="Never"/>
                             </Frame>
 
                             <Button Grid.Column="2" Text="Kaydet" BackgroundColor="#00BCD4" TextColor="White" CornerRadius="5" HeightRequest="40" Padding="10,0" Clicked="OnFiyatGuncelleClicked" CommandParameter="{Binding .}" VerticalOptions="Center"/>

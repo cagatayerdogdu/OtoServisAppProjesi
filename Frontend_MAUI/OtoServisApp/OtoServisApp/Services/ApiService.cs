@@ -429,7 +429,7 @@ namespace OtoServisApp.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                    return JsonSerializer.Deserialize<List<BildirimResponse>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<BildirimResponse>();
+                    return await Task.Run(() => JsonSerializer.Deserialize<List<BildirimResponse>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<BildirimResponse>());
                 }
                 return new List<BildirimResponse>();
             }

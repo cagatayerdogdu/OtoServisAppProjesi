@@ -1,6 +1,7 @@
 ﻿using OtoServisApp.Services;
 using System.Text.Json;
 using System.Collections.ObjectModel;
+using System.Text.Json.Serialization;
 
 namespace OtoServisApp.Views;
 
@@ -23,7 +24,7 @@ public partial class AdminUserTrackingView : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        await Task.Delay(100);
+        //await Task.Delay(20);
         await Yukle();
     }
 
@@ -34,23 +35,41 @@ public partial class AdminUserTrackingView : ContentPage
             var res = await _api.GetAsync($"admin/kullanici-takip?sayfa={_page}");
             var content = await res.Content.ReadAsStringAsync();
 
+            // DEBUG: JSON'u konsola yazdır
+            System.Diagnostics.Debug.WriteLine("Gelen JSON: " + content);
+
             if (res.IsSuccessStatusCode)
             {
                 var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                var data = JsonSerializer.Deserialize<TakipResponse>(content, options);
+                var data = await Task.Run(() => JsonSerializer.Deserialize<TakipResponse>(content, options));
+
+                // DEBUG: Liste null mı kontrol et
+                if (data?.liste == null)
+                {
+                    await DisplayAlert("Hata", "Deserialize sonucu liste null", "Tamam");
+                    return;
+                }
 
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
                     Musteriler.Clear();
-                    if (data?.liste != null)
+                    foreach (var m in data.liste)
                     {
-                        foreach (var m in data.liste) Musteriler.Add(m);
-                        _toplamSayfa = data.toplam_sayfa > 0 ? data.toplam_sayfa : 1;
-                        PageInfo.Text = $"{_page} / {_toplamSayfa}";
-                        BtnGeri.IsEnabled = _page > 1;
-                        BtnIleri.IsEnabled = _page < _toplamSayfa;
+                        Musteriler.Add(m);
                     }
+
+                    // DEBUG: Kaç eleman eklendiğini göster
+                    // DisplayAlert("Bilgi", $"{data.liste.Count} müşteri eklendi", "Tamam");
+
+                    _toplamSayfa = data.toplam_sayfa > 0 ? data.toplam_sayfa : 1;
+                    PageInfo.Text = $"{_page} / {_toplamSayfa}";
+                    BtnGeri.IsEnabled = _page > 1;
+                    BtnIleri.IsEnabled = _page < _toplamSayfa;
                 });
+            }
+            else
+            {
+                await DisplayAlert("API Hatası", $"Durum: {res.StatusCode}\n{content}", "Tamam");
             }
         }
         catch (Exception ex)
@@ -110,11 +129,22 @@ public partial class AdminUserTrackingView : ContentPage
 
 public class TakipMusteri
 {
+    [JsonPropertyName("id")]
     public int id { get; set; }
+
+    [JsonPropertyName("ad_soyad")]
     public string ad_soyad { get; set; }
+
+    [JsonPropertyName("eposta")]
     public string eposta { get; set; }
-    public string son_giris_tarihi { get; set; }   // formatlı string
+
+    [JsonPropertyName("son_giris_tarihi")]
+    public string son_giris_tarihi { get; set; }
+
+    [JsonPropertyName("kac_gun_oldu")]
     public int? kac_gun_oldu { get; set; }
+
+    [JsonPropertyName("mail_istiyor_mu")]
     public bool mail_istiyor_mu { get; set; }
 
     // Görüntüleme metinleri

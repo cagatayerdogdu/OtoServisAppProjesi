@@ -55,16 +55,13 @@ public partial class AdminUserManagementView : ContentPage
                 {
                     Kullanicilar.Clear();
 
-                    /*if (result?.kullanicilar != null)
+                    if (result?.kullanicilar != null)
                     {
                         foreach (var k in result.kullanicilar)
                         {
                             Kullanicilar.Add(k);
                         }
-                    }*/
-                    // en üstte ObservableCollection ı çağırdığımız için bunu da yaz demişti kullanmadım. şundan istemiş; foreach ile ekleme sorun değil, 5 eleman için fark etmez. Ama ileride çok sayıda kullanıcı olursa performans için AddRange kullanmak daha iyidir. Üsttekini kapatıp alttaki eklemeyi yaptım.
-                    if (result?.kullanicilar != null)
-                        Kullanicilar.AddRange(result.kullanicilar);
+                    }
 
                     _toplamSayfa = (result?.toplam_sayfa > 0) ? result.toplam_sayfa : 1;
                     PageInfoLabel.Text = $"Sayfa {_gecerliSayfa} / {_toplamSayfa}";
@@ -113,45 +110,19 @@ public partial class AdminUserManagementView : ContentPage
         }
     }
 
-    // YENİ EKLENEN GÜNCELLEME METODU
-    private async void OnUpdateUserClicked(object sender, EventArgs e)
+    private async void OnUserStatusToggled(object sender, ToggledEventArgs e)
     {
-        var button = sender as Button;
-        if (button?.CommandParameter is not KullaniciSadelestirilmis k) return;
+        if (_uiGuncelleniyor || _yukleniyor) return;
 
-        bool onayla = await DisplayAlert("Güncelleme Onayı", $"{k.ad_soyad} kullanıcısının bilgilerini kaydetmek istiyor musunuz?", "Evet", "Hayır");
-        if (!onayla) return;
-
-        try
+        if (sender is Switch sw && sw.BindingContext is KullaniciSadelestirilmis k)
         {
-            // İsim ve durumu paketle
-            var payload = new
-            {
-                ad_soyad = k.ad_soyad,
-                aktif_mi = k.aktif_mi
-            };
-
-            // Yeni oluşturduğumuz Python endpoint'ine istek at
-            var res = await _apiService.PutAsync($"admin/kullanicilar/{k.id}/guncelle", payload);
-
-            if (res.IsSuccessStatusCode)
-            {
-                await DisplayAlert("Başarılı", "Kullanıcı başarıyla güncellendi.", "Tamam");
-                await VerileriGetir(); // Listeyi yenile ki silinme_tarihi UI'a yansısın
-            }
-            else
-            {
-                await DisplayAlert("Hata", "Güncelleme başarısız oldu.", "Tamam");
-            }
-        }
-        catch (Exception ex)
-        {
-            await DisplayAlert("Hata", ex.Message, "Tamam");
+            var data = new { aktif_mi = e.Value };
+            await _apiService.PutAsync($"admin/kullanicilar/{k.id}/durum", data);
         }
     }
-} // Sınıf Kapanışı
+}
 
-// JSON verisiyle Birebir Eşleşen YENİ Modeller
+// JSON verisiyle Birebir Eşleşen Modeller
 public class KullaniciListeResponse
 {
     public List<KullaniciSadelestirilmis> kullanicilar { get; set; }
@@ -165,14 +136,6 @@ public class KullaniciSadelestirilmis
     public int id { get; set; }
     public string ad_soyad { get; set; }
     public string eposta { get; set; }
-    public string telefon { get; set; }
     public string rol { get; set; }
     public bool aktif_mi { get; set; }
-
-    // YENİ EKLENEN TARİH ALANLARI
-    public string kayit_tarihi { get; set; }
-    public string silinme_tarihi { get; set; }
-
-    // Silinmişse (Pasifse) UI'da silinme tarihini göstermek için pratik bir tetikleyici
-    public bool IsSilinmis => !aktif_mi && silinme_tarihi != "-";
 }

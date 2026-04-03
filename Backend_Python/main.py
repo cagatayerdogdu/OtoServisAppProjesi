@@ -446,9 +446,16 @@ def kullanici_takip_listesi(
         models.Kullanici.rol == "Musteri",
         models.Kullanici.kayit_durumu == 'A'
     )
-    # NULL olanlar (hiç giriş yapmamış) en üstte, sonra eskiden yeniye
+    
+    # MySQL uyumlu sıralama: önce NULL olanlar (hiç giriş yapmamış) en üstte,
+    # sonra son_giris_tarihi'ne göre artan (eskiden yeniye)
+    # SQLAlchemy 1.4+ için doğru sözdizimi
     query = query.order_by(
-        nullsfirst(models.Kullanici.son_giris_tarihi.asc())
+        case(
+            (models.Kullanici.son_giris_tarihi == None, 0),
+            else_=1
+        ).asc(),
+        models.Kullanici.son_giris_tarihi.asc()
     )
 
     toplam_kayit = query.count()
@@ -457,24 +464,29 @@ def kullanici_takip_listesi(
     liste = []
     for k in kullanicilar:
         kac_gun = None
+        son_giris_str = None
         if k.son_giris_tarihi:
             fark = (datetime.now() - k.son_giris_tarihi).days
-            kac_gun = fark   # integer
-
+            kac_gun = fark
+            son_giris_str = k.son_giris_tarihi.strftime("%d.%m.%Y %H:%M")
+        
         liste.append({
             "id": k.id,
             "ad_soyad": k.ad_soyad,
             "eposta": k.eposta,
-            "son_giris_tarihi": k.son_giris_tarihi.strftime("%d.%m.%Y %H:%M") if k.son_giris_tarihi else None,
+            "son_giris_tarihi": son_giris_str,
             "kac_gun_oldu": kac_gun,
             "mail_istiyor_mu": k.mail_istiyor_mu
         })
 
+    toplam_sayfa = (toplam_kayit + sayfa_boyutu - 1) // sayfa_boyutu if toplam_kayit > 0 else 1
+
     return {
         "liste": liste,
         "toplam_kayit": toplam_kayit,
-        "toplam_sayfa": (toplam_kayit + sayfa_boyutu - 1) // sayfa_boyutu
+        "toplam_sayfa": toplam_sayfa
     }
+
 
 class ManuelHatirlatmaIstegi(BaseModel):
     ozel_mesaj: str
@@ -1537,47 +1549,52 @@ def admin_hizmet_fiyat_guncelle(hizmet_id: int, istek: dict, db: Session = Depen
 # --- YENİ REVİZE BAŞLANGICI (Güvenli JSON Serileştirme Eklendi) ---
 @app.get("/admin/kullanicilar")
 def admin_kullanicilari_getir(
-    sayfa: int = 1, 
-    sayfa_boyutu: int = 10, 
-    arama: str = "", 
+    sayfa: int = 1,
+    sayfa_boyutu: int = 10,
+    arama: str = "",
     db: Session = Depends(get_db)
 ):
-    # Sayfalama hesaplaması (offset)
+    # Sayfalama hesaplaması (offset)						 
     atla = (sayfa - 1) * sayfa_boyutu
-    
-    query = db.query(models.Kullanici)
-    
-    # Eğer arama kelimesi varsa filtrele
+	
+    query = db.query(models.Kullanici).filter(models.Kullanici.kayit_durumu == 'A')
+	
+    # Eğer arama kelimesi varsa filtrele								 
     if arama:
         query = query.filter(
-            (models.Kullanici.ad_soyad.ilike(f"%{arama}%")) | 
+            (models.Kullanici.ad_soyad.ilike(f"%{arama}%")) |
             (models.Kullanici.eposta.ilike(f"%{arama}%"))
         )
-    
-    # Toplam kayıt sayısı
-    toplam_kayit = query.count()
-    
-    # Veriyi getir
+        
+    toplam_kayit = query.count()				
     kullanicilar = query.offset(atla).limit(sayfa_boyutu).all()
-    
-    # SQLAlchemy ilişkilerinden (Araçlar, Talepler vb.) kaynaklı JSON şişmesini ve 
-    # mobil tarafındaki sessiz çökmeyi engellemek için veriyi saf sözlüğe (dict) dönüştürüyoruz.
-    guvenli_kullanici_listesi = []
+
+    # Güvenli serileştirme (sadece ihtiyaç duyulan alanlar)										
+    guvenli_liste = []
     for k in kullanicilar:
-        guvenli_kullanici_listesi.append({
+        guvenli_liste.append({
             "id": k.id,
             "ad_soyad": k.ad_soyad,
             "eposta": k.eposta,
             "telefon": k.telefon,
             "rol": k.rol,
-            "aktif_mi": k.aktif_mi
+            "aktif_mi": k.aktif_mi,
+            # Tarihleri string formatında güvenle C# tarafına yolluyoruz
+            "kayit_tarihi": k.kayit_tarihi.strftime("%d.%m.%Y %H:%M") if hasattr(k, 'kayit_tarihi') and k.kayit_tarihi else "-",
+            "silinme_tarihi": k.silinme_tarihi.strftime("%d.%m.%Y %H:%M") if hasattr(k, 'silinme_tarihi') and k.silinme_tarihi else "-"
         })
-    
+    #########################################
+    # geçici olarak eklendi hangi sorgunun çalıştığını ve kaç satır veri döndüğünü görmek için.   
+    # import logging
+    # logging.basicConfig()
+    # logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+    #########################################
     return {
-        "kullanicilar": guvenli_kullanici_listesi,
+        "kullanicilar": guvenli_liste,
         "toplam_kayit": toplam_kayit,
-        "gecerli_sayfa": sayfa,
-        "toplam_sayfa": (toplam_kayit + sayfa_boyutu - 1) // sayfa_boyutu
+							   
+        "toplam_sayfa": (toplam_kayit + sayfa_boyutu - 1) // sayfa_boyutu,
+        "gecerli_sayfa": sayfa
     }
 # --- YENİ REVİZE BİTİŞİ ---
 
@@ -1598,6 +1615,49 @@ def admin_kullanici_durum_guncelle(kullanici_id: int, istek: dict, db: Session =
     return {"mesaj": f"Kullanıcı durumu güncellendi: {durum_metni}"}
 
 
+@app.put("/admin/kullanicilar/{kullanici_id}/guncelle")
+def admin_kullanici_guncelle(kullanici_id: int, istek: dict, db: Session = Depends(get_db)):
+    kullanici = db.query(models.Kullanici).filter(models.Kullanici.id == kullanici_id).first()
+    if not kullanici:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
+        
+    if "ad_soyad" in istek:
+        kullanici.ad_soyad = istek["ad_soyad"]
+        
+    if "aktif_mi" in istek:
+        kullanici.aktif_mi = istek["aktif_mi"]
+        # Soft Delete: Pasife alınırsa silinme tarihi atar, aktife alınırsa tarihi temizler
+        if hasattr(kullanici, 'silinme_tarihi'):
+            if not kullanici.aktif_mi:
+                kullanici.silinme_tarihi = datetime.now()
+            else:
+                kullanici.silinme_tarihi = None
+
+    db.commit()
+    return {"mesaj": "Kullanıcı başarıyla güncellendi"}
+
 #################################################################
 ######################### ADMİN PANELİ ##########################
 #################################################################
+
+# Backend – İstemci hatalarını loglayan endpoint
+class ClientErrorLog(BaseModel):
+    message: str
+    stack_trace: Optional[str] = None
+    source: Optional[str] = None   # hangi sayfa/sınıf
+
+@app.post("/api/log-client-error")
+def log_client_error(error: ClientErrorLog, db: Session = Depends(get_db)):
+    try:
+        # Kullanıcı ID’si yoksa -1 veya null bırakabiliriz
+        yeni_log = models.SistemLog(
+            seviye="ERROR",
+            islem=f"Client: {error.source or 'Unknown'}",
+            detay=f"{error.message}\n{error.stack_trace or ''}"
+        )
+        db.add(yeni_log)
+        db.commit()
+        return {"success": True}
+    except Exception as e:
+        print("Log yazma hatası:", e)
+        return {"success": False}
