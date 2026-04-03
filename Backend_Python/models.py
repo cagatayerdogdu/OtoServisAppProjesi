@@ -40,6 +40,10 @@ class Kullanici(Base):
     sifre_hash = Column(String(255), comment="Guvenlik icin hashlenmis sifre")
     rol = Column(String(20), default="Musteri", comment="Musteri veya Admin")
     fcm_token = Column(String(255), nullable=True, comment="Firebase Push Notification Token bilgisi")
+    # Müşteri Takip ve KVKK Kolonları
+    son_giris_tarihi = Column(DateTime, nullable=True, comment="Kullanıcının sisteme son giriş yaptığı tarih")
+    mail_istiyor_mu = Column(Boolean, default=True, comment="KVKK Kapsamında mail alma izni")
+    son_hatirlatma_tarihi = Column(DateTime, nullable=True, comment="Her gün mail atıp spamlememek için son hatırlatma zamanı")
     
     # Denetim (Audit) Kolonları - Raporlama ve ETL için kritik
     aktif_mi = Column(Boolean, default=True, comment="Kullanici hesabi aktif mi? (Gecmisi silmemek / soft-delete icin)")

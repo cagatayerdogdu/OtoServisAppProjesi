@@ -545,5 +545,13 @@ namespace OtoServisApp.Services
             var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
             return await _httpClient.PutAsync(endpoint, content);
         }
+
+        // Bu metot, CRM ekranından atacağımız manuel hatırlatmalar için gereklidir.
+        public async Task<HttpResponseMessage> PostAsync<T>(string endpoint, T data)
+        {
+            var json = System.Text.Json.JsonSerializer.Serialize(data);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+            return await _httpClient.PostAsync(endpoint, content);
+        }
     }
 }

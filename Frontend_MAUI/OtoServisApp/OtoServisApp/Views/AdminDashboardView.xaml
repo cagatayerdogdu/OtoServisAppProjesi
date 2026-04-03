@@ -66,12 +66,28 @@
                 </HorizontalStackLayout>
             </Border>
 
-            <Border BackgroundColor="#2C3E50" StrokeShape="RoundRectangle 12" Padding="15" Stroke="Transparent" Opacity="0.6">
+            <Border BackgroundColor="#2C3E50" StrokeShape="RoundRectangle 12" Padding="15" Stroke="Transparent">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnUserManagementTapped" />
+                </Border.GestureRecognizers>
                 <HorizontalStackLayout Spacing="15">
                     <Label Text="{x:Static helpers:IconFont.Users}" FontFamily="FASolid" FontSize="26" TextColor="#FAFAFA" VerticalOptions="Center"/>
                     <VerticalStackLayout VerticalOptions="Center">
-                        <Label Text="Kullanıcı Yönetimi (Yakında)" FontSize="16" FontAttributes="Bold" TextColor="#FAFAFA"/>
+                        <Label Text="Kullanıcı Yönetimi" FontSize="16" FontAttributes="Bold" TextColor="#FAFAFA"/>
                         <Label Text="Müşterileri ve yetkileri yönet." TextColor="#95A5A6" FontSize="11"/>
+                    </VerticalStackLayout>
+                </HorizontalStackLayout>
+            </Border>
+
+            <Border BackgroundColor="#2C3E50" StrokeShape="RoundRectangle 12" Padding="15" Stroke="Transparent">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnUserTrackingTapped" />
+                </Border.GestureRecognizers>
+                <HorizontalStackLayout Spacing="15">
+                    <Label Text="{x:Static helpers:IconFont.ChartLine}" FontFamily="FASolid" FontSize="26" TextColor="#2ECC71" VerticalOptions="Center"/>
+                    <VerticalStackLayout VerticalOptions="Center">
+                        <Label Text="Müşteri Takibi / CRM" FontSize="16" FontAttributes="Bold" TextColor="#FAFAFA"/>
+                        <Label Text="Uzun süredir girmeyenleri gör ve bildirim at." TextColor="#95A5A6" FontSize="11"/>
                     </VerticalStackLayout>
                 </HorizontalStackLayout>
             </Border>
@@ -80,7 +96,8 @@
                     ImageSource="{FontImage FontFamily=FASolid, Glyph={x:Static helpers:IconFont.Desktop}, Color=White, Size=20}"
                     ContentLayout="Left, 10"
                     Clicked="OnSistemLoglariClicked" 
-                    BackgroundColor="#34495E" TextColor="#FAFAFA" CornerRadius="10" HeightRequest="55" FontAttributes="Bold" FontSize="15" Margin="0,10,0,0"/>
+                    BackgroundColor="#34495E" TextColor="#FAFAFA" CornerRadius="10" HeightRequest="55" FontAttributes="Bold" FontSize="15" Margin="0,10,0,0"/>   
+
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

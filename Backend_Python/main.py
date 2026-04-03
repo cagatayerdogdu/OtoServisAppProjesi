@@ -25,6 +25,8 @@ from fastapi import Query
 import math
 import firebase_admin
 from firebase_admin import credentials, messaging
+from pydantic import BaseModel
+from sqlalchemy import nullsfirst  
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -381,27 +383,169 @@ def kullanici_getir(kullanici_id: int, db: Session = Depends(get_db)):
     
     return kullanici
 
+# ==========================================
+# --- GİRİŞ YAP & LOGLAMA ---
+# ==========================================
+
+# --- ESKİ KOD BAŞLANGICI (Yoruma Alındı) ---
+# @app.post("/giris/", response_model=schemas.Kullanici)
+# def giris_yap(giris_bilgileri: schemas.KullaniciGiris, db: Session = Depends(get_db)):
+#     kullanici = db.query(models.Kullanici).filter(
+#         models.Kullanici.eposta == giris_bilgileri.eposta,
+#         models.Kullanici.kayit_durumu == 'A'
+#     ).first()
+#     if not kullanici or kullanici.sifre_hash != giris_bilgileri.sifre:
+#         raise HTTPException(status_code=401, detail="E-posta veya şifre hatali")
+#     if not kullanici.aktif_mi:
+#         raise HTTPException(status_code=403, detail="Hesabiniz askiya alinmistir")
+#     kullanici.araclar = [arac for arac in kullanici.araclar if arac.kayit_durumu == 'A']
+#     kullanici.servis_talepleri = [talep for talep in kullanici.servis_talepleri if getattr(talep, 'kayit_durumu', 'A') == 'A']
+#     return kullanici
+# --- ESKİ KOD BİTİŞİ ---
+
+# --- YENİ REVİZE BAŞLANGICI (Giriş Loglama ve Tarih Güncelleme) ---
 @app.post("/giris/", response_model=schemas.Kullanici)
 def giris_yap(giris_bilgileri: schemas.KullaniciGiris, db: Session = Depends(get_db)):
-    # 1. Sadece hesabı silinmemiş (A) olan kullanıcıyı bul
     kullanici = db.query(models.Kullanici).filter(
         models.Kullanici.eposta == giris_bilgileri.eposta,
         models.Kullanici.kayit_durumu == 'A'
     ).first()
-    # Kullanıcı yoksa veya şifre eşleşmiyorsa hata fırlat 
-    # (Not: Güvenlik aşamasında buradaki şifreyi hash ile karşılaştıracağız, şimdilik düz metin)			    
+    
     if not kullanici or kullanici.sifre_hash != giris_bilgileri.sifre:
         raise HTTPException(status_code=401, detail="E-posta veya şifre hatali")
-    
-    # Hesap pasife alınmış mı kontrolü
+        
     if not kullanici.aktif_mi:
         raise HTTPException(status_code=403, detail="Hesabiniz askiya alinmistir")
         
-    # 2. HAYAT KURTARAN FİLTRE: C# tarafına veriyi göndermeden önce silinmiş (X) araçları ve talepleri listeden atıyoruz
+    # YENİ: Son giriş tarihini güncelliyoruz
+    kullanici.son_giris_tarihi = datetime.now()
+    db.commit()
+    
+    # YENİ: Sistem loglarına kaydı atıyoruz
+    log_kaydet(db, "Sisteme Giriş", f"{kullanici.ad_soyad} uygulamaya giriş yaptı.", "INFO", kullanici.id)
+
     kullanici.araclar = [arac for arac in kullanici.araclar if arac.kayit_durumu == 'A']
     kullanici.servis_talepleri = [talep for talep in kullanici.servis_talepleri if getattr(talep, 'kayit_durumu', 'A') == 'A']
-        
     return kullanici
+# --- YENİ REVİZE BİTİŞİ ---
+
+
+# ==========================================
+# --- YENİ: MÜŞTERİ TAKİP & CRM MODÜLÜ ---
+# ==========================================
+@app.get("/admin/kullanici-takip")
+def kullanici_takip_listesi(
+    sayfa: int = 1, 
+    sayfa_boyutu: int = 15, 
+    db: Session = Depends(get_db)
+):
+    atla = (sayfa - 1) * sayfa_boyutu
+
+    # Sadece Müşterileri getir, kayit_durumu aktif olanlar
+    query = db.query(models.Kullanici).filter(
+        models.Kullanici.rol == "Musteri",
+        models.Kullanici.kayit_durumu == 'A'
+    )
+    # NULL olanlar (hiç giriş yapmamış) en üstte, sonra eskiden yeniye
+    query = query.order_by(
+        nullsfirst(models.Kullanici.son_giris_tarihi.asc())
+    )
+
+    toplam_kayit = query.count()
+    kullanicilar = query.offset(atla).limit(sayfa_boyutu).all()
+
+    liste = []
+    for k in kullanicilar:
+        kac_gun = None
+        if k.son_giris_tarihi:
+            fark = (datetime.now() - k.son_giris_tarihi).days
+            kac_gun = fark   # integer
+
+        liste.append({
+            "id": k.id,
+            "ad_soyad": k.ad_soyad,
+            "eposta": k.eposta,
+            "son_giris_tarihi": k.son_giris_tarihi.strftime("%d.%m.%Y %H:%M") if k.son_giris_tarihi else None,
+            "kac_gun_oldu": kac_gun,
+            "mail_istiyor_mu": k.mail_istiyor_mu
+        })
+
+    return {
+        "liste": liste,
+        "toplam_kayit": toplam_kayit,
+        "toplam_sayfa": (toplam_kayit + sayfa_boyutu - 1) // sayfa_boyutu
+    }
+
+class ManuelHatirlatmaIstegi(BaseModel):
+    ozel_mesaj: str
+
+###############################################
+########### ADMİN TARAFI İÇİN BLOK ############
+###############################################
+@app.post("/admin/kullanici-takip/{kullanici_id}/hatirlatma-gonder")
+def manuel_hatirlatma_gonder(kullanici_id: int, istek: ManuelHatirlatmaIstegi, db: Session = Depends(get_db)):
+    kullanici = db.query(models.Kullanici).filter(models.Kullanici.id == kullanici_id).first()
+    
+    if not kullanici:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
+        
+    # KVKK Kontrolü
+    if not kullanici.mail_istiyor_mu:
+        raise HTTPException(status_code=403, detail="Kullanıcı e-posta bildirimlerini kapattığı için mail atılamaz (KVKK).")
+
+    # Kurumsal İmza Ekleniyor
+    mail_icerigi = f"""
+    <html>
+        <body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+            <p>Merhaba <b>{kullanici.ad_soyad}</b>,</p>
+            <p>{istek.ozel_mesaj}</p>
+            <br>
+            <p>Sizi tekrar aramızda görmekten mutluluk duyarız. Araç bakımlarınız için uygulamamızı ziyaret edebilirsiniz.</p>
+            <br>
+            <p>Hayırlı günler dileriz,<br><b>Kapıdan Bakım Yönetimi</b></p>
+            <hr>
+            <p style="font-size: 11px; color: #999;">
+                Bu e-postayı almak istemiyorsanız <a href="https://api.kapidanbakim.com/kvkk/mail-iptal/{kullanici.id}">buraya tıklayarak</a> abonelikten çıkabilirsiniz.
+            </p>
+        </body>
+    </html>
+    """
+    
+    # Mail Gönder
+    basarili_mi = eposta_gonder(kullanici.eposta, "Sizi Özledik! - Kapıdan Bakım", mail_icerigi)
+    
+    if basarili_mi:
+        # Spam engeli için son hatırlatma tarihini kaydet
+        kullanici.son_hatirlatma_tarihi = datetime.now()
+        db.commit()
+        log_kaydet(db, "Manuel Hatırlatma", f"{kullanici.eposta} adresine geri dönüş maili atıldı.", "INFO", kullanici.id)
+        
+        # Telefona FCM Push Gönder (Push KVKK'ya girmez, cihaz iznine tabidir, direkt yollayabiliriz)
+        if kullanici.fcm_token:
+            try:
+                mesaj_fcm = messaging.Message(
+                    notification=messaging.Notification(title="Sizi Özledik!", body="Uygulamamıza uzun zamandır girmediniz, sizi bekliyoruz!"),
+                    token=kullanici.fcm_token
+                )
+                messaging.send(mesaj_fcm)
+            except:
+                pass
+
+        return {"mesaj": "Mail ve Bildirim başarıyla gönderildi."}
+    else:
+        raise HTTPException(status_code=500, detail="Mail gönderilemedi, SMTP ayarlarını kontrol edin.")
+###############################################
+        
+# KVKK Abonelik İptal Uç Noktası
+@app.get("/kvkk/mail-iptal/{kullanici_id}")
+def kvkk_mail_iptal(kullanici_id: int, db: Session = Depends(get_db)):
+    kullanici = db.query(models.Kullanici).filter(models.Kullanici.id == kullanici_id).first()
+    if kullanici:
+        kullanici.mail_istiyor_mu = False
+        db.commit()
+        return HTMLResponse(content="<h3>Talebiniz alınmıştır. Artık e-posta almayacaksınız.</h3>")
+    
+    return HTMLResponse(content="<h3>Kullanıcı bulunamadı.</h3>")
 
 @app.put("/kullanicilar/{kullanici_id}", response_model=schemas.Kullanici)
 def kullanici_guncelle(kullanici_id: int, guncel_veri: schemas.KullaniciUpdate, db: Session = Depends(get_db)):
@@ -841,19 +985,17 @@ def arac_getir(arac_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Araç bulunamadı")
     return arac
 
-
-from pydantic import BaseModel
 class SifreSifirlaIstegi(BaseModel):
     eposta: str
 
-@app.post("/kullanicilar/sifre-sifirla_Old")
-def sifre_sifirla_talep_Old(istek: SifreSifirlaIstegi, db: Session = Depends(get_db)):
-    kullanici = db.query(models.Kullanici).filter(models.Kullanici.eposta == istek.eposta).first()
-    if not kullanici:
-        raise HTTPException(status_code=404, detail="Bu e-posta adresine ait bir hesap bulunamadı.")
+#@app.post("/kullanicilar/sifre-sifirla_Old")
+#def sifre_sifirla_talep_Old(istek: SifreSifirlaIstegi, db: Session = Depends(get_db)):
+#    kullanici = db.query(models.Kullanici).filter(models.Kullanici.eposta == istek.eposta).first()
+#    if not kullanici:
+#        raise HTTPException(status_code=404, detail="Bu e-posta adresine ait bir hesap bulunamadı.")
     
     # TODO: İleride SMTP (Mail Gönderme) entegrasyonu buraya yapılacak
-    return {"mesaj": "Şifre sıfırlama bağlantısı e-posta adresinize gönderildi."}
+#    return {"mesaj": "Şifre sıfırlama bağlantısı e-posta adresinize gönderildi."}
 
 class SifreSifirlaIstegi(BaseModel):
     eposta: str
@@ -1385,10 +1527,59 @@ def admin_hizmet_fiyat_guncelle(hizmet_id: int, istek: dict, db: Session = Depen
 # --- MADDE 34: ADMİN KULLANICI YÖNETİMİ ---
 # ==========================================
 
+# --- ESKİ KOD BAŞLANGICI (Yoruma Alındı) ---
+# @app.get("/admin/kullanicilar")
+# def admin_kullanicilari_getir(db: Session = Depends(get_db)):
+#     kullanicilar = db.query(models.Kullanici).all()
+#     return kullanicilar
+# --- ESKİ KOD BİTİŞİ ---
+
+# --- YENİ REVİZE BAŞLANGICI (Güvenli JSON Serileştirme Eklendi) ---
 @app.get("/admin/kullanicilar")
-def admin_kullanicilari_getir(db: Session = Depends(get_db)):
-    kullanicilar = db.query(models.Kullanici).all()
-    return kullanicilar
+def admin_kullanicilari_getir(
+    sayfa: int = 1, 
+    sayfa_boyutu: int = 10, 
+    arama: str = "", 
+    db: Session = Depends(get_db)
+):
+    # Sayfalama hesaplaması (offset)
+    atla = (sayfa - 1) * sayfa_boyutu
+    
+    query = db.query(models.Kullanici)
+    
+    # Eğer arama kelimesi varsa filtrele
+    if arama:
+        query = query.filter(
+            (models.Kullanici.ad_soyad.ilike(f"%{arama}%")) | 
+            (models.Kullanici.eposta.ilike(f"%{arama}%"))
+        )
+    
+    # Toplam kayıt sayısı
+    toplam_kayit = query.count()
+    
+    # Veriyi getir
+    kullanicilar = query.offset(atla).limit(sayfa_boyutu).all()
+    
+    # SQLAlchemy ilişkilerinden (Araçlar, Talepler vb.) kaynaklı JSON şişmesini ve 
+    # mobil tarafındaki sessiz çökmeyi engellemek için veriyi saf sözlüğe (dict) dönüştürüyoruz.
+    guvenli_kullanici_listesi = []
+    for k in kullanicilar:
+        guvenli_kullanici_listesi.append({
+            "id": k.id,
+            "ad_soyad": k.ad_soyad,
+            "eposta": k.eposta,
+            "telefon": k.telefon,
+            "rol": k.rol,
+            "aktif_mi": k.aktif_mi
+        })
+    
+    return {
+        "kullanicilar": guvenli_kullanici_listesi,
+        "toplam_kayit": toplam_kayit,
+        "gecerli_sayfa": sayfa,
+        "toplam_sayfa": (toplam_kayit + sayfa_boyutu - 1) // sayfa_boyutu
+    }
+# --- YENİ REVİZE BİTİŞİ ---
 
 @app.put("/admin/kullanicilar/{kullanici_id}/durum")
 def admin_kullanici_durum_guncelle(kullanici_id: int, istek: dict, db: Session = Depends(get_db)):
@@ -1405,7 +1596,6 @@ def admin_kullanici_durum_guncelle(kullanici_id: int, istek: dict, db: Session =
     
     durum_metni = "Aktifleştirildi" if aktif_mi else "Pasife Alındı"
     return {"mesaj": f"Kullanıcı durumu güncellendi: {durum_metni}"}
-
 
 
 #################################################################

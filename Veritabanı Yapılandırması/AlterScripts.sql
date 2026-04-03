@@ -115,3 +115,7 @@ ALTER TABLE otoservisdb.servis_talepleri ADD COLUMN duzeltme_notu TEXT;
 
 ALTER TABLE otoservisdb.kullanicilar 
 ADD COLUMN fcm_token VARCHAR(255) NULL COMMENT 'Kullanıcının telefonuna anlık bildirim (Push Notification) göndermek için kullanılan Firebase cihaz kimliği';
+
+ALTER TABLE kullanicilar ADD COLUMN son_giris_tarihi DATETIME DEFAULT NULL COMMENT 'Kullanıcının sisteme son giriş yaptığı tarih';
+ALTER TABLE kullanicilar ADD COLUMN mail_istiyor_mu BOOLEAN DEFAULT TRUE COMMENT 'KVKK Kapsamında mail alma izni';
+ALTER TABLE kullanicilar ADD COLUMN son_hatirlatma_tarihi DATETIME DEFAULT NULL COMMENT 'Her gün mail atıp spamlememek için son hatırlatma zamanı';
