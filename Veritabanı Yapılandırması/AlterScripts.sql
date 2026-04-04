@@ -94,7 +94,7 @@ MODIFY yeni_fiyat DECIMAL(10,2) NOT NULL COMMENT 'Degisim sonrasi yeni fiyat',
 MODIFY insert_tarihi DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Degisimin yapildigi tarih ve saat';
 
 ALTER TABLE otoservisdb.kullanicilar ADD COLUMN kayit_durumu VARCHAR(1) DEFAULT 'A' COMMENT 'A: Aktif, X: Silinmis';
-ALTER TABLE otoservisdb.kullanicilar ADD COLUMN silinme_tarihi DATETIME NULL;
+ALTER TABLE otoservisdb.kullanicilar ADD COLUMN silinme_tarihi DATETIME NULL; 
 
 ALTER TABLE otoservisdb.araclar ADD COLUMN kayit_durumu VARCHAR(1) DEFAULT 'A' COMMENT 'A: Aktif, X: Silinmis';
 ALTER TABLE otoservisdb.araclar ADD COLUMN silinme_tarihi DATETIME NULL;

@@ -22,6 +22,7 @@ namespace OtoServisApp
 
                     // YENİ FONT AWESOME 7 EKLENDİ:
                     fonts.AddFont("FontAwesomeSolid.otf", "FASolid");
+                    fonts.AddFont("fa-brands-400.ttf", "FABrands");
 
                 });
 

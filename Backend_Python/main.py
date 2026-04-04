@@ -100,12 +100,12 @@ def referans_verilerini_yukle(db: Session = Depends(get_db)):
         "Toyota": ["Corolla", "Yaris", "Auris", "C-HR"]
     }
     
-	# Çoklu yüklemeyi önlemek için kontrol									  
+    # Çoklu yüklemeyi önlemek için kontrol                                      
     mevcut_marka_sayisi = db.query(models.Marka).count()
     if mevcut_marka_sayisi > 0:
         return {"mesaj": "Veritabaninda zaten referans verileri mevcut, islem iptal edildi."}
 
-    # Verileri tablolara yazma döngüsü										 
+    # Verileri tablolara yazma döngüsü                                         
     for marka_adi, modeller in ornek_veri.items():
         yeni_marka = models.Marka(ad=marka_adi)
         db.add(yeni_marka)
@@ -191,7 +191,7 @@ def hizmet_verilerini_tohumla(db: Session):
         
         kapsamli_hizmetler = [
             # 1. PERİYODİK BAKIM VE SIVILAR
-            {"ad": "Standart Periyodik Bakım", "fiyat": 4500.0, "aciklama": "Motor yağı, yağ filtresi, hava filtresi, polen filtresi değişimi ve sıvı kontrolleri."},
+            {"ad": "Standart Periyodik Bakım", "fiyat": 4500.0, "aciklama": "Motor yağı, yağ filtresi, hava filtresi, polen filtresi değişimi ve sıvı kontroller."},
             {"ad": "Kışlık Bakım Paketi", "fiyat": 2500.0, "aciklama": "Antifriz ölçümü ve değişimi, akü testi, kışlık silecek değişimi ve ısıtma sistemi kontrolü."},
             {"ad": "Yazlık Bakım Paketi", "fiyat": 2800.0, "aciklama": "Klima gazı kontrolü, radyatör temizliği, polen filtresi yenilemesi."},
             {"ad": "Ağır Bakım (Triger Seti)", "fiyat": 18000.0, "aciklama": "Triger kayışı/zinciri, devirdaim pompası, V kayışı ve gergi bilyası değişimi."},
@@ -324,9 +324,14 @@ def kullanici_olustur(kullanici: schemas.KullaniciCreate, db: Session = Depends(
     mevcut_kullanici = db.query(models.Kullanici).filter(models.Kullanici.eposta == kullanici.eposta).first()
     
     if mevcut_kullanici:
-        # 2. Eğer kullanıcı varsa ama hesabı 'X' (Silinmiş) ise, onu DİRİLTİYORUZ!
-        if mevcut_kullanici.kayit_durumu == 'X':
-            mevcut_kullanici.kayit_durumu = 'A' # Yeniden Aktif
+        # 2. Eğer kullanıcı varsa ama hesabı Pasif (Silinmiş) ise, onu DİRİLTİYORUZ!
+        # ESKİ KOD: if mevcut_kullanici.kayit_durumu == 'X':
+        # YENİ REVİZE:
+        if mevcut_kullanici.aktif_mi == False:
+            # ESKİ KOD: mevcut_kullanici.kayit_durumu = 'A' # Yeniden Aktif
+            # YENİ REVİZE:
+            mevcut_kullanici.aktif_mi = True
+            
             mevcut_kullanici.sifre_hash = kullanici.sifre # DÜZELTİLDİ: sifre değil sifre_hash
             mevcut_kullanici.ad_soyad = kullanici.ad_soyad
             mevcut_kullanici.telefon = kullanici.telefon
@@ -335,7 +340,7 @@ def kullanici_olustur(kullanici: schemas.KullaniciCreate, db: Session = Depends(
             log_kaydet(db, "Hesap Diriltme", f"{kullanici.eposta} maili ile eski hesap yeniden aktif edildi.", "INFO", mevcut_kullanici.id)
             return mevcut_kullanici
         else:
-            # 3. Hesap varsa ve zaten Aktifse ('A'), hata ver!
+            # 3. Hesap varsa ve zaten Aktifse, hata ver!
             raise HTTPException(status_code=400, detail="Bu e-posta adresi sistemde zaten kayıtlı!")
 
     # 4. Hiç kayıt yoksa sıfırdan oluştur (DÜZELTİLDİ: Manuel ve doğru eşleştirme)
@@ -345,7 +350,10 @@ def kullanici_olustur(kullanici: schemas.KullaniciCreate, db: Session = Depends(
         telefon=kullanici.telefon,
         sifre_hash=kullanici.sifre # Veritabanındaki adı sifre_hash
     )
-    yeni_kullanici.kayit_durumu = 'A' # Yeni kayıt aktif başlar
+    # ESKİ KOD: yeni_kullanici.kayit_durumu = 'A' # Yeni kayıt aktif başlar
+    # YENİ REVİZE:
+    yeni_kullanici.aktif_mi = True
+    
     db.add(yeni_kullanici)
     db.commit()
     db.refresh(yeni_kullanici)
@@ -360,9 +368,11 @@ def kullanici_sil(kullanici_id: int, db: Session = Depends(get_db)):
     if not kullanici:
         raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
         
-    kullanici.kayit_durumu = 'X' # Soft delete!
+    # ESKİ KOD: kullanici.kayit_durumu = 'X' # Soft delete!
+    # YENİ REVİZE:
+    kullanici.aktif_mi = False 
     
-    log_kaydet(db, "Hesap Silme", f"Kullanıcı ID: {kullanici_id} hesabını sildi ('X' yapıldı).", "WARNING", kullanici_id)
+    log_kaydet(db, "Hesap Silme", f"Kullanıcı ID: {kullanici_id} hesabını sildi (Pasife Alındı).", "WARNING", kullanici_id)
     db.commit()
     return {"mesaj": "Hesabınız başarıyla silindi."}
 
@@ -371,13 +381,16 @@ def kullanici_getir(kullanici_id: int, db: Session = Depends(get_db)):
     # 1. Sadece aktif kullanıcıyı getir
     kullanici = db.query(models.Kullanici).filter(
         models.Kullanici.id == kullanici_id,
-        models.Kullanici.kayit_durumu == 'A'
+        # ESKİ KOD: models.Kullanici.kayit_durumu == 'A'
+        # YENİ REVİZE:
+        models.Kullanici.aktif_mi == True
     ).first()
     
     if kullanici is None:
         raise HTTPException(status_code=404, detail="Kullanici bulunamadi")
         
     # 2. HAYAT KURTARAN FİLTRE: Kullanıcının silinmiş (X) kayıtlarını temizle
+    # NOT: Buralardaki kayit_durumu Araç ve Talep tablosu için olduğu için DOKUNULMADI!
     kullanici.araclar = [arac for arac in kullanici.araclar if arac.kayit_durumu == 'A']
     kullanici.servis_talepleri = [talep for talep in kullanici.servis_talepleri if getattr(talep, 'kayit_durumu', 'A') == 'A']
     
@@ -407,13 +420,14 @@ def kullanici_getir(kullanici_id: int, db: Session = Depends(get_db)):
 @app.post("/giris/", response_model=schemas.Kullanici)
 def giris_yap(giris_bilgileri: schemas.KullaniciGiris, db: Session = Depends(get_db)):
     kullanici = db.query(models.Kullanici).filter(
-        models.Kullanici.eposta == giris_bilgileri.eposta,
-        models.Kullanici.kayit_durumu == 'A'
+        models.Kullanici.eposta == giris_bilgileri.eposta
+        # ESKİ KOD: models.Kullanici.kayit_durumu == 'A' -> İptal edildi, aktif_mi kontrolü zaten aşağıda var.
     ).first()
     
     if not kullanici or kullanici.sifre_hash != giris_bilgileri.sifre:
         raise HTTPException(status_code=401, detail="E-posta veya şifre hatali")
         
+    # YENİ REVİZE: kayit_durumu iptal olduğu için "soft_delete" ve "askıya alma" burada birleşti.
     if not kullanici.aktif_mi:
         raise HTTPException(status_code=403, detail="Hesabiniz askiya alinmistir")
         
@@ -424,6 +438,7 @@ def giris_yap(giris_bilgileri: schemas.KullaniciGiris, db: Session = Depends(get
     # YENİ: Sistem loglarına kaydı atıyoruz
     log_kaydet(db, "Sisteme Giriş", f"{kullanici.ad_soyad} uygulamaya giriş yaptı.", "INFO", kullanici.id)
 
+    # DİKKAT: Araç ve Talep tablosundaki kayit_durumu'na dokunulmadı!
     kullanici.araclar = [arac for arac in kullanici.araclar if arac.kayit_durumu == 'A']
     kullanici.servis_talepleri = [talep for talep in kullanici.servis_talepleri if getattr(talep, 'kayit_durumu', 'A') == 'A']
     return kullanici
@@ -441,10 +456,12 @@ def kullanici_takip_listesi(
 ):
     atla = (sayfa - 1) * sayfa_boyutu
 
-    # Sadece Müşterileri getir, kayit_durumu aktif olanlar
+    # Sadece Müşterileri getir, aktif olanlar
     query = db.query(models.Kullanici).filter(
         models.Kullanici.rol == "Musteri",
-        models.Kullanici.kayit_durumu == 'A'
+        # ESKİ KOD: models.Kullanici.kayit_durumu == 'A'
+        # YENİ REVİZE:
+        models.Kullanici.aktif_mi == True
     )
     
     # MySQL uyumlu sıralama: önce NULL olanlar (hiç giriş yapmamış) en üstte,
@@ -555,8 +572,10 @@ def kvkk_mail_iptal(kullanici_id: int, db: Session = Depends(get_db)):
     if kullanici:
         kullanici.mail_istiyor_mu = False
         db.commit()
+        from fastapi.responses import HTMLResponse # Gerekli kütüphane eklendi
         return HTMLResponse(content="<h3>Talebiniz alınmıştır. Artık e-posta almayacaksınız.</h3>")
     
+    from fastapi.responses import HTMLResponse
     return HTMLResponse(content="<h3>Kullanıcı bulunamadı.</h3>")
 
 @app.put("/kullanicilar/{kullanici_id}", response_model=schemas.Kullanici)
@@ -586,7 +605,7 @@ def arac_ekle(arac: schemas.AracCreate, db: Session = Depends(get_db)):
 
 @app.get("/araclar/kullanici/{kullanici_id}", response_model=List[schemas.Arac])
 def kullanici_araclarini_getir(kullanici_id: int, db: Session = Depends(get_db)):
-    # Sadece o kullanıcıya ait olan ve silinmemiş (A) araçları getirir
+    # DİKKAT: Araç tablosunda kayit_durumu KORUNDU
     araclar = db.query(models.Arac).filter(
         models.Arac.sahip_id == kullanici_id,
         models.Arac.kayit_durumu == 'A'
@@ -596,6 +615,7 @@ def kullanici_araclarini_getir(kullanici_id: int, db: Session = Depends(get_db))
 # --- MADDE 28: ARAÇTA AKTİF TALEP VAR MI KONTROLÜ ---
 @app.get("/araclar/{arac_id}/aktif-talep-kontrol")
 def aktif_talep_kontrol(arac_id: int, db: Session = Depends(get_db)):
+    # DİKKAT: Talep tablosunda kayit_durumu KORUNDU
     aktif_talep = db.query(models.ServisTalebi).filter(
         models.ServisTalebi.arac_id == arac_id,
         models.ServisTalebi.durum.in_(['Bekliyor', 'Onaylandı', 'İşlemde']),
@@ -605,16 +625,14 @@ def aktif_talep_kontrol(arac_id: int, db: Session = Depends(get_db)):
     return {"aktif_talep_var": aktif_talep is not None}
 
 # --- MADDE 28: GÜVENLİ ARAÇ GÜNCELLEME ---
-# 28-Aracı Düzenle ekranında sadece kilometre bilgisi güncellenebiliyor, burada marka model değişikliği de yapılmalı ama bu araca kayıtlı bekliyor 
-# statüsü dışında bir servis talebi varsa değiştiremesin ve uyarı versin servis talebi mevcut sadece yıl ve km. bilgisi değiştirilebilir 
-# diye ve öyle bir statüde olan araç gerçekten sadece yıl ve km değiştirebilsin. marka modeli değiştiremesin. 
 @app.put("/araclar/{arac_id}")
 def arac_guncelle(arac_id: int, arac_data: schemas.AracCreate, db: Session = Depends(get_db)):
+    # DİKKAT: Araç tablosunda kayit_durumu KORUNDU
     mevcut_arac = db.query(models.Arac).filter(models.Arac.id == arac_id, models.Arac.kayit_durumu == 'A').first()
     if not mevcut_arac:
         raise HTTPException(status_code=404, detail="Araç bulunamadı.")
 
-    # Araç üzerinde aktif bir işlem var mı bakıyoruz
+    # DİKKAT: Talep tablosunda kayit_durumu KORUNDU
     aktif_talep = db.query(models.ServisTalebi).filter(
         models.ServisTalebi.arac_id == arac_id,
         models.ServisTalebi.durum.in_(['Bekliyor', 'Onaylandı', 'İşlemde']),
@@ -664,14 +682,14 @@ def arac_guncelle(arac_id: int, arac_data: schemas.AracCreate, db: Session = Dep
 @app.post("/servis-talepleri/", response_model=schemas.ServisTalebi)
 def servis_talebi_olustur(istek: schemas.ServisTalebiCreate, db: Session = Depends(get_db)):
     try:
-        # 1. Yeni servis talebini oluşturuyoruz						
+        # 1. Yeni servis talebini oluşturuyoruz                        
         yeni_talep = models.ServisTalebi(**istek.model_dump())
         db.add(yeni_talep)
         # YENİ REVİZE: commit() yerine flush() kullanıyoruz. 
-        # Böylece talep beklemeye alınıyor, hata olursa geri alınabilecek (rollback).													 
+        # Böylece talep beklemeye alınıyor, hata olursa geri alınabilecek (rollback).                                                                 
         db.flush() 
 
-        # 2. Admin'e Yeni Talep Bildirimi Oluşturma ve Push Bildirimi (FCM) Gönderme													  
+        # 2. Admin'e Yeni Talep Bildirimi Oluşturma ve Push Bildirimi (FCM) Gönderme                                                                  
         istegi_yapan = db.query(models.Kullanici).filter(models.Kullanici.id == istek.kullanici_id).first()
         hizmet_detay = db.query(models.Hizmet).filter(models.Hizmet.id == istek.hizmet_id).first()
         arac_detay = db.query(models.Arac).filter(models.Arac.id == istek.arac_id).first()
@@ -698,7 +716,7 @@ def servis_talebi_olustur(istek: schemas.ServisTalebiCreate, db: Session = Depen
                         token=admin.fcm_token
                     )
                     messaging.send(mesaj_fcm)
-        # 3. YENİ REVİZE: Eğer buraya kadar hiç hata çıkmadıysa, hem talebi hem bildirimleri aynı anda kaydediyoruz.		
+        # 3. YENİ REVİZE: Eğer buraya kadar hiç hata çıkmadıysa, hem talebi hem bildirimleri aynı anda kaydediyoruz.        
         db.commit()
         db.refresh(yeni_talep)
         return yeni_talep
@@ -727,6 +745,7 @@ def servis_talebi_olustur(istek: schemas.ServisTalebiCreate, db: Session = Depen
 # TALEPLERİ GETİRİRKEN (Sadece A olanlar)
 @app.get("/servis-talepleri/kullanici/{kullanici_id}")
 def kullanici_taleplerini_getir(kullanici_id: int, db: Session = Depends(get_db)):
+    # DİKKAT: Talep tablosunda kayit_durumu KORUNDU
     talepler = db.query(models.ServisTalebi)\
                  .filter(models.ServisTalebi.kullanici_id == kullanici_id, models.ServisTalebi.kayit_durumu == 'A')\
                  .order_by(models.ServisTalebi.insert_tarihi.desc()).all()
@@ -803,7 +822,7 @@ def kullanici_talep_guncelle(talep_id: int, istek: schemas.TalepGuncelleKullanic
             talep.notlar = istek.notlar
         # --- YENİ REVİZE BİTİŞİ ---
         
-        # KULLANICI DÜZELTMEYİ YAPTIĞI İÇİN BAYRAĞI İNDİRİYORUZ                                                                                                                              
+        # KULLANICI DÜZELTMEYİ YAPTIĞI İÇİN BAYRAĞI İNDİRİYORUZ                                                                                                                                                                                                         
         talep.duzeltme_istendi_mi = False
         talep.duzeltme_notu = None
         
@@ -902,6 +921,7 @@ def servis_talebi_iptal_et(talep_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Sadece 'Bekliyor' durumundaki talepler iptal edilebilir.")
             
     # db.delete(talep) <--- İPTAL
+    # DİKKAT: Talep tablosundaki kayit_durumu YAPISI KORUNUYOR.
     talep.kayit_durumu = 'X'
     talep.silinme_tarihi = datetime.now()
     talep.durum = "İptal Edildi" # Hem durumu güncelliyoruz hem de siliyoruz
@@ -928,12 +948,12 @@ def hizmet_fiyat_guncelle(hizmet_id: int, yeni_fiyat: float, db: Session = Depen
     
     if not hizmet:
         raise HTTPException(status_code=404, detail="Hizmet bulunamadi")
-    # 1. Eski fiyatı kenara not al		   
+    # 1. Eski fiyatı kenara not al            
     eski_fiyat = hizmet.varsayilan_fiyat
-    # 2. Ana tablodaki değerleri kaydır ve güncelle								  
+    # 2. Ana tablodaki değerleri kaydır ve güncelle                                  
     hizmet.onceki_fiyat = eski_fiyat
     hizmet.varsayilan_fiyat = yeni_fiyat
-    # 3. Arşiv (Geçmiş) tablosuna yepyeni bir kayıt at										  
+    # 3. Arşiv (Geçmiş) tablosuna yepyeni bir kayıt at                                         
     gecmis_kaydi = models.HizmetFiyatGecmisi(
         hizmet_id=hizmet.id,
         eski_fiyat=eski_fiyat,
@@ -971,6 +991,7 @@ def arac_sil(arac_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Araç bulunamadı")
     
     # db.delete(arac) <--- ARTIK BUNU KULLANMIYORUZ!
+    # DİKKAT: Araç tablosunda kayit_durumu YAPISI KORUNUYOR
     arac.kayit_durumu = 'X'
     arac.silinme_tarihi = datetime.now()
     db.commit()
@@ -997,8 +1018,6 @@ def arac_getir(arac_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Araç bulunamadı")
     return arac
 
-class SifreSifirlaIstegi(BaseModel):
-    eposta: str
 
 #@app.post("/kullanicilar/sifre-sifirla_Old")
 #def sifre_sifirla_talep_Old(istek: SifreSifirlaIstegi, db: Session = Depends(get_db)):
@@ -1017,11 +1036,13 @@ def sifre_sifirla_talep(istek: SifreSifirlaIstegi, db: Session = Depends(get_db)
     # 1. Kullanıcıyı bul
     kullanici = db.query(models.Kullanici).filter(
         models.Kullanici.eposta == istek.eposta,
-        models.Kullanici.kayit_durumu == 'A'
+        # ESKİ KOD: models.Kullanici.kayit_durumu == 'A'
+        # YENİ REVİZE:
+        models.Kullanici.aktif_mi == True
     ).first()
     
     if not kullanici:
-        raise HTTPException(status_code=404, detail="Bu e-posta adresine ait bir hesap bulunamadı.")
+        raise HTTPException(status_code=404, detail="Bu e-posta adresine ait bir hesap bulunamadı veya hesabınız pasif durumdadır.")
     
     # 2. Geçici 6 haneli rastgele bir şifre üret
     yeni_gecici_sifre = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
@@ -1072,10 +1093,12 @@ class YeniSifreBelirle(BaseModel):
 
 @app.post("/kullanicilar/yeni-sifre-kaydet")
 def yeni_sifre_kaydet(istek: YeniSifreBelirle, db: Session = Depends(get_db)):
-    kullanici = db.query(models.Kullanici).filter(models.Kullanici.eposta == istek.eposta, models.Kullanici.kayit_durumu == 'A').first()
+    # ESKİ KOD: kullanici = db.query(models.Kullanici).filter(models.Kullanici.eposta == istek.eposta, models.Kullanici.kayit_durumu == 'A').first()
+    # YENİ REVİZE:
+    kullanici = db.query(models.Kullanici).filter(models.Kullanici.eposta == istek.eposta, models.Kullanici.aktif_mi == True).first()
     
     if not kullanici:
-        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı.")
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı veya hesabınız pasif.")
         
     # Şifreyi güncelle (İleride Hash'lenecek)
     kullanici.sifre_hash = istek.yeni_sifre
@@ -1157,11 +1180,13 @@ class SifreDegistirIstegi(BaseModel):
 def sifre_degistir(istek: SifreDegistirIstegi, db: Session = Depends(get_db)):
     kullanici = db.query(models.Kullanici).filter(
         models.Kullanici.id == istek.kullanici_id,
-        models.Kullanici.kayit_durumu == 'A'
+        # ESKİ KOD: models.Kullanici.kayit_durumu == 'A'
+        # YENİ REVİZE:
+        models.Kullanici.aktif_mi == True
     ).first()
     
     if not kullanici:
-        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı.")
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı veya hesabınız pasif.")
         
     if kullanici.sifre_hash != istek.eski_sifre:
         raise HTTPException(status_code=400, detail="Mevcut şifrenizi yanlış girdiniz.")
@@ -1186,6 +1211,7 @@ def admin_aktif_talepleri_getir(db: Session = Depends(get_db)):
         else_=4
     )
 
+    # DİKKAT: Talep tablosunda kayit_durumu KORUNDU
     talepler = db.query(models.ServisTalebi).filter(
         models.ServisTalebi.kayit_durumu == 'A',
         models.ServisTalebi.durum.in_(['Bekliyor', 'Onaylandı', 'İşlemde'])
@@ -1227,6 +1253,7 @@ def admin_aktif_talepleri_getir(db: Session = Depends(get_db)):
 # --- ADMİN: GEÇMİŞ TALEPLERİ GETİR ---
 @app.get("/admin/servis-talepleri/gecmis")
 def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
+    # DİKKAT: Talep tablosunda kayit_durumu KORUNDU
     talepler = db.query(models.ServisTalebi).filter(
         models.ServisTalebi.kayit_durumu == 'A',
         models.ServisTalebi.durum.in_(['Tamamlandı', 'İptal Edildi'])
@@ -1554,22 +1581,24 @@ def admin_kullanicilari_getir(
     arama: str = "",
     db: Session = Depends(get_db)
 ):
-    # Sayfalama hesaplaması (offset)						 
+    # Sayfalama hesaplaması (offset)                         
     atla = (sayfa - 1) * sayfa_boyutu
-	
-    query = db.query(models.Kullanici).filter(models.Kullanici.kayit_durumu == 'A')
-	
-    # Eğer arama kelimesi varsa filtrele								 
+    
+    # ESKİ KOD: query = db.query(models.Kullanici).filter(models.Kullanici.kayit_durumu == 'A')
+    # YENİ REVİZE: (Tüm kullanıcıları getirmesi için filtre kaldırıldı, zaten admin hepsini görmeli)
+    query = db.query(models.Kullanici)
+    
+    # Eğer arama kelimesi varsa filtrele                                 
     if arama:
         query = query.filter(
             (models.Kullanici.ad_soyad.ilike(f"%{arama}%")) |
             (models.Kullanici.eposta.ilike(f"%{arama}%"))
         )
         
-    toplam_kayit = query.count()				
+    toplam_kayit = query.count()                
     kullanicilar = query.offset(atla).limit(sayfa_boyutu).all()
 
-    # Güvenli serileştirme (sadece ihtiyaç duyulan alanlar)										
+    # Güvenli serileştirme (sadece ihtiyaç duyulan alanlar)                                       
     guvenli_liste = []
     for k in kullanicilar:
         guvenli_liste.append({
@@ -1592,7 +1621,7 @@ def admin_kullanicilari_getir(
     return {
         "kullanicilar": guvenli_liste,
         "toplam_kayit": toplam_kayit,
-							   
+                                
         "toplam_sayfa": (toplam_kayit + sayfa_boyutu - 1) // sayfa_boyutu,
         "gecerli_sayfa": sayfa
     }
@@ -1635,6 +1664,30 @@ def admin_kullanici_guncelle(kullanici_id: int, istek: dict, db: Session = Depen
 
     db.commit()
     return {"mesaj": "Kullanıcı başarıyla güncellendi"}
+
+
+# main.py içerisine Dashboard verileri için yeni bir endpoint yapılandırıldı.
+@app.get("/admin/dashboard-istatistik")
+def dashboard_istatistik(db: Session = Depends(get_db)):
+    # İleride tamamen otomatiğe geçmek istediğinde bu değişkenleri 0 yapman yeterli.
+    manuel_musteri_ek = 130  
+    manuel_talep_ek = 316 
+    manuel_arac_ek = 139     
+
+    # Veritabanından gelen otomatik sayımlar (Sadece aktifleri sayıyoruz)
+    oto_musteri = db.query(models.Kullanici).filter(
+        models.Kullanici.rol == "Musteri", 
+        models.Kullanici.aktif_mi == True
+    ).count()
+    
+    oto_talep = db.query(models.ServisTalebi).count()
+    oto_arac = db.query(models.Arac).count()
+
+    return {
+        "toplam_musteri": oto_musteri + manuel_musteri_ek,
+        "toplam_talep": oto_talep + manuel_talep_ek,
+        "toplam_arac": oto_arac + manuel_arac_ek
+    }
 
 #################################################################
 ######################### ADMİN PANELİ ##########################

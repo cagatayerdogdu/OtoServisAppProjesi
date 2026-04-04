@@ -3,110 +3,176 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:helpers="clr-namespace:OtoServisApp.Helpers"
              x:Class="OtoServisApp.Views.DashboardView"
-             BackgroundColor="#F4F6F8"
+             BackgroundColor="#F8FAFC"
              Title="Ana Sayfa">
 
     <ScrollView>
-        <VerticalStackLayout Spacing="25" Padding="20,30">
+        <VerticalStackLayout Spacing="20" Padding="15,20">
 
-            <Grid ColumnDefinitions="*, Auto" Margin="0,0,0,20">
+            <Grid ColumnDefinitions="*, Auto" Margin="5,0,5,15">
+                <VerticalStackLayout Grid.Column="0" VerticalOptions="Center">
+                    <Label Text="Hoş Geldiniz," FontSize="14" TextColor="#64748B"/>
+                    <Label x:Name="WelcomeLabel" Text="..." FontSize="22" FontAttributes="Bold" TextColor="#1E293B"/>
+                </VerticalStackLayout>
 
-                <Border Grid.Column="0" BackgroundColor="#00BCD4" StrokeShape="RoundRectangle 10" Padding="20" Stroke="Transparent">
-                    <VerticalStackLayout>
-                        <Label Text="Hoş Geldiniz," TextColor="#FAFAFA" FontSize="14" Opacity="0.9" />
-                        <Label x:Name="WelcomeLabel" Text="..." TextColor="#FAFAFA" FontSize="22" FontAttributes="Bold" />
-                    </VerticalStackLayout>
-                </Border>
-
-                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" HorizontalOptions="Center" Padding="15,5" BackgroundColor="Transparent">
+                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" HorizontalOptions="Center" Padding="10,5" BackgroundColor="Transparent">
                     <VerticalStackLayout.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnBildirimlerTapped" />
                     </VerticalStackLayout.GestureRecognizers>
 
                     <Grid WidthRequest="35" HeightRequest="30">
-                        <Label Text="{x:Static helpers:IconFont.Bell}" FontFamily="FASolid" FontSize="26" TextColor="#00BCD4" HorizontalOptions="Center" VerticalOptions="Center"/>
-
-                        <Border x:Name="NotificationBadgeBorder" IsVisible="False" BackgroundColor="#D32F2F" StrokeShape="RoundRectangle 10" WidthRequest="18" HeightRequest="18" HorizontalOptions="End" VerticalOptions="Start" Margin="-5,-5,0,0">
+                        <Label Text="{x:Static helpers:IconFont.Bell}" FontFamily="FASolid" FontSize="26" TextColor="#0EA5E9" HorizontalOptions="Center" VerticalOptions="Center"/>
+                        <Border x:Name="NotificationBadgeBorder" IsVisible="False" BackgroundColor="#0EA5E9" StrokeShape="RoundRectangle 10" WidthRequest="18" HeightRequest="18" HorizontalOptions="End" VerticalOptions="Start" Margin="-5,-5,0,0">
                             <Label x:Name="NotificationCountLabel" Text="0" FontSize="10" TextColor="White" FontAttributes="Bold" HorizontalOptions="Center" VerticalOptions="Center"/>
                         </Border>
                     </Grid>
-
-                    <Label Text="Bildirimler" FontSize="11" TextColor="#00BCD4" FontAttributes="Bold" HorizontalOptions="Center" Margin="0,2,0,0"/>
                 </VerticalStackLayout>
             </Grid>
 
-            <Label Text="Hızlı İşlemler" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource Tertiary}" Margin="5,10,0,0"/>
+            <Grid ColumnDefinitions="*, *, *" ColumnSpacing="10" Margin="0,0,0,10">
+                <Frame Grid.Column="0" BackgroundColor="#EFF6FF" BorderColor="Transparent" CornerRadius="12" Padding="10" HasShadow="False">
+                    <VerticalStackLayout HorizontalOptions="Center" Spacing="5">
+                        <Label Text="{x:Static helpers:IconFont.Users}" FontFamily="FASolid" FontSize="20" TextColor="#3B82F6" HorizontalOptions="Center"/>
+                        <Label x:Name="LblToplamMusteri" Text="0" FontSize="18" FontAttributes="Bold" TextColor="#1E293B" HorizontalOptions="Center"/>
+                        <Label Text="Müşteri" FontSize="11" TextColor="#64748B" HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
+                </Frame>
 
-                <Border BackgroundColor="#E0F7FA" StrokeShape="RoundRectangle 15" Padding="20" Margin="0,0,0,15" Stroke="Transparent">
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnShowcaseTapped" />
-                    </Border.GestureRecognizers>
-                    <HorizontalStackLayout Spacing="15">
-                        <Label Text="{x:Static helpers:IconFont.Camera}" FontFamily="FASolid" FontSize="30" TextColor="#00796B" VerticalOptions="Center"/>
-                        <VerticalStackLayout VerticalOptions="Center">
-                            <Label Text="Tamamlanan İşlerimiz" FontSize="18" FontAttributes="Bold" TextColor="#00796B"/>
-                            <Label Text="Vitrindeki başarı hikayelerimize göz atın." TextColor="#004D40" FontSize="12"/>
-                        </VerticalStackLayout>
-                    </HorizontalStackLayout>
+                <Frame Grid.Column="1" BackgroundColor="#E0F7FA" BorderColor="Transparent" CornerRadius="12" Padding="10" HasShadow="False">
+                    <VerticalStackLayout HorizontalOptions="Center" Spacing="5">
+                        <Label Text="{x:Static helpers:IconFont.Wrench}" FontFamily="FASolid" FontSize="20" TextColor="#00BCD4" HorizontalOptions="Center"/>
+                        <Label x:Name="LblToplamTalep" Text="0" FontSize="18" FontAttributes="Bold" TextColor="#1E293B" HorizontalOptions="Center"/>
+                        <Label Text="Talep" FontSize="11" TextColor="#64748B" HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <Frame Grid.Column="2" BackgroundColor="#F1F5F9" BorderColor="Transparent" CornerRadius="12" Padding="10" HasShadow="False">
+                    <VerticalStackLayout HorizontalOptions="Center" Spacing="5">
+                        <Label Text="{x:Static helpers:IconFont.Car}" FontFamily="FASolid" FontSize="20" TextColor="#64748B" HorizontalOptions="Center"/>
+                        <Label x:Name="LblToplamArac" Text="0" FontSize="18" FontAttributes="Bold" TextColor="#1E293B" HorizontalOptions="Center"/>
+                        <Label Text="Araç" FontSize="11" TextColor="#64748B" HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
+                </Frame>
+            </Grid>
+
+            <Label Text="Hızlı İşlemler" FontSize="16" FontAttributes="Bold" TextColor="#1E293B" Margin="5,10,0,5"/>
+
+            <Border BackgroundColor="#E0F2FE" StrokeShape="RoundRectangle 12" Padding="15" Margin="0,0,0,5" Stroke="Transparent">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnShowcaseTapped" />
+                </Border.GestureRecognizers>
+                <HorizontalStackLayout Spacing="15" VerticalOptions="Center">
+                    <Label Text="{x:Static helpers:IconFont.Camera}" FontFamily="FASolid" FontSize="26" TextColor="#0284C7" VerticalOptions="Center" Margin="5,0"/>
+                    <VerticalStackLayout VerticalOptions="Center">
+                        <Label Text="Tamamlanan İşlerimiz" FontSize="15" FontAttributes="Bold" TextColor="#0369A1"/>
+                        <Label Text="Vitrindeki başarı hikayelerine göz atın." TextColor="#0C4A6E" FontSize="11"/>
+                    </VerticalStackLayout>
+                </HorizontalStackLayout>
             </Border>
 
             <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto" ColumnSpacing="15" RowSpacing="15">
-
-                <Border Grid.Row="0" Grid.Column="0" BackgroundColor="#FAFAFA" StrokeShape="RoundRectangle 15" Padding="15,25" Stroke="Transparent">
+                <Border Grid.Row="0" Grid.Column="0" BackgroundColor="White" StrokeShape="RoundRectangle 12" Padding="15,20" Stroke="#E2E8F0">
                     <Border.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnServiceRequestTapped" />
                     </Border.GestureRecognizers>
-                    <Border.Shadow>
-                        <Shadow Brush="Black" Offset="0,3" Radius="8" Opacity="0.05" />
-                    </Border.Shadow>                   
-                    <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
-                        <Label Text="{x:Static helpers:IconFont.Wrench}" FontFamily="FASolid" FontSize="36" TextColor="{StaticResource Tertiary}" HorizontalOptions="Center"/>
-                        <Label Text="Servis Talebi" FontSize="15" FontAttributes="Bold" TextColor="{StaticResource Tertiary}" HorizontalOptions="Center"/>
+                    <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                        <Label Text="{x:Static helpers:IconFont.Wrench}" FontFamily="FASolid" FontSize="30" TextColor="#00BCD4" HorizontalOptions="Center"/>
+                        <Label Text="Servis Talebi" FontSize="13" FontAttributes="Bold" TextColor="#334155" HorizontalOptions="Center"/>
                     </VerticalStackLayout>
                 </Border>
 
-                <Border Grid.Row="0" Grid.Column="1" BackgroundColor="#FAFAFA" StrokeShape="RoundRectangle 15" Padding="15,25" Stroke="Transparent">
+                <Border Grid.Row="0" Grid.Column="1" BackgroundColor="White" StrokeShape="RoundRectangle 12" Padding="15,20" Stroke="#E2E8F0">
                     <Border.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnVehiclesTapped" />
                     </Border.GestureRecognizers>
-                    <Border.Shadow>
-                        <Shadow Brush="Black" Offset="0,3" Radius="8" Opacity="0.05" />
-                    </Border.Shadow>
-                    <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
-                        <Label Text="{x:Static helpers:IconFont.Car}" FontFamily="FASolid" FontSize="36" TextColor="{StaticResource Tertiary}" HorizontalOptions="Center"/>
-                        <Label Text="Araçlarım" FontSize="15" FontAttributes="Bold" TextColor="{StaticResource Tertiary}" HorizontalOptions="Center"/>
+                    <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                        <Label Text="{x:Static helpers:IconFont.Car}" FontFamily="FASolid" FontSize="30" TextColor="#00BCD4" HorizontalOptions="Center"/>
+                        <Label Text="Araçlarım" FontSize="13" FontAttributes="Bold" TextColor="#334155" HorizontalOptions="Center"/>
                     </VerticalStackLayout>
                 </Border>
 
-                <Border Grid.Row="1" Grid.Column="0" BackgroundColor="#FAFAFA" StrokeShape="RoundRectangle 15" Padding="15,25" Stroke="Transparent">
+                <Border Grid.Row="1" Grid.Column="0" BackgroundColor="White" StrokeShape="RoundRectangle 12" Padding="15,20" Stroke="#E2E8F0">
                     <Border.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnMyRequestsTapped" />
                     </Border.GestureRecognizers>
-                    <Border.Shadow>
-                        <Shadow Brush="Black" Offset="0,3" Radius="8" Opacity="0.05" />
-                    </Border.Shadow>
-                    <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
-                        <Label Text="{x:Static helpers:IconFont.CalendarAlt}" FontFamily="FASolid" FontSize="36" TextColor="{StaticResource Tertiary}" HorizontalOptions="Center"/>
-                        <Label Text="Durum Takibi" FontSize="15" FontAttributes="Bold" TextColor="{StaticResource Tertiary}" HorizontalOptions="Center"/>
+                    <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                        <Label Text="{x:Static helpers:IconFont.CalendarAlt}" FontFamily="FASolid" FontSize="30" TextColor="#00BCD4" HorizontalOptions="Center"/>
+                        <Label Text="Durum Takibi" FontSize="13" FontAttributes="Bold" TextColor="#334155" HorizontalOptions="Center"/>
                     </VerticalStackLayout>
                 </Border>
 
-                <Border Grid.Row="1" Grid.Column="1" BackgroundColor="#FAFAFA" StrokeShape="RoundRectangle 15" Padding="15,25" Stroke="Transparent">
-
+                <Border Grid.Row="1" Grid.Column="1" BackgroundColor="White" StrokeShape="RoundRectangle 12" Padding="15,20" Stroke="#E2E8F0">
                     <Border.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnProfileTapped" />
                     </Border.GestureRecognizers>
-                    
-                    <Border.Shadow>
-                        <Shadow Brush="Black" Offset="0,3" Radius="8" Opacity="0.05" />
-                    </Border.Shadow>
-                    <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
-                        <Label Text="{x:Static helpers:IconFont.User}" FontFamily="FASolid" FontSize="36" TextColor="{StaticResource Tertiary}" HorizontalOptions="Center"/>
-                        <Label Text="Hesabım" FontSize="15" FontAttributes="Bold" TextColor="{StaticResource Tertiary}" HorizontalOptions="Center"/>
+                    <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                        <Label Text="{x:Static helpers:IconFont.User}" FontFamily="FASolid" FontSize="30" TextColor="#00BCD4" HorizontalOptions="Center"/>
+                        <Label Text="Hesabım" FontSize="13" FontAttributes="Bold" TextColor="#334155" HorizontalOptions="Center"/>
                     </VerticalStackLayout>
                 </Border>
-
             </Grid>
+
+            <Label Text="Bize Ulaşın" FontSize="16" FontAttributes="Bold" TextColor="#1E293B" Margin="5,10,0,0"/>
+
+            <Border BackgroundColor="White" Stroke="#E2E8F0" StrokeShape="RoundRectangle 12" Padding="15,20">
+                <Grid ColumnDefinitions="*, *, *">
+
+                    <VerticalStackLayout Grid.Column="0" Spacing="8">
+                        <Label Text="{x:Static helpers:IconFont.Whatsapp}" FontFamily="FABrands" FontSize="34" TextColor="#25D366" HorizontalOptions="Center">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnWhatsappTapped" />
+                            </Label.GestureRecognizers>
+                        </Label>
+                        <Label Text="Bize Yazın" FontSize="11" TextColor="#64748B" HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Grid.Column="1" Spacing="8">
+                        <Label Text="{x:Static helpers:IconFont.Phone}" FontFamily="FASolid" FontSize="30" TextColor="#00BCD4" HorizontalOptions="Center" Margin="0,2,0,0">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnPhoneTapped" />
+                            </Label.GestureRecognizers>
+                        </Label>
+                        <Label Text="Bizi Arayın" FontSize="11" TextColor="#64748B" HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Grid.Column="2" Spacing="8">
+                        <Border StrokeShape="RoundRectangle 10" Stroke="Transparent" HeightRequest="36" WidthRequest="36" HorizontalOptions="Center">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,1" EndPoint="1,0">
+                                    <GradientStop Color="#F77737" Offset="0.0" />
+                                    <GradientStop Color="#E1306C" Offset="0.3" />
+                                    <GradientStop Color="#C13584" Offset="0.6" />
+                                    <GradientStop Color="#833AB4" Offset="1.0" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Label Text="{x:Static helpers:IconFont.Instagram}" FontFamily="FABrands" FontSize="22" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center" Margin="0,1,0,0">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnInstagramTapped" />
+                                </Label.GestureRecognizers>
+                            </Label>
+                        </Border>
+                        <Label Text="@kapidanbakim" FontSize="11" TextColor="#64748B" HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
+
+                </Grid>
+            </Border>
+
+            <Label Text="Kurumsal" FontSize="16" FontAttributes="Bold" TextColor="#1E293B" Margin="5,5,0,0"/>
+            <VerticalStackLayout Spacing="10" Margin="0,0,0,20">
+                <Frame BackgroundColor="White" BorderColor="#E2E8F0" CornerRadius="10" Padding="15" HasShadow="False">
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="Hakkımızda" FontAttributes="Bold" FontSize="14" TextColor="#334155"/>
+                        <Label Text="Kapıdan Bakım, araç bakım süreçlerinizi kapınıza getirerek size zaman kazandıran yenilikçi bir platformdur." FontSize="12" TextColor="#64748B" LineBreakMode="WordWrap"/>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <Frame BackgroundColor="White" BorderColor="#E2E8F0" CornerRadius="10" Padding="15" HasShadow="False">
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="Misyonumuz &amp; Vizyonumuz" FontAttributes="Bold" FontSize="14" TextColor="#334155"/>
+                        <Label Text="Misyonumuz güvenilir ve şeffaf hizmet sunmak; vizyonumuz ise sektörde dijitalleşmenin öncüsü olmaktır." FontSize="12" TextColor="#64748B" LineBreakMode="WordWrap"/>
+                    </VerticalStackLayout>
+                </Frame>
+            </VerticalStackLayout>
 
         </VerticalStackLayout>
     </ScrollView>
