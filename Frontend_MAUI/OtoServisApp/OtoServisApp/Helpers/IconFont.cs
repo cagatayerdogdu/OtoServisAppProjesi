@@ -28,5 +28,10 @@
         public const string Bell = "\uf0f3"; // 🔔 Bildirim Çanı
         public const string Moon = "\uf186";         // 🌙 Dark tema ikonu
         public const string ChartLine = "\uf201"; // 📈 Müşteri Takip (CRM) İkonu
+        //public const string Users = "\uf0c0";          // Toplam Müşteri
+        public const string CarSide = "\uf5e1";         // Kayıtlı Araçlar
+        public const string Whatsapp = "\uf232";        // WhatsApp (Brands fontu gerekir)
+        public const string PhoneAlt = "\uf879";        // Telefon
+        public const string Instagram = "\uf16d";       // Instagram
     }
 }

@@ -55,7 +55,7 @@ class Kullanici(Base):
     # servis_talepleri = relationship("ServisTalebi")
     
     # BÜTÜN ANA TABLOLARIN (Kullanici, Arac, ServisTalebi) EN ALTINA ŞU İKİ SATIRI EKLE:
-    kayit_durumu = Column(String(1), default="A", comment="A: Aktif Kayit, X: Silinmis (Soft Delete)")
+    # kayit_durumu = Column(String(1), default="A", comment="A: Aktif Kayit, X: Silinmis (Soft Delete)") aktif_mi kolonundan zaten takip ediyormuşuz.
     silinme_tarihi = Column(DateTime, nullable=True, comment="Kaydin X durumuna cekildigi tarih")
 
 class Arac(Base):

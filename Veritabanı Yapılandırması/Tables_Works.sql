@@ -6,7 +6,7 @@ select * from otoservisdb.araclar;
 select * from otoservisdb.hizmetler;
 select * from otoservisdb.hizmet_fiyat_gecmisi;
 select * from otoservisdb.sistem_loglari;
-select * from otoservisdb.sistem_bildirimleri;
+select * from otoservisdb.sistem_bildirimleri; 
 
 /*
 SET FOREIGN_KEY_CHECKS = 0;    

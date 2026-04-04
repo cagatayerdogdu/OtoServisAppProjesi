@@ -7,14 +7,20 @@ public partial class DashboardView : ContentPage
 {
     private Kullanici _aktifKullanici; // Kullanıcıyı sayfa içinde tutmak için
 
+    private readonly ApiService _apiService;
+
     // C# tarafında sayfalar arası veri taşımak için Constructor (yapıcı metod) kullanırız
     public DashboardView(Kullanici aktifKullanici)
     {
         InitializeComponent();
+        //BindingContext = this;
 
         _aktifKullanici = aktifKullanici;
         // Ekrana giris yapan kisinin adini yazdiriyoruz
         WelcomeLabel.Text = aktifKullanici.ad_soyad;
+
+        // Sayfa yüklendiğinde servisimizi yapılandırıyoruz
+        _apiService = new ApiService();
     }
 
     // ASYNC eklendi! Sayfa her ekranda göründüğünde (geri dönüldüğünde bile) bu fonksiyon otomatik çalışır
@@ -22,8 +28,10 @@ public partial class DashboardView : ContentPage
     {
         base.OnAppearing();
         WelcomeLabel.Text = _aktifKullanici.ad_soyad;
-
         await BildirimRozetiniGuncelle();
+        // Sayfa her açıldığında verileri tazelemek için
+        await IstatistikleriGetir();
+
     }
 
     private async void OnProfileTapped(object sender, EventArgs e)
@@ -77,7 +85,7 @@ public partial class DashboardView : ContentPage
 
     private async Task BildirimRozetiniGuncelle()
     {
-        var _apiService = new ApiService();
+        // var _apiService = new ApiService(); en üstte tanımlandı.
 
         // Gerçek kullanıcı ID'si doğrudan modele bağlandı
         int aktifKullaniciId = _aktifKullanici.id;
@@ -93,5 +101,75 @@ public partial class DashboardView : ContentPage
         {
             NotificationBadgeBorder.IsVisible = false;
         }
+    }
+
+    private async void OnWhatsappTapped(object sender, EventArgs e)
+    {
+        string telNo = "905365854024"; // BURAYA KENDİ NUMARANI YAZ ABİ
+        string mesaj = "Selamlar, Oto Servis Bakım üzerinden ulaşıyorum.";
+        await Launcher.Default.OpenAsync($"whatsapp://send?phone={telNo}&text={mesaj}");
+    }
+
+    private async void OnPhoneTapped(object sender, EventArgs e)
+    {
+        string telNo = "05365854024"; // BURAYA TELEFONUNU YAZ
+        if (PhoneDialer.Default.IsSupported)
+            PhoneDialer.Default.Open(telNo);
+    }
+
+    private async void OnInstagramTapped(object sender, EventArgs e)
+    {
+        string instaAdres = "https://www.instagram.com/erdogducagatay"; // INSTAGRAM LİNKİN
+        await Launcher.Default.OpenAsync(instaAdres);
+    }
+
+    private async Task IstatistikleriGetir()
+    {
+        try
+        {
+            // NOT: Endpoint adını main.py'deki isme göre kontrol et ("admin/dashboard-istatistik" vs "dashboard_istatistik")
+            var response = await _apiService.GetAsync("admin/dashboard-istatistik");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                var data = System.Text.Json.JsonSerializer.Deserialize<DashboardIstatistikResponse>(content);
+
+                if (data != null)
+                {
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        LblToplamMusteri.Text = data.toplam_musteri.ToString();
+                        LblToplamTalep.Text = data.toplam_talep.ToString();
+                        LblToplamArac.Text = data.toplam_arac.ToString();
+                    });
+                }
+            }
+            else
+            {
+                // API'den dönen hatayı ekrana basıyoruz
+                var error = await response.Content.ReadAsStringAsync();
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    DisplayAlert("API Hatası", $"Durum: {response.StatusCode}\nMesaj: {error}", "Tamam");
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            // Bağlantı kopması veya kod hatasını ekrana basıyoruz
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                DisplayAlert("Bağlantı Hatası", $"Detay: {ex.Message}", "Tamam");
+            });
+        }
+    }
+
+    // Gelen JSON verisini karşılayacak sınıfımız
+    public class DashboardIstatistikResponse
+    {
+        public int toplam_musteri { get; set; }
+        public int toplam_talep { get; set; }
+        public int toplam_arac { get; set; }
     }
 }
