@@ -20,6 +20,8 @@
                                 <Label Text="{Binding SonGirisText}" FontSize="12" TextColor="#555555"/>
                                 <Label Text="{Binding KacGunText}" FontSize="12" TextColor="#E74C3C" FontAttributes="Bold"/>
                                 <Label Text="{Binding MailIzinDurum}" FontSize="11" TextColor="{Binding MailIzinRengi}" FontAttributes="Bold"/>
+
+                                <Label Text="{Binding SonHatirlatmaText}" FontSize="11" TextColor="{Binding HatirlatmaRenk}" FontAttributes="Bold" Margin="0,4,0,0"/>
                             </VerticalStackLayout>
 
                             <Button Grid.Column="1" 

@@ -110,7 +110,17 @@ class ServisTalebi(Base):
     # Tarih Damgaları
     insert_tarihi = Column(DateTime, server_default=func.now(), comment="Talebin olusturulma zamani")
     guncelleme_tarihi = Column(DateTime, server_default=func.now(), onupdate=func.now(), comment="Talebin son islem gorme zamani")
-
+        
+    kayit_durumu = Column(String(1), default="A", comment="A: Aktif Kayit, X: Silinmis (Soft Delete)")
+    silinme_tarihi = Column(DateTime, nullable=True, comment="Kaydin X durumuna cekildigi tarih")
+    tahmini_tutar = Column(Float, default=0.0)  # YENİ EKLENEN KOLON
+    duzeltme_istendi_mi = Column(Boolean, default=False)
+    duzeltme_notu = Column(String(500), nullable=True)
+    
+    tamamlanma_tarihi = Column(DateTime, nullable=True)
+    # models.py içindeki ServisTalebi modeline eklenecek:
+    iptal_eden_id = Column(Integer, nullable=True, comment="Talebi iptal eden kişinin ID'si")
+        
     # ORM İlişkileri (Eski kodundan miras aldığımız, tabloları birbirine bağlayan kısım)
     # musteri = relationship("Kullanici", back_populates="servis_talepleri")
     # arac = relationship("Arac", back_populates="servis_talepleri")
@@ -121,12 +131,6 @@ class ServisTalebi(Base):
     hizmet = relationship("Hizmet")
     musteri = relationship("Kullanici", back_populates="servis_talepleri")
     arac = relationship("Arac", back_populates="servis_talepleri")
-    
-    kayit_durumu = Column(String(1), default="A", comment="A: Aktif Kayit, X: Silinmis (Soft Delete)")
-    silinme_tarihi = Column(DateTime, nullable=True, comment="Kaydin X durumuna cekildigi tarih")
-    tahmini_tutar = Column(Float, default=0.0)  # YENİ EKLENEN KOLON
-    duzeltme_istendi_mi = Column(Boolean, default=False)
-    duzeltme_notu = Column(String(500), nullable=True)
 
 class Hizmet(Base):
     __tablename__ = "hizmetler"

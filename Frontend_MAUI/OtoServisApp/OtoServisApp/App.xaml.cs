@@ -1,5 +1,7 @@
 ﻿using Plugin.Firebase.CloudMessaging;
 using System.Text;
+using OtoServisApp.Models;
+using OtoServisApp.Views;
 
 namespace OtoServisApp
 {
@@ -103,6 +105,15 @@ namespace OtoServisApp
                 File.AppendAllText(logPath, logText);
             }
             catch { }
+        }
+
+        // App.xaml.cs içindeki Login başarılı olduktan sonraki yönlendirme:
+        public void NavigateToMainTabbedPage(Kullanici kullanici)
+        {
+            // Sayfaların alt alta butonlarla değil, altta şık ikonlarla görünmesi için:
+            MainPage = new MainTabbedPage(kullanici);
+            // Başına Views. ekleyerek tam yolunu gösteriyoruz en üsste using kullandım alttakinin yerine
+            //MainPage = new Views.MainTabbedPage(kullanici);
         }
     }
 }

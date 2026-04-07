@@ -33,11 +33,17 @@ public partial class DashboardView : ContentPage
         await IstatistikleriGetir();
 
     }
-
+    // Hesabım / Profil Kartı Tıklanınca:
     private async void OnProfileTapped(object sender, EventArgs e)
     {
         // Tıklandığında ProfileView sayfasına git ve aktif kullanıcı verisini de yanında götür
-        await Navigation.PushAsync(new ProfileView(_aktifKullanici));
+        // await Navigation.PushAsync(new ProfileView(_aktifKullanici));
+
+        if (Application.Current.MainPage is TabbedPage tabbedPage)
+        {
+            // 3. index (Yani 4. Sekme: Profil)
+            tabbedPage.CurrentPage = tabbedPage.Children[3];
+        }
     }
 
     // Araçlarım Kartı Tıklanınca
@@ -48,9 +54,15 @@ public partial class DashboardView : ContentPage
             await DisplayAlert("Üyelik Gerekiyor", "Araç eklemek ve araçlarınızı yönetmek için lütfen ücretsiz üye olun.", "Tamam");
             // return; // İçeri girmesini engeller
         }
-        await Navigation.PushAsync(new VehiclesView(_aktifKullanici));
+        // await Navigation.PushAsync(new VehiclesView(_aktifKullanici));
+        if (Application.Current.MainPage is TabbedPage tabbedPage)
+        {
+            // 2. index (Yani 3. Sekme: Araçlarım)
+            tabbedPage.CurrentPage = tabbedPage.Children[2];
+        }
     }
 
+    // Servis Talebi Kartı Tıklanınca:
     private async void OnServiceRequestTapped(object sender, EventArgs e)
     {
         if (_aktifKullanici.id == 0)
@@ -59,9 +71,10 @@ public partial class DashboardView : ContentPage
             // return;içeri girebilsin. bunu aktif edersek kapıda uyarı alıp dışarıda kalır.
         }
         await Navigation.PushAsync(new CreateServiceRequestView(_aktifKullanici));
+
     }
 
-    // "Taleplerim" veya "Servis Taleplerim" kartına tıklandığında çalışacak fonksiyon
+    // "Durum Takibi / Taleplerim" kartına tıklandığında çalışacak fonksiyon
     private async void OnMyRequestsTapped(object sender, EventArgs e)
     {
         if (_aktifKullanici.id == 0)
@@ -69,7 +82,13 @@ public partial class DashboardView : ContentPage
             await DisplayAlert("Üyelik Gerekiyor", "Servis taleplerinizi takip etmek için lütfen ücretsiz üye olun.", "Tamam");
             // return;içeri girebilsin. bunu aktif edersek kapıda uyarı alıp dışarıda kalır.
         }
-        await Navigation.PushAsync(new MyServiceRequestsView(_aktifKullanici));
+        //await Navigation.PushAsync(new MyServiceRequestsView(_aktifKullanici));
+
+        if (Application.Current.MainPage is TabbedPage tabbedPage)
+        {
+            // 1. index (Yani 2. Sekme: Taleplerim)
+            tabbedPage.CurrentPage = tabbedPage.Children[1];
+        }
     }
 
     private async void OnShowcaseTapped(object sender, EventArgs e)

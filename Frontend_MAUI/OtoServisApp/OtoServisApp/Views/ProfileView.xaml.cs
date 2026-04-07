@@ -7,22 +7,80 @@ public partial class ProfileView : ContentPage
 {
     private Kullanici _aktifKullanici;
     private readonly ApiService _apiService;
+    private bool _isActivationMode = false;
 
-    public ProfileView(Kullanici kullanici)
+    public ProfileView(Kullanici kullanici, bool isActivationMode = false)
     {
         InitializeComponent();
         _aktifKullanici = kullanici;
+        _isActivationMode = isActivationMode;
+        _apiService = new ApiService();
 
         // Sayfa açıldığında giriş yapan kullanıcının bilgilerini kutulara doldur
         NameEntry.Text = _aktifKullanici.ad_soyad;
         EmailEntry.Text = _aktifKullanici.eposta;
         PhoneEntry.Text = _aktifKullanici.telefon;
         AddressEditor.Text = _aktifKullanici.adres;
-        _apiService = new ApiService();
+
+        // AKTİVASYON MODU KONTROLÜ
+        if (_isActivationMode)
+        {
+            Title = "Hesabı Aktifleştir";
+            ActivationAlertLabel.IsVisible = true;
+            YeniSifreEntry.IsVisible = true;
+
+            // Form alanlarını değiştirilemez yapıyoruz
+            NameEntry.IsEnabled = false;
+            PhoneEntry.IsEnabled = false;
+            AddressEditor.IsEnabled = false;
+
+            // Buton metnini değiştir
+            UpdateButton.Text = "KULLANICIMI AKTİF ET";
+        }
     }
 
     private async void OnUpdateClicked(object sender, EventArgs e)
     {
+        // --- AKTİVASYON MODU İŞLEMLERİ ---
+        if (_isActivationMode)
+        {
+            string yeniSifre = YeniSifreEntry.Text?.Trim();
+            if (string.IsNullOrEmpty(yeniSifre) || yeniSifre.Length < 6)
+            {
+                await DisplayAlert("Uyarı", "Lütfen yeni bir şifre giriniz. Şifreniz en az 6 haneli olmalıdır.", "Tamam");
+                return;
+            }
+
+            UpdateButton.IsEnabled = false;
+            UpdateButton.Text = "AKTİF EDİLİYOR...";
+
+            try
+            {
+                var body = new { yeni_sifre = yeniSifre };
+                var res = await _apiService.PutAsync($"kullanicilar/aktif-et/{_aktifKullanici.id}", body);
+
+                if (res.IsSuccessStatusCode)
+                {
+                    await DisplayAlert("Başarılı", "Hesabınız başarıyla aktif edildi. Şimdi giriş yapabilirsiniz.", "Tamam");
+                    Application.Current.MainPage = new NavigationPage(new LoginView());
+                }
+                else
+                {
+                    await DisplayAlert("Hata", "Aktivasyon sırasında bir sorun oluştu.", "Tamam");
+                    UpdateButton.IsEnabled = true;
+                    UpdateButton.Text = "KULLANICIMI AKTİF ET";
+                }
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Hata", "Bağlantı hatası: " + ex.Message, "Tamam");
+                UpdateButton.IsEnabled = true;
+                UpdateButton.Text = "KULLANICIMI AKTİF ET";
+            }
+            return; // Aktivasyon modundaysa normal güncelleme kodlarına geçme
+        }
+
+        // --- NORMAL PROFİL GÜNCELLEME İŞLEMLERİ ---
         string yeniAd = NameEntry.Text?.Trim();
         string yeniTelefon = PhoneEntry.Text?.Trim();
         string yeniAdres = AddressEditor.Text?.Trim();
@@ -85,7 +143,7 @@ public partial class ProfileView : ContentPage
         base.OnAppearing();
 
         // Sadece giriş yapan kullanıcının rolü "Admin" ise butonu göster
-        if (_aktifKullanici != null && _aktifKullanici.rol == "Admin")
+        if (!_isActivationMode && _aktifKullanici != null && _aktifKullanici.rol == "Admin")
         {
             AdminPanelButton.IsVisible = true;
         }
@@ -169,4 +227,35 @@ public partial class ProfileView : ContentPage
         }
     }
     // --- YENİ REVİZE BİTİŞİ ---
+
+    // Anahtar (Switch) her değiştirildiğinde tetiklenecek metot
+    private async void OnMailIzniToggled(object sender, ToggledEventArgs e)
+    {
+        // Cihazda kayıtlı kullanıcı ID'sini alıyoruz (Senin projende ID'yi nasıl tutuyorsan ona göre uyarla)
+        var kullaniciIdStr = await SecureStorage.GetAsync("kullanici_id_gizli");
+        if (string.IsNullOrEmpty(kullaniciIdStr)) return;
+
+        int kullaniciId = int.Parse(kullaniciIdStr);
+        bool yeniDurum = e.Value;
+
+        try
+        {
+            // Az önce Python'da yazdığımız API'ye istek atıyoruz
+            var body = new { mail_istiyor_mu = yeniDurum };
+            var res = await _apiService.PutAsync($"kullanici/{kullaniciId}/mail-izni", body);
+
+            if (!res.IsSuccessStatusCode)
+            {
+                // Eğer API hata verirse anahtarı eski haline geri getiriyoruz
+                MailIzniSwitch.IsToggled = !yeniDurum;
+                await DisplayAlert("Hata", "Bildirim ayarı güncellenemedi, lütfen bağlantınızı kontrol edin.", "Tamam");
+            }
+        }
+        catch (Exception ex)
+        {
+            // Olası bir çökmede yine eski duruma alıp kullanıcıyı uyarıyoruz
+            MailIzniSwitch.IsToggled = !yeniDurum;
+            System.Diagnostics.Debug.WriteLine($"Mail izni güncellenirken hata: {ex.Message}");
+        }
+    }
 }

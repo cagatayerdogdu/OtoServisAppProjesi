@@ -1,4 +1,4 @@
-﻿using OtoServisApp.Models; // Bunu en üste eklemeyi unutma
+﻿using OtoServisApp.Models;
 
 namespace OtoServisApp.Views;
 

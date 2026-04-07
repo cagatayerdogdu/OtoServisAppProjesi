@@ -2,6 +2,7 @@
 using System.Text.Json;
 using OtoServisApp.Models;
 using Plugin.Firebase.CloudMessaging;
+using System.Diagnostics;
 
 namespace OtoServisApp.Services
 {
@@ -278,7 +279,7 @@ namespace OtoServisApp.Services
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"API HATASI: {ex.Message}");
+                Debug.WriteLine($"API HATASI: {ex.Message}");
                 return false;
             }
         }
@@ -345,7 +346,7 @@ namespace OtoServisApp.Services
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"API HATASI: {ex.Message}");
+                Debug.WriteLine($"API HATASI: {ex.Message}");
                 return new List<ServisTalebi>();
             }
         }
@@ -358,7 +359,7 @@ namespace OtoServisApp.Services
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"API HATASI: {ex.Message}");
+                Debug.WriteLine($"API HATASI: {ex.Message}");
                 return new List<ServisTalebi>();
             }
         }
@@ -372,7 +373,7 @@ namespace OtoServisApp.Services
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"API HATASI: {ex.Message}");
+                Debug.WriteLine($"API HATASI: {ex.Message}");
                 return false;
             }
         }
@@ -541,7 +542,7 @@ namespace OtoServisApp.Services
 
         public async Task<HttpResponseMessage> PutAsync(string endpoint, object data)
         {
-            var json = System.Text.Json.JsonSerializer.Serialize(data);
+            var json = JsonSerializer.Serialize(data);
             var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
             return await _httpClient.PutAsync(endpoint, content);
         }
@@ -549,9 +550,44 @@ namespace OtoServisApp.Services
         // Bu metot, CRM ekranından atacağımız manuel hatırlatmalar için gereklidir.
         public async Task<HttpResponseMessage> PostAsync<T>(string endpoint, T data)
         {
-            var json = System.Text.Json.JsonSerializer.Serialize(data);
+            var json = JsonSerializer.Serialize(data);
             var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
             return await _httpClient.PostAsync(endpoint, content);
+        }
+        
+        //Madde 50: Bildirimleri Toplu/Tekli Silme (Swipe to Delete)
+        public async Task<bool> NotificationsDeleteAsync(string endpoint)
+        {
+            try
+            {
+                var response = await _httpClient.DeleteAsync(endpoint);
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        //Madde 37: Pasif Kullanıcı Diriltme
+        public async Task<Kullanici> PasifKullaniciSorgulaAsync(string email)
+        {
+            try
+            {
+                // Python tarafındaki /kullanicilar/pasif/{email} ucuna istek atar
+                var response = await _httpClient.GetAsync($"kullanicilar/pasif/{email}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    return JsonSerializer.Deserialize<Kullanici>(content,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Pasif sorgulama hatası: {ex.Message}");
+            }
+            return null;
         }
     }
 }

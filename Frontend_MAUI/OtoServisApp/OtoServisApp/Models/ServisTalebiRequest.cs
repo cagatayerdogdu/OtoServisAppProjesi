@@ -10,5 +10,7 @@ namespace OtoServisApp.Models
         public string talep_tarihi { get; set; } // "YYYY-MM-DD" formatında göndereceğiz
         public string adres { get; set; }
         public string notlar { get; set; }
+        public DateTime? tamamlanma_tarihi { get; set; }
+        public DateTime? silinme_tarihi { get; set; }
     }
 }

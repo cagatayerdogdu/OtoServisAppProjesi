@@ -27,6 +27,7 @@ import firebase_admin
 from firebase_admin import credentials, messaging
 from pydantic import BaseModel
 from sqlalchemy import nullsfirst  
+from fastapi.responses import HTMLResponse
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -318,6 +319,21 @@ def hizmetleri_getir(db: Session = Depends(get_db)):
 
 
 # --- KULLANICI İŞLEMLERİ ---
+# Madde 37: Pasif Kullanıcı Kontrolü
+@app.get("/kullanicilar/pasif/{eposta}", response_model=schemas.Kullanici)
+def pasif_kullanici_getir(eposta: str, db: Session = Depends(get_db)):
+    # aktif_mi durumu False olan kullanıcıyı bul
+    kullanici = db.query(models.Kullanici).filter(
+        models.Kullanici.eposta == eposta,
+        models.Kullanici.aktif_mi == False
+    ).first()
+    
+    if not kullanici:
+        raise HTTPException(status_code=404, detail="Pasif kullanıcı bulunamadı.")
+    
+    return kullanici
+
+# Kullanici oluştur. Aktif pasif kontrol et.
 @app.post("/kullanicilar/", response_model=schemas.Kullanici)
 def kullanici_olustur(kullanici: schemas.KullaniciCreate, db: Session = Depends(get_db)):
     # 1. Önce bu mailde biri var mı diye bakıyoruz
@@ -395,6 +411,42 @@ def kullanici_getir(kullanici_id: int, db: Session = Depends(get_db)):
     kullanici.servis_talepleri = [talep for talep in kullanici.servis_talepleri if getattr(talep, 'kayit_durumu', 'A') == 'A']
     
     return kullanici
+
+# Sadece pasif kullanıcıyı e-posta ile getiren özel bir uç nokta
+@app.get("/kullanicilar/pasif/{eposta}", response_model=schemas.Kullanici)
+def pasif_kullanici_getir(eposta: str, db: Session = Depends(get_db)):
+    kullanici = db.query(models.Kullanici).filter(models.Kullanici.eposta == eposta, models.Kullanici.aktif_mi == False).first()
+    if not kullanici:
+        raise HTTPException(status_code=404, detail="Pasif kullanıcı bulunamadı.")
+    return kullanici
+
+class AktivasyonIstegi(BaseModel):
+    yeni_sifre: str
+
+@app.put("/kullanicilar/aktif-et/{kullanici_id}")
+def hesabi_aktif_et(kullanici_id: int, istek: AktivasyonIstegi, db: Session = Depends(get_db)):
+    kullanici = db.query(models.Kullanici).filter(models.Kullanici.id == kullanici_id).first()
+    kullanici.aktif_mi = True
+    kullanici.kayit_durumu = "A"
+    kullanici.sifre_hash = istek.yeni_sifre # Yeni şifreyi atıyoruz
+    db.commit()
+    return {"mesaj": "Hesabınız başarıyla aktif edildi."}
+    
+
+# Sadece izin durumunu almak için ufak bir şema
+class MailIzniGuncelle(BaseModel):
+    mail_istiyor_mu: bool
+    
+@app.put("/kullanici/{kullanici_id}/mail-izni")
+def kullanici_mail_izni_guncelle(kullanici_id: int, istek: MailIzniGuncelle, db: Session = Depends(get_db)):
+    kullanici = db.query(models.Kullanici).filter(models.Kullanici.id == kullanici_id).first()
+    if not kullanici:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
+    
+    kullanici.mail_istiyor_mu = istek.mail_istiyor_mu
+    db.commit()
+    
+    return {"mesaj": "Mail izni başarıyla güncellendi", "mail_istiyor_mu": kullanici.mail_istiyor_mu}
 
 # ==========================================
 # --- GİRİŞ YAP & LOGLAMA ---
@@ -492,8 +544,9 @@ def kullanici_takip_listesi(
             "ad_soyad": k.ad_soyad,
             "eposta": k.eposta,
             "son_giris_tarihi": son_giris_str,
-            "kac_gun_oldu": kac_gun,
-            "mail_istiyor_mu": k.mail_istiyor_mu
+            "kac_gun_oldu": kac_gun,    # diff.days if k.son_giris_tarihi else None, bunu denemedim.
+            "mail_istiyor_mu": k.mail_istiyor_mu,
+            "son_hatirlatma_tarihi": k.son_hatirlatma_tarihi.strftime("%Y-%m-%d %H:%M") if k.son_hatirlatma_tarihi else None
         })
 
     toplam_sayfa = (toplam_kayit + sayfa_boyutu - 1) // sayfa_boyutu if toplam_kayit > 0 else 1
@@ -523,6 +576,8 @@ def manuel_hatirlatma_gonder(kullanici_id: int, istek: ManuelHatirlatmaIstegi, d
         raise HTTPException(status_code=403, detail="Kullanıcı e-posta bildirimlerini kapattığı için mail atılamaz (KVKK).")
 
     # Kurumsal İmza Ekleniyor
+    # Bu e-postayı almak istemiyorsanız <a href="https://api.otobakimservisi.com/kvkk/mail-iptal/{kullanici.id}">buraya tıklayarak</a> abonelikten çıkabilirsiniz.
+    # Natro ya taşıdığımda linki üstteki gibi güncellicez şimdi localhostta gönderiyoruz.
     mail_icerigi = f"""
     <html>
         <body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
@@ -531,17 +586,17 @@ def manuel_hatirlatma_gonder(kullanici_id: int, istek: ManuelHatirlatmaIstegi, d
             <br>
             <p>Sizi tekrar aramızda görmekten mutluluk duyarız. Araç bakımlarınız için uygulamamızı ziyaret edebilirsiniz.</p>
             <br>
-            <p>Hayırlı günler dileriz,<br><b>Kapıdan Bakım Yönetimi</b></p>
+            <p>Hayırlı günler dileriz,<br><b>Oto Bakım Yönetimi</b></p>
             <hr>
             <p style="font-size: 11px; color: #999;">
-                Bu e-postayı almak istemiyorsanız <a href="https://api.kapidanbakim.com/kvkk/mail-iptal/{kullanici.id}">buraya tıklayarak</a> abonelikten çıkabilirsiniz.
+                Bu e-postayı almak istemiyorsanız <a href="http://BURAYA_IP_VERILECEK:8000/kvkk/mail-iptal/{kullanici.id}">buraya tıklayarak</a> abonelikten çıkabilirsiniz.
             </p>
         </body>
     </html>
     """
     
     # Mail Gönder
-    basarili_mi = eposta_gonder(kullanici.eposta, "Sizi Özledik! - Kapıdan Bakım", mail_icerigi)
+    basarili_mi = eposta_gonder(kullanici.eposta, "Sizi Özledik! - Oto Bakım Servisi", mail_icerigi)
     
     if basarili_mi:
         # Spam engeli için son hatırlatma tarihini kaydet
@@ -564,19 +619,55 @@ def manuel_hatirlatma_gonder(kullanici_id: int, istek: ManuelHatirlatmaIstegi, d
     else:
         raise HTTPException(status_code=500, detail="Mail gönderilemedi, SMTP ayarlarını kontrol edin.")
 ###############################################
-        
+# ---------------------------------------------------------
+# ESKİ KOD (Silinmedi, referans amaçlı yorum satırına alındı)
+# ---------------------------------------------------------       
 # KVKK Abonelik İptal Uç Noktası
-@app.get("/kvkk/mail-iptal/{kullanici_id}")
-def kvkk_mail_iptal(kullanici_id: int, db: Session = Depends(get_db)):
-    kullanici = db.query(models.Kullanici).filter(models.Kullanici.id == kullanici_id).first()
-    if kullanici:
-        kullanici.mail_istiyor_mu = False
-        db.commit()
-        from fastapi.responses import HTMLResponse # Gerekli kütüphane eklendi
-        return HTMLResponse(content="<h3>Talebiniz alınmıştır. Artık e-posta almayacaksınız.</h3>")
+# @app.get("/kvkk/mail-iptal/{kullanici_id}")
+# def kvkk_mail_iptal(kullanici_id: int, db: Session = Depends(get_db)):
+#     kullanici = db.query(models.Kullanici).filter(models.Kullanici.id == kullanici_id).first()
+#     if kullanici:
+#         kullanici.mail_istiyor_mu = False
+#         db.commit()
+#         from fastapi.responses import HTMLResponse # Gerekli kütüphane eklendi
+#         return HTMLResponse(content="<h3>Talebiniz alınmıştır. Artık e-posta almayacaksınız.</h3>")
     
-    from fastapi.responses import HTMLResponse
-    return HTMLResponse(content="<h3>Kullanıcı bulunamadı.</h3>")
+#     from fastapi.responses import HTMLResponse
+#     return HTMLResponse(content="<h3>Kullanıcı bulunamadı.</h3>")
+# ---------------------------------------------------------
+# ---------------------------------------------------------
+# YENİ REVİZE: Daha şık HTML arayüzü ile yapılandırılmış iptal sayfası
+# KVKK Mail İptal Endpoint'i (Müşteri maildeki linke tıklayınca burası çalışır)
+@app.get("/kvkk/mail-iptal/{kullanici_id}") # response_class'ı buradan kaldır, return içinde verelim garanti olsun
+def mail_abonelik_iptal(kullanici_id: int, db: Session = Depends(get_db)):
+    kullanici = db.query(models.Kullanici).filter(models.Kullanici.id == kullanici_id).first()
+    
+    if not kullanici:
+        return HTMLResponse(content="<h2 style='color:red; text-align:center; margin-top:50px;'>Kullanıcı bulunamadı.</h2>", status_code=404)
+    
+    kullanici.mail_istiyor_mu = False
+    db.commit()
+    
+    html_icerik = f"""
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <meta charset="utf-8">
+            <title>Abonelik İptali</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; text-align: center; padding-top: 50px; background-color: #F8FAFC;">
+            <div style="background-color: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: inline-block; border: 1px solid #E2E8F0;">
+                <h2 style="color: #25D366;">Abonelikten Çıkış Başarılı</h2>
+                <p>Sayın <b>{kullanici.ad_soyad}</b>, e-posta bildirimleri kapatıldı.</p>
+                <p>Artık hatırlatma e-postaları almayacaksınız.</p>
+                <br>
+                <p style="font-size: 12px; color: #7F8C8D;">Fikrinizi değiştirirseniz, uygulamadaki profil ayarlarından tekrar açabilirsiniz.</p>
+            </div>
+        </body>
+    </html>
+    """
+    # Burası ÇOK ÖNEMLİ: media_type'ı zorla veriyoruz ki tarayıcı düz yazı sanmasın
+    return HTMLResponse(content=html_icerik, status_code=200, media_type="text/html")
 
 @app.put("/kullanicilar/{kullanici_id}", response_model=schemas.Kullanici)
 def kullanici_guncelle(kullanici_id: int, guncel_veri: schemas.KullaniciUpdate, db: Session = Depends(get_db)):
@@ -682,6 +773,20 @@ def arac_guncelle(arac_id: int, arac_data: schemas.AracCreate, db: Session = Dep
 @app.post("/servis-talepleri/", response_model=schemas.ServisTalebi)
 def servis_talebi_olustur(istek: schemas.ServisTalebiCreate, db: Session = Depends(get_db)):
     try:
+        # --- MADDE 55 KONTROLÜ BAŞLANGICI ---
+        aktif_talep = db.query(models.ServisTalebi).filter(
+            models.ServisTalebi.arac_id == istek.arac_id,
+            models.ServisTalebi.durum.in_(["Bekliyor", "Onaylandı", "İşlemde"]),
+            models.ServisTalebi.kayit_durumu == 'A'
+        ).first()
+
+        if aktif_talep:
+            if aktif_talep.hizmet_id == istek.hizmet_id:
+                raise HTTPException(status_code=400, detail="Bu araç için aynı hizmetten zaten aktif bir talebiniz bulunuyor.")
+            else:
+                raise HTTPException(status_code=400, detail="Bu araç için mevcut bir talebiniz var. Yeni bir hizmet eklemek yerine lütfen mevcut talebinizi güncelleyiniz.")
+        # --- MADDE 55 KONTROLÜ BİTİŞİ ---
+        
         # 1. Yeni servis talebini oluşturuyoruz                        
         yeni_talep = models.ServisTalebi(**istek.model_dump())
         db.add(yeni_talep)
@@ -926,6 +1031,11 @@ def servis_talebi_iptal_et(talep_id: int, db: Session = Depends(get_db)):
     talep.silinme_tarihi = datetime.now()
     talep.durum = "İptal Edildi" # Hem durumu güncelliyoruz hem de siliyoruz
     
+    # --- YENİ REVİZE: MAUI tarafında iptal tarihi olarak tamamlanma_tarihi okunduğu için buraya da atama yapıyoruz ---
+    talep.tamamlanma_tarihi = datetime.now()
+    # YENİ EKLENEN KOD: Müşteri kendi sildiği için kendi ID'sini yazıyoruz
+    talep.iptal_eden_id = talep.kullanici_id
+        
     # ---------------------------------------------------------
     # YENİ: İŞLEM BAŞARIYLA İPTAL EDİLDİĞİNDE INFO LOGU AT
     log_kaydet(
@@ -1255,7 +1365,9 @@ def admin_aktif_talepleri_getir(db: Session = Depends(get_db)):
 def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
     # DİKKAT: Talep tablosunda kayit_durumu KORUNDU
     talepler = db.query(models.ServisTalebi).filter(
-        models.ServisTalebi.kayit_durumu == 'A',
+       # models.ServisTalebi.kayit_durumu == 'A', # burada A dakileri çektiğimiz de
+       # müşterinin iptal taleplerini göremiyorduk. Bu filtreyi kaldırdım.
+       # burası için iptal eden user eklememiz gerekecek.
         models.ServisTalebi.durum.in_(['Tamamlandı', 'İptal Edildi'])
     ).order_by(models.ServisTalebi.talep_tarihi.desc()).all()
     
@@ -1274,6 +1386,15 @@ def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
                     arac_adi = f"{marka.ad} {model.ad}"
             else:
                 arac_adi = f"{arac.ozel_marka} {arac.ozel_model}"
+        
+        # İptal eden kullanıcıyı C# tarafına göndermek için.
+        iptal_eden_isim = None
+        if t.iptal_eden_id:
+            iptal_eden_kisi = db.query(models.Kullanici).filter(models.Kullanici.id == t.iptal_eden_id).first()
+            if iptal_eden_kisi:
+                iptal_eden_isim = iptal_eden_kisi.ad_soyad
+
+        talep_dict["iptal_eden_ad_soyad"] = iptal_eden_isim
 
         talep_dict = {column.name: getattr(t, column.name) for column in t.__table__.columns}
         talep_dict["kullanici_ad_soyad"] = kullanici.ad_soyad if kullanici else "Bilinmiyor"
@@ -1286,6 +1407,16 @@ def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
             talep_dict["tahmini_tutar"] = float(hizmet.varsayilan_fiyat)
         else:
             talep_dict["tahmini_tutar"] = mevcut_tutar
+            
+        # --- YENİ EKLENEN REVİZE: ESKİ TALEPLER İÇİN TARİH KURTARICI ---
+        # Eğer veritabanında tamamlanma_tarihi NULL ise, eski kayıtların boş görünmemesi 
+        # için guncelleme veya silinme tarihini baz alıyoruz.
+        if not talep_dict.get("tamamlanma_tarihi"):
+            if talep_dict.get("durum") == "İptal Edildi" and getattr(t, "silinme_tarihi", None):
+                talep_dict["tamamlanma_tarihi"] = t.silinme_tarihi
+            else:
+                talep_dict["tamamlanma_tarihi"] = t.guncelleme_tarihi
+        # ----------------------------------------------------------------
 
         sonuc.append(talep_dict)
         
@@ -1310,6 +1441,13 @@ def admin_talep_guncelle(talep_id: int, istek: TalepAdminGuncelle, db: Session =
     talep.durum = istek.yeni_durum
     talep.tahmini_tutar = istek.tahmini_tutar
     
+    # --- MADDE 40 REVİZESİ: EĞER DURUM TAMAMLANDI YAPILDIYSA TARİH AT ---
+    if istek.yeni_durum == "Tamamlandı" and eski_durum != "Tamamlandı":
+        talep.tamamlanma_tarihi = datetime.now()
+    
+    if istek.yeni_durum == "İptal Edildi" and eski_durum != "İptal Edildi":
+        talep.iptal_eden_id = istek.islem_yapan_id # Hangi admin sildiyse onu kaydet
+        
     # ADMİN MÜDAHALE ETTİĞİNDE VEYA DURUMU DEĞİŞTİRDİĞİNDE UYARI BAYRAĞINI TEMİZLİYORUZ
     if talep.duzeltme_istendi_mi:
         talep.duzeltme_istendi_mi = False
@@ -1430,6 +1568,16 @@ def admin_talep_guncelle(talep_id: int, durum: str, tahmini_tutar: float, db: Se
     talep.durum = durum
     talep.tahmini_tutar = tahmini_tutar
     
+    # --- MADDE 40 REVİZESİ: EĞER DURUM TAMAMLANDI YAPILDIYSA TARİH AT ---
+    # ESKİ KOD (Yazım hatası içeriyordu): if talep.yeni_durum == "Tamamlandı" and eski_durum != "Tamamlandı":
+    # YENİ REVİZE: talep.yeni_durum yerine metoda parametre gelen 'durum' değişkenini kullanıyoruz.
+    if durum == "Tamamlandı" and eski_durum != "Tamamlandı":
+        talep.tamamlanma_tarihi = datetime.now()
+    
+    if durum.yeni_durum == "İptal Edildi" and eski_durum != "İptal Edildi":
+        talep.iptal_eden_id = durum.islem_yapan_id # Hangi admin sildiyse onu kaydet
+    # --------------------------------------------------------------------
+    
     # --- BİLDİRİM TETİKLEYİCİSİ BAŞLANGICI ---
     if eski_durum != durum:
         yeni_bildirim = models.SistemBildirimleri(
@@ -1472,6 +1620,19 @@ def okunmamis_bildirim_sayisi(kullanici_id: int, db: Session = Depends(get_db)):
         models.SistemBildirimleri.okundu_mu == False
     ).count()
     return sayi
+
+@app.delete("/bildirimler/{bildirim_id}")
+def bildirim_sil(bildirim_id: int, db: Session = Depends(get_db)):
+    bildirim = db.query(models.SistemBildirimleri).filter(models.SistemBildirimleri.id == bildirim_id).first()
+    
+    if not bildirim:
+        raise HTTPException(status_code=404, detail="Silinmek istenen bildirim bulunamadı.")
+    
+    # Bildirimleri X durumuna çekmiyoruz, veritabanını şişirmemek için direkt siliyoruz (Madde 50)
+    db.delete(bildirim)
+    db.commit()
+    
+    return {"mesaj": "Bildirim başarıyla silindi."}
 
 @app.post("/kullanici/token-kaydet/")
 def token_kaydet(istek: schemas.TokenKayitIstegi, db: Session = Depends(get_db)):

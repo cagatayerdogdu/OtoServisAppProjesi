@@ -59,7 +59,11 @@ class ServisTalebi(ServisTalebiBase):
     durum: str
     onerilen_tarih: Optional[datetime] = None
     insert_tarihi: datetime
-    guncelleme_tarihi: datetime
+    guncelleme_tarihi: datetime    
+    # --- YENİ REVİZE: MAUI tarafına tarihlerin gitmesi için bu alanları ekliyoruz ---
+    tamamlanma_tarihi: Optional[datetime] = None
+    silinme_tarihi: Optional[datetime] = None
+    # ---------------------------------------------------------------------------------
 
     class Config:
         from_attributes = True
@@ -138,3 +142,8 @@ class BildirimResponse(BaseModel):
     # PYDANTIC V2 STANDARDI (Warning çözümü):
     class Config:
         from_attributes = True
+        
+class TalepAdminGuncelle(BaseModel):
+    yeni_durum: str
+    tahmini_tutar: float
+    islem_yapan_id: Optional[int] = None # Adminin kim olduğunu anlamak için
