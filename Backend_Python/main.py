@@ -1377,6 +1377,7 @@ def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
         arac = db.query(models.Arac).filter(models.Arac.id == t.arac_id).first()
         hizmet = db.query(models.Hizmet).filter(models.Hizmet.id == t.hizmet_id).first()
         
+        # Araç adı oluşturma (Mevcut mantığın - dokunmadım)
         arac_adi = "Silinmiş Araç"
         if arac:
             if arac.marka_id and arac.model_id:
@@ -1387,22 +1388,34 @@ def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
             else:
                 arac_adi = f"{arac.ozel_marka} {arac.ozel_model}"
         
-        # Talebi sözlüğe dönüştürme işlemini EN BAŞA alıyoruz
+        # 1. ADIM: Sözlüğü TEK BİR KERE oluşturuyoruz (Önceki iki taneyi sil, bunu koy)
         talep_dict = {c.name: getattr(t, c.name) for c in t.__table__.columns}
         
-        # İptal eden kullanıcıyı C# tarafına göndermek için.
-        iptal_eden_isim = None
+        # 2. ADIM: Dışarıdan gelen verileri sözlüğe ekliyoruz
+        talep_dict["kullanici_ad_soyad"] = kullanici.ad_soyad if kullanici else "Bilinmiyor"
+        talep_dict["kullanici_telefon"] = kullanici.telefon if kullanici else "Belirtilmemiş"
+        talep_dict["arac_adi_tam"] = arac_adi
+
+        # 3. ADIM: İptal Eden Kullanıcıyı Bulma
+        iptal_eden_isim = "Bilinmiyor" # Varsayılan
         if t.iptal_eden_id:
             iptal_eden_kisi = db.query(models.Kullanici).filter(models.Kullanici.id == t.iptal_eden_id).first()
             if iptal_eden_kisi:
                 iptal_eden_isim = iptal_eden_kisi.ad_soyad
-
-        talep_dict = {column.name: getattr(t, column.name) for column in t.__table__.columns}
-        talep_dict["kullanici_ad_soyad"] = kullanici.ad_soyad if kullanici else "Bilinmiyor"
-        talep_dict["kullanici_telefon"] = kullanici.telefon if kullanici else "Belirtilmemiş"
-        talep_dict["arac_adi_tam"] = arac_adi        
         talep_dict["iptal_eden_ad_soyad"] = iptal_eden_isim
-        
+
+        # 4. ADIM: Tarih Kurtarma Operasyonu (C# tarafının beklediği isimlerle)
+        # Eğer iptal edildiyse, iptal tarihini ve tamamlanma tarihini dolduruyoruz        
+        # Eğer veritabanında tamamlanma_tarihi NULL ise, eski kayıtların boş görünmemesi 
+        # için guncelleme veya silinme tarihini baz alıyoruz.
+        if t.durum == "İptal Edildi":
+            kurtarilan_tarih = t.silinme_tarihi or t.guncelleme_tarihi
+            talep_dict["iptal_tarihi"] = kurtarilan_tarih # C# bunu bekliyor olabilir
+            talep_dict["tamamlanma_tarihi"] = kurtarilan_tarih
+        elif not t.tamamlanma_tarihi:
+            talep_dict["tamamlanma_tarihi"] = t.guncelleme_tarihi
+
+        # 5. ADIM: Tutar Hesaplama        
         # --- 30. MADDE ÇÖZÜMÜ ---
         mevcut_tutar = float(t.tahmini_tutar) if t.tahmini_tutar else 0.0
         if mevcut_tutar == 0.0 and hizmet and hizmet.varsayilan_fiyat:
@@ -1410,16 +1423,6 @@ def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
         else:
             talep_dict["tahmini_tutar"] = mevcut_tutar
             
-        # --- YENİ EKLENEN REVİZE: ESKİ TALEPLER İÇİN TARİH KURTARICI ---
-        # Eğer veritabanında tamamlanma_tarihi NULL ise, eski kayıtların boş görünmemesi 
-        # için guncelleme veya silinme tarihini baz alıyoruz.
-        if not talep_dict.get("tamamlanma_tarihi"):
-            if talep_dict.get("durum") == "İptal Edildi" and getattr(t, "silinme_tarihi", None):
-                talep_dict["tamamlanma_tarihi"] = t.silinme_tarihi
-            else:
-                talep_dict["tamamlanma_tarihi"] = t.guncelleme_tarihi
-        # ----------------------------------------------------------------
-
         sonuc.append(talep_dict)
         
     return sonuc

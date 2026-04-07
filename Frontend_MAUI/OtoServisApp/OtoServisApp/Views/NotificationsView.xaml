@@ -56,17 +56,9 @@
                         </VisualStateManager.VisualStateGroups>
 
                         <SwipeView>
-                            <SwipeView.RightItems>
-                                <SwipeItemView CommandParameter="{Binding .}" Invoked="OnSingleDeleteInvoked">
-                                    <Border BackgroundColor="#EF4444" StrokeShape="RoundRectangle 12" Padding="20" Margin="10,0,0,0" WidthRequest="70">
-                                        <Label Text="{x:Static helpers:IconFont.Trash}" FontFamily="FASolid" FontSize="20" TextColor="White" VerticalOptions="Center" HorizontalOptions="Center"/>
-                                    </Border>
-                                </SwipeItemView>
-                            </SwipeView.RightItems>
-
                             <Border x:Name="CardBorder" StrokeShape="RoundRectangle 12" Padding="15">
                                 <Border.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="OnNotificationTapped" CommandParameter="{Binding .}" />
+                                    <TapGestureRecognizer Tapped="OnNotificationTapped" />
                                 </Border.GestureRecognizers>
 
                                 <Border.Triggers>
