@@ -1388,16 +1388,16 @@ def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
             else:
                 arac_adi = f"{arac.ozel_marka} {arac.ozel_model}"
         
-        # 1. ADIM: Sözlüğü TEK BİR KERE oluşturuyoruz (Önceki iki taneyi sil, bunu koy)
+        # 1. Sözlüğü TEK BİR SEFERDE oluşturuyoruz. (Aşağıdaki mükerrer satırı sildik)
         talep_dict = {c.name: getattr(t, c.name) for c in t.__table__.columns}
         
-        # 2. ADIM: Dışarıdan gelen verileri sözlüğe ekliyoruz
+        # 2. Kullanıcı bilgilerini ekle
         talep_dict["kullanici_ad_soyad"] = kullanici.ad_soyad if kullanici else "Bilinmiyor"
         talep_dict["kullanici_telefon"] = kullanici.telefon if kullanici else "Belirtilmemiş"
         talep_dict["arac_adi_tam"] = arac_adi
 
-        # 3. ADIM: İptal Eden Kullanıcıyı Bulma
-        iptal_eden_isim = "Bilinmiyor" # Varsayılan
+        # 3. İptal eden kullanıcıyı bul ve sözlüğe işle
+        iptal_eden_isim = "Bilinmiyor"
         if t.iptal_eden_id:
             iptal_eden_kisi = db.query(models.Kullanici).filter(models.Kullanici.id == t.iptal_eden_id).first()
             if iptal_eden_kisi:
@@ -1410,9 +1410,9 @@ def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
         # için guncelleme veya silinme tarihini baz alıyoruz.
         if t.durum == "İptal Edildi":
             kurtarilan_tarih = t.silinme_tarihi or t.guncelleme_tarihi
-            talep_dict["iptal_tarihi"] = kurtarilan_tarih # C# bunu bekliyor olabilir
             talep_dict["tamamlanma_tarihi"] = kurtarilan_tarih
-        elif not t.tamamlanma_tarihi:
+            talep_dict["iptal_tarihi"] = kurtarilan_tarih # C# modelinde bu alan varsa garantiye aldık
+        elif not talep_dict.get("tamamlanma_tarihi"):
             talep_dict["tamamlanma_tarihi"] = t.guncelleme_tarihi
 
         # 5. ADIM: Tutar Hesaplama        
