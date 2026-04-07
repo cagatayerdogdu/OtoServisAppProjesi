@@ -1387,6 +1387,9 @@ def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
             else:
                 arac_adi = f"{arac.ozel_marka} {arac.ozel_model}"
         
+        # Talebi sözlüğe dönüştürme işlemini EN BAŞA alıyoruz
+        talep_dict = {c.name: getattr(t, c.name) for c in t.__table__.columns}
+        
         # İptal eden kullanıcıyı C# tarafına göndermek için.
         iptal_eden_isim = None
         if t.iptal_eden_id:
@@ -1394,12 +1397,11 @@ def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
             if iptal_eden_kisi:
                 iptal_eden_isim = iptal_eden_kisi.ad_soyad
 
-        talep_dict["iptal_eden_ad_soyad"] = iptal_eden_isim
-
         talep_dict = {column.name: getattr(t, column.name) for column in t.__table__.columns}
         talep_dict["kullanici_ad_soyad"] = kullanici.ad_soyad if kullanici else "Bilinmiyor"
         talep_dict["kullanici_telefon"] = kullanici.telefon if kullanici else "Belirtilmemiş"
-        talep_dict["arac_adi_tam"] = arac_adi
+        talep_dict["arac_adi_tam"] = arac_adi        
+        talep_dict["iptal_eden_ad_soyad"] = iptal_eden_isim
         
         # --- 30. MADDE ÇÖZÜMÜ ---
         mevcut_tutar = float(t.tahmini_tutar) if t.tahmini_tutar else 0.0
