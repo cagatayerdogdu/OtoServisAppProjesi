@@ -13,11 +13,16 @@ namespace OtoServisApp.Services
         {
             get
             {
-#if ANDROID
-                return "http://10.0.2.2:8000"; // Android Emulator'ün bilgisayara çıkış IP'si
-#else
-                return "http://127.0.0.1:8000"; // Windows veya iOS (Local)
-#endif
+                // Eğer gerçek sunucuyu test etmek istiyorsan direkt bulut IP'sini veriyoruz
+                return "http://136.115.53.49:8000";
+
+                /* //Geliştirme aşamasında local kullanmak istersen eski blok burada durabilir:
+                #if ANDROID
+                    return "http://10.0.2.2:8000";
+                #else
+                    return "http://127.0.0.1:8000";
+                #endif
+                */
             }
         }
     }
