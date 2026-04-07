@@ -23,7 +23,11 @@ namespace OtoServisApp.Services
             //_httpClient.BaseAddress = new Uri("http://127.0.0.1:8000/");
 
             // Tüm VPN, Güvenlik Duvarı ve Yerel Ağ sorunlarını ezip geçen Ngrok tünelimiz:
-            _httpClient.BaseAddress = new Uri("https://runny-scrutinizingly-ela.ngrok-free.dev/");
+            //_httpClient.BaseAddress = new Uri("https://runny-scrutinizingly-ela.ngrok-free.dev/");
+
+            // REVİZE: Eski Ngrok tüneli yerine Google Cloud Sabit IP adresimizi kullanıyoruz.
+            // Artık tünele gerek yok, doğrudan sunucuya bağlanıyoruz.
+            _httpClient.BaseAddress = new Uri(ApiConfig.BaseUrl);
         }
 
         public async Task<Kullanici> GirisYapAsync(string eposta, string sifre)
