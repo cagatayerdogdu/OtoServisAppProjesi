@@ -41,7 +41,28 @@ public partial class NotificationsView : ContentPage
         var border = sender as Border;
         var bildirim = border?.BindingContext as BildirimResponse;
 
-        if (bildirim != null && !bildirim.okundu_mu)
+        if (bildirim != null)
+        {
+            // 1. ADIM: Okunmamışsa DB'de okundu yap
+            if (!bildirim.okundu_mu)
+            {
+                bool basarili = await _apiService.BildirimOkunduIsaretleAsync(bildirim.id);
+                if (basarili)
+                {
+                    bildirim.okundu_mu = true;
+                    // Listeyi yenilemeden sadece rengi değiştirmek için veriyi tazeliyoruz
+                    await BildirimleriYukle();
+                }
+            }
+
+            // 2. ADIM: Tıklama sonrası otomatik seçimi temizle (Senin istemediğin seçim modu)
+            _isBatchSelecting = true;
+            NotificationList.SelectedItems.Remove(bildirim);
+            _isBatchSelecting = false;
+        }
+
+
+        /*if (bildirim != null && !bildirim.okundu_mu)
         {
             bool basarili = await _apiService.BildirimOkunduIsaretleAsync(bildirim.id);
             if (basarili)
@@ -49,7 +70,7 @@ public partial class NotificationsView : ContentPage
                 bildirim.okundu_mu = true;
                 await BildirimleriYukle();
             }
-        }
+        }*/
     }
 
     // Sayfanın en üstüne (sınıfın içine) bu bayrağı ekle
@@ -64,10 +85,15 @@ public partial class NotificationsView : ContentPage
             var allItems = NotificationList.ItemsSource as IEnumerable<BildirimResponse>;
             if (allItems != null)
             {
-                NotificationList.SelectedItems.Clear();
+                /*NotificationList.SelectedItems.Clear();
                 foreach (var item in allItems)
                 {
                     NotificationList.SelectedItems.Add(item);
+                }*/
+                foreach (var item in allItems)
+                {
+                    if (!NotificationList.SelectedItems.Contains(item))
+                        NotificationList.SelectedItems.Add(item);
                 }
             }
         }
@@ -88,7 +114,7 @@ public partial class NotificationsView : ContentPage
         BtnDeleteSelected.IsVisible = seciliSayisi > 0;
 
         // Eğer manuel olarak tüm tikleri kaldırdıysa, Hepsini Seç kutusunun da tikini kaldır
-        if (seciliSayisi == 0 && ChkSelectAll.IsChecked)
+        /*if (seciliSayisi == 0 && ChkSelectAll.IsChecked)
         {
             ChkSelectAll.IsChecked = false;
         }
@@ -101,7 +127,7 @@ public partial class NotificationsView : ContentPage
             {
                 sonSecilen.okundu_mu = true;
             }
-        }
+        }*/
     }
 
     private async void OnDeleteSelectedClicked(object sender, EventArgs e)

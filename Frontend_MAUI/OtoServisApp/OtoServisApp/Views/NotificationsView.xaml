@@ -26,7 +26,8 @@
                 Padding="10,0"/>
         </Grid>
 
-        <CollectionView Grid.Row="1" x:Name="NotificationList" Margin="15" SelectionMode="Multiple" SelectionChanged="OnSelectionChanged">
+        <CollectionView Grid.Row="1" x:Name="NotificationList" Margin="15" 
+                SelectionMode="Multiple" SelectionChanged="OnSelectionChanged">
 
             <CollectionView.EmptyView>
                 <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="10" Margin="0,100,0,0">
@@ -37,21 +38,18 @@
 
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <Grid BackgroundColor="Transparent" Padding="0,0,0,10">
+                    <Grid Padding="0,0,0,10">
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup Name="CommonStates">
                                 <VisualState Name="Normal">
                                     <VisualState.Setters>
                                         <Setter TargetName="CardBorder" Property="Border.BackgroundColor" Value="White" />
-                                        <Setter TargetName="CardBorder" Property="Border.Stroke" Value="#E0E0E0" />
-                                        <Setter TargetName="CardBorder" Property="Border.StrokeThickness" Value="1" />
                                     </VisualState.Setters>
                                 </VisualState>
                                 <VisualState Name="Selected">
                                     <VisualState.Setters>
-                                        <Setter TargetName="CardBorder" Property="Border.BackgroundColor" Value="#E0F7FA" />
-                                        <Setter TargetName="CardBorder" Property="Border.Stroke" Value="#00BCD4" />
-                                        <Setter TargetName="CardBorder" Property="Border.StrokeThickness" Value="2" />
+                                        <Setter TargetName="CardBorder" Property="Border.BackgroundColor" Value="#E8F5E9" />
+                                        <Setter TargetName="CardBorder" Property="Border.Stroke" Value="#4CAF50" />
                                     </VisualState.Setters>
                                 </VisualState>
                             </VisualStateGroup>
@@ -67,10 +65,20 @@
                             </SwipeView.RightItems>
 
                             <Border x:Name="CardBorder" StrokeShape="RoundRectangle 12" Padding="15">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnNotificationTapped" CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
+
+                                <Border.Triggers>
+                                    <DataTrigger TargetType="Border" Binding="{Binding okundu_mu}" Value="False">
+                                        <Setter Property="BackgroundColor" Value="#E0F7FA" />
+                                        <Setter Property="Stroke" Value="#00BCD4" />
+                                    </DataTrigger>
+                                </Border.Triggers>
+
                                 <VerticalStackLayout Spacing="5">
                                     <HorizontalStackLayout Spacing="10">
                                         <Label Text="{x:Static helpers:IconFont.Bell}" FontFamily="FASolid" FontSize="16" TextColor="#00BCD4" VerticalOptions="Center"/>
-
                                         <Label Text="{Binding baslik}" FontSize="15" TextColor="#111111" VerticalOptions="Center">
                                             <Label.Triggers>
                                                 <DataTrigger TargetType="Label" Binding="{Binding okundu_mu}" Value="False">
@@ -79,16 +87,7 @@
                                             </Label.Triggers>
                                         </Label>
                                     </HorizontalStackLayout>
-
-                                    <Label Text="{Binding mesaj}" FontSize="13" TextColor="#555555" Margin="26,0,0,0">
-                                        <Label.Triggers>
-                                            <DataTrigger TargetType="Label" Binding="{Binding okundu_mu}" Value="False">
-                                                <Setter Property="FontAttributes" Value="Bold" />
-                                                <Setter Property="TextColor" Value="#333333" />
-                                            </DataTrigger>
-                                        </Label.Triggers>
-                                    </Label>
-
+                                    <Label Text="{Binding mesaj}" FontSize="13" TextColor="#555555" Margin="26,0,0,0" />
                                     <Label Text="{Binding olusturulma_tarihi, StringFormat='{0:yyyy-MM-dd HH:mm}'}" FontSize="11" TextColor="#888888" HorizontalOptions="End" Margin="0,5,0,0"/>
                                 </VerticalStackLayout>
                             </Border>
@@ -96,7 +95,6 @@
                     </Grid>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
-
         </CollectionView>
 
     </Grid>

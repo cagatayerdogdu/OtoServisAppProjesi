@@ -117,9 +117,8 @@ class ServisTalebi(Base):
     duzeltme_istendi_mi = Column(Boolean, default=False)
     duzeltme_notu = Column(String(500), nullable=True)
     
-    tamamlanma_tarihi = Column(DateTime, nullable=True)
-    # models.py içindeki ServisTalebi modeline eklenecek:
-    iptal_eden_id = Column(Integer, nullable=True, comment="Talebi iptal eden kişinin ID'si")
+    tamamlanma_tarihi = Column(DateTime, nullable=True)    
+    iptal_eden_id = Column(Integer, ForeignKey("kullanicilar.id"), nullable=True, comment="Talebi iptal eden kişinin ID'si")
         
     # ORM İlişkileri (Eski kodundan miras aldığımız, tabloları birbirine bağlayan kısım)
     # musteri = relationship("Kullanici", back_populates="servis_talepleri")
