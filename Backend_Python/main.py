@@ -31,7 +31,7 @@ from fastapi.responses import HTMLResponse
 
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Kapıdan Bakım API", version="1.0.0")
+app = FastAPI(title="Oto Bakım Servisi API", version="1.0.0")
 
 # Firebase Başlatma (Eğer yoksa main.py'nin üst kısımlarına ekle)
 if not firebase_admin._apps:
@@ -80,7 +80,7 @@ async def catch_exceptions_middleware(request: Request, call_next):
 
 @app.get("/")
 def read_root():
-    return {"mesaj": "Kapıdan Bakım API Sistemine Hoş Geldiniz!", "durum": "Aktif"}
+    return {"mesaj": "Oto Bakım Servisi API Sistemine Hoş Geldiniz!", "durum": "Aktif"}
 
 
 # ------------------------------------------------------------------ #
@@ -1025,15 +1025,13 @@ def servis_talebi_iptal_et(talep_id: int, db: Session = Depends(get_db)):
     if talep.durum != "Bekliyor":
         raise HTTPException(status_code=400, detail="Sadece 'Bekliyor' durumundaki talepler iptal edilebilir.")
             
-    # db.delete(talep) <--- İPTAL
-    # DİKKAT: Talep tablosundaki kayit_durumu YAPISI KORUNUYOR.
+    # Tüm tarihleri ve ID'leri eksiksiz dolduruyoruz
+    zaman_simdi = datetime.now()
     talep.kayit_durumu = 'X'
-    talep.silinme_tarihi = datetime.now()
-    talep.durum = "İptal Edildi" # Hem durumu güncelliyoruz hem de siliyoruz
-    
-    # --- YENİ REVİZE: MAUI tarafında iptal tarihi olarak tamamlanma_tarihi okunduğu için buraya da atama yapıyoruz ---
-    talep.tamamlanma_tarihi = datetime.now()
-    # YENİ EKLENEN KOD: Müşteri kendi sildiği için kendi ID'sini yazıyoruz
+    talep.durum = "İptal Edildi"
+    talep.silinme_tarihi = zaman_simdi
+    talep.tamamlanma_tarihi = zaman_simdi
+    talep.guncelleme_tarihi = zaman_simdi
     talep.iptal_eden_id = talep.kullanici_id
         
     # ---------------------------------------------------------
@@ -1166,7 +1164,7 @@ def sifre_sifirla_talep(istek: SifreSifirlaIstegi, db: Session = Depends(get_db)
     <html>
         <body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
             <div style="max-width: 500px; margin: 0 auto; border: 1px solid #ddd; border-radius: 10px; padding: 20px; text-align: center;">
-                <h2 style="color: #00BCD4;">🚘 Kapıdan Bakım</h2>
+                <h2 style="color: #00BCD4;">🚘 Oto Bakım Servisi</h2>
                 <p>Merhaba <b>{kullanici.ad_soyad}</b>,</p>
                 <p>OtoServisApp hesabınız için şifre sıfırlama talebiniz alınmıştır. Sisteme giriş yapabilmeniz için geçici şifreniz aşağıda yer almaktadır:</p>
                 
@@ -1392,17 +1390,13 @@ def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
         # 1. Mevcut kolonları sözlüğe aktar
         talep_dict = {c.name: getattr(t, c.name) for c in t.__table__.columns}
         
-        # C# tarafındaki XAML'da 'randevu_tarihi' olarak bind edildiği için bu anahtarı ekliyoruz
-        # Veritabanındaki 'talep_tarihi' değerini buraya kopyalıyoruz
-        talep_dict["randevu_tarihi"] = t.talep_tarihi.isoformat() if t.talep_tarihi else None
-        
         # 2. Kullanıcı bilgilerini yapılandır
         talep_dict["kullanici_ad_soyad"] = kullanici.ad_soyad if kullanici else "Bilinmiyor"
         talep_dict["kullanici_telefon"] = kullanici.telefon if kullanici else "Belirtilmemiş"
         talep_dict["arac_adi_tam"] = arac_adi
 
         # 3. İptal eden bilgisini yapılandır
-        iptal_eden_isim = "Bilinmiyor"
+        iptal_eden_isim = "İptal bilgisi yok."
         if t.iptal_eden_id:
             iptal_eden_kisi = db.query(models.Kullanici).filter(models.Kullanici.id == t.iptal_eden_id).first()
             if iptal_eden_kisi:
@@ -1438,6 +1432,7 @@ from pydantic import BaseModel
 class TalepAdminGuncelle(BaseModel):
     yeni_durum: str
     tahmini_tutar: float
+    iptal_eden_id: int
 
 @app.put("/admin/servis-talepleri/{talep_id}/guncelle")
 def admin_talep_guncelle(talep_id: int, istek: TalepAdminGuncelle, db: Session = Depends(get_db)):
@@ -1451,18 +1446,22 @@ def admin_talep_guncelle(talep_id: int, istek: TalepAdminGuncelle, db: Session =
     talep.durum = istek.yeni_durum
     talep.tahmini_tutar = istek.tahmini_tutar
     
-    # --- MADDE 40 REVİZESİ: EĞER DURUM TAMAMLANDI YAPILDIYSA TARİH AT ---
-    if istek.yeni_durum == "Tamamlandı" and eski_durum != "Tamamlandı":
-        talep.tamamlanma_tarihi = datetime.now()
+    zaman_simdi = datetime.now()
+    talep.guncelleme_tarihi = zaman_simdi # Her harekette güncellenme tarihi değişsin
     
+    # --- MADDE 40 REVİZESİ: EĞER DURUM TAMAMLANDI YAPILDIYSA TARİH AT ---
+    # EĞER ADMİN İPTAL ETTİYSE:
     if istek.yeni_durum == "İptal Edildi" and eski_durum != "İptal Edildi":
-        talep.iptal_eden_id = istek.islem_yapan_id # Hangi admin sildiyse onu kaydet
+        talep.iptal_eden_id = istek.iptal_eden_id # İstek modelinde bu ID olmalı
+        talep.silinme_tarihi = zaman_simdi
+        talep.tamamlanma_tarihi = zaman_simdi
+        talep.kayit_durumu = 'X'
         
     # ADMİN MÜDAHALE ETTİĞİNDE VEYA DURUMU DEĞİŞTİRDİĞİNDE UYARI BAYRAĞINI TEMİZLİYORUZ
     if talep.duzeltme_istendi_mi:
         talep.duzeltme_istendi_mi = False
         talep.duzeltme_notu = None
-    
+            
     log_kaydet(
         db=db, 
         islem="Admin Talep Güncellemesi", 
@@ -1493,7 +1492,7 @@ def admin_talep_guncelle(talep_id: int, istek: TalepAdminGuncelle, db: Session =
         try:
             message = messaging.Message(
                 notification=messaging.Notification(
-                    title="Kapıdan Bakım",
+                    title="Oto",
                     body=yeni_bildirim.mesaj,
                 ),
                 token=kullanici.fcm_token,
