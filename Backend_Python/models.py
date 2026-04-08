@@ -50,7 +50,7 @@ class Kullanici(Base):
     kayit_tarihi = Column(DateTime, default=datetime.datetime.utcnow, comment="Hesabin olusturulma zamani")
     
     # araclar = relationship("Arac", back_populates="sahip")
-    servis_talepleri = relationship("ServisTalebi", back_populates="musteri")
+    servis_talepleri = relationship("ServisTalebi", foreign_keys="[ServisTalebi.kullanici_id]", back_populates="musteri")
     araclar = relationship("Arac")
     # servis_talepleri = relationship("ServisTalebi")
     
@@ -128,7 +128,7 @@ class ServisTalebi(Base):
     # musteri = relationship("Kullanici")
     # arac = relationship("Arac")
     hizmet = relationship("Hizmet")
-    musteri = relationship("Kullanici", back_populates="servis_talepleri")
+    musteri = relationship("Kullanici", foreign_keys="[ServisTalebi.kullanici_id]", back_populates="servis_talepleri")
     arac = relationship("Arac", back_populates="servis_talepleri")
 
 class Hizmet(Base):
