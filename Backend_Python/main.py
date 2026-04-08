@@ -1374,15 +1374,7 @@ def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
     ).order_by(models.ServisTalebi.talep_tarihi.desc()).all()
     
     sonuc = []
-    for t in talepler:
-        # 1. Mevcut kolonları sözlüğe aktar
-        talep_dict = {c.name: getattr(t, c.name) for c in t.__table__.columns}
-        
-        # C# DateTime? çökmesini engellemek için tüm tarihleri ISO formatına (T'li) zorluyoruz
-        for key, value in talep_dict.items():
-            if isinstance(value, (datetime, date)):
-                talep_dict[key] = value.isoformat()
-                
+    for t in talepler:                        
         # İlişkili verileri çekiyoruz
         kullanici = db.query(models.Kullanici).filter(models.Kullanici.id == t.kullanici_id).first()
         arac = db.query(models.Arac).filter(models.Arac.id == t.arac_id).first()
@@ -1396,8 +1388,20 @@ def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
                 if marka and model:
                     arac_adi = f"{marka.ad} {model.ad}"
             else:
-                arac_adi = f"{arac.ozel_marka} {arac.ozel_model}"
+                arac_adi = f"{arac.ozel_marka} {arac.ozel_model}"        
         
+        # 1. Mevcut kolonları sözlüğe aktar
+        talep_dict = {c.name: getattr(t, c.name) for c in t.__table__.columns}
+        
+        # 1. KISIM: talep_tarihi C#'ta STRING olduğu için formatı doğrudan Python'da veriyoruz (yyyy-MM-dd HH:mm)
+        if t.talep_tarihi:
+            talep_dict["talep_tarihi"] = t.talep_tarihi.strftime("%Y-%m-%d %H:%M")
+            talep_dict["randevu_tarihi"] = t.talep_tarihi.strftime("%Y-%m-%d %H:%M") # Ne olur ne olmaz bunu da dolduruyoruz
+            
+        # 2. KISIM: Kalan tüm DateTime verilerini C# okuyabilsin diye standart ISO formatında (T'li) bırakıyoruz
+        for key, value in talep_dict.items():
+            if key not in ["talep_tarihi", "randevu_tarihi"] and isinstance(value, (datetime, date)):
+                talep_dict[key] = value.isoformat()
         
         # 2. Kullanıcı bilgilerini yapılandır
         talep_dict["kullanici_ad_soyad"] = kullanici.ad_soyad if kullanici else "Bilinmiyor"
@@ -1407,9 +1411,9 @@ def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
         # 3. İptal eden bilgisini yapılandır
         iptal_eden_isim = "İptal bilgisi yok."
         if t.iptal_eden_id:
-            iptal_eden_kisi = db.query(models.Kullanici).filter(models.Kullanici.id == t.iptal_eden_id).first()
-            if iptal_eden_kisi:
-                iptal_eden_isim = iptal_eden_kisi.ad_soyad        
+            iptal_kisi = db.query(models.Kullanici).filter(models.Kullanici.id == t.iptal_eden_id).first()
+            if iptal_kisi:
+                iptal_eden_isim = iptal_kisi.ad_soyad
         talep_dict["iptal_eden_ad_soyad"] = iptal_eden_isim
 
         # Tarih alanlarını C# DateTime? tipine uygun hale getir
@@ -1422,6 +1426,19 @@ def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
         #    talep_dict["tamamlanma_tarihi"] = t.silinme_tarihi or t.guncelleme_tarihi
         #elif not t.tamamlanma_tarihi:
         #    talep_dict["tamamlanma_tarihi"] = t.guncelleme_tarihi
+        
+        # 4. KISIM: Tamamlanma/İptal Tarihi Kurtarma Operasyonu
+        kurtarilan_tarih = None
+        if t.durum == "İptal Edildi":
+            kurtarilan_tarih = t.silinme_tarihi or t.guncelleme_tarihi
+        else:
+            kurtarilan_tarih = t.tamamlanma_tarihi or t.guncelleme_tarihi
+            
+        # C#'ta bu alan DateTime? olduğu için yine ISO format gönderiyoruz
+        if kurtarilan_tarih:
+            talep_dict["tamamlanma_tarihi"] = kurtarilan_tarih.isoformat()
+        else:
+            talep_dict["tamamlanma_tarihi"] = None
         
         # 5. Tutar hesaplama (30. Madde çözümü korunarak)
         mevcut_tutar = float(t.tahmini_tutar) if t.tahmini_tutar else 0.0
