@@ -1375,6 +1375,14 @@ def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
     
     sonuc = []
     for t in talepler:
+        # 1. Mevcut kolonları sözlüğe aktar
+        talep_dict = {c.name: getattr(t, c.name) for c in t.__table__.columns}
+        
+        # C# DateTime? çökmesini engellemek için tüm tarihleri ISO formatına (T'li) zorluyoruz
+        for key, value in talep_dict.items():
+            if isinstance(value, (datetime, date)):
+                talep_dict[key] = value.isoformat()
+                
         # İlişkili verileri çekiyoruz
         kullanici = db.query(models.Kullanici).filter(models.Kullanici.id == t.kullanici_id).first()
         arac = db.query(models.Arac).filter(models.Arac.id == t.arac_id).first()
@@ -1390,8 +1398,6 @@ def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
             else:
                 arac_adi = f"{arac.ozel_marka} {arac.ozel_model}"
         
-        # 1. Mevcut kolonları sözlüğe aktar
-        talep_dict = {c.name: getattr(t, c.name) for c in t.__table__.columns}
         
         # 2. Kullanıcı bilgilerini yapılandır
         talep_dict["kullanici_ad_soyad"] = kullanici.ad_soyad if kullanici else "Bilinmiyor"
@@ -1403,8 +1409,7 @@ def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
         if t.iptal_eden_id:
             iptal_eden_kisi = db.query(models.Kullanici).filter(models.Kullanici.id == t.iptal_eden_id).first()
             if iptal_eden_kisi:
-                iptal_eden_isim = iptal_eden_kisi.ad_soyad
-        
+                iptal_eden_isim = iptal_eden_kisi.ad_soyad        
         talep_dict["iptal_eden_ad_soyad"] = iptal_eden_isim
 
         # Tarih alanlarını C# DateTime? tipine uygun hale getir
@@ -1413,10 +1418,10 @@ def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
         # Eğer veritabanında tamamlanma_tarihi NULL ise, eski kayıtların boş görünmemesi 
         # için guncelleme veya silinme tarihini baz alıyoruz.		
         # Tarih Garantisi: Boş gelmesini engelle					   
-        if t.durum == "İptal Edildi":
-            talep_dict["tamamlanma_tarihi"] = t.silinme_tarihi or t.guncelleme_tarihi
-        elif not t.tamamlanma_tarihi:
-            talep_dict["tamamlanma_tarihi"] = t.guncelleme_tarihi
+        # if t.durum == "İptal Edildi":
+        #    talep_dict["tamamlanma_tarihi"] = t.silinme_tarihi or t.guncelleme_tarihi
+        #elif not t.tamamlanma_tarihi:
+        #    talep_dict["tamamlanma_tarihi"] = t.guncelleme_tarihi
         
         # 5. Tutar hesaplama (30. Madde çözümü korunarak)
         mevcut_tutar = float(t.tahmini_tutar) if t.tahmini_tutar else 0.0
@@ -1449,28 +1454,29 @@ def admin_talep_guncelle(talep_id: int, istek: TalepAdminGuncelle, db: Session =
     eski_durum = talep.durum
     # eski_tutar = talep.tahmini_tutar BURADA NİYE TANMLANMIŞ VE KULLANILMAMIŞ ANLAMADIM.
     
+    zaman_simdi = datetime.now()
     talep.durum = istek.yeni_durum
     talep.tahmini_tutar = istek.tahmini_tutar
+    talep.guncelleme_tarihi = zaman_simdi # Her güncellemede bu tarih güncellenmeli
     
-    zaman_simdi = datetime.now()
-    talep.guncelleme_tarihi = zaman_simdi # Her harekette güncellenme tarihi değişsin
-    if istek.yeni_durum == "Tamamlandı" and eski_durum != "Tamamlandı":
+    if istek.yeni_durum == "Tamamlandı":
         talep.tamamlanma_tarihi = zaman_simdi
     
     # --- MADDE 40 REVİZESİ: EĞER DURUM TAMAMLANDI YAPILDIYSA TARİH AT ---
     # EĞER ADMİN İPTAL ETTİYSE:
-    if istek.yeni_durum == "İptal Edildi" and eski_durum != "İptal Edildi":
+    if istek.yeni_durum == "İptal Edildi":
         talep.kayit_durumu = 'X'
         talep.silinme_tarihi = zaman_simdi
-        # talep.tamamlanma_tarihi = zaman_simdi  BURADA BU ALANI DOLDURMAYA GEREK YOK.
+        talep.iptal_eden_id = istek.islem_yapan_id # Şemaya eklediğimiz için artık hata vermez
+    # --------------------------------------------
         
         # C# arayüzünden ID gelmişse onu kullan
-        if istek.islem_yapan_id:
-            talep.iptal_eden_id = istek.islem_yapan_id
-        else:
-            # Gelmediyse sistemdeki ilk Admin kullanıcısını iptal eden olarak ata (Güvenlik Ağı)
-            admin_kisi = db.query(models.Kullanici).filter(models.Kullanici.rol == "Admin").first()
-            talep.iptal_eden_id = admin_kisi.id if admin_kisi else None
+       # if istek.islem_yapan_id:
+       #     talep.iptal_eden_id = istek.islem_yapan_id
+       # else:
+       #     # Gelmediyse sistemdeki ilk Admin kullanıcısını iptal eden olarak ata (Güvenlik Ağı)
+       #     admin_kisi = db.query(models.Kullanici).filter(models.Kullanici.rol == "Admin").first()
+       #     talep.iptal_eden_id = admin_kisi.id if admin_kisi else None
         
     # ADMİN MÜDAHALE ETTİĞİNDE VEYA DURUMU DEĞİŞTİRDİĞİNDE UYARI BAYRAĞINI TEMİZLİYORUZ
     if talep.duzeltme_istendi_mi:

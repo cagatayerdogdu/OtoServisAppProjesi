@@ -139,7 +139,7 @@ class BildirimResponse(BaseModel):
     okundu_mu: bool
     olusturulma_tarihi: datetime
 
-    # PYDANTIC V2 STANDARDI (Warning çözümü):
+    # PYDANTIC V2 STANDARDI (Warning çözümü): 
     class Config:
         from_attributes = True
         
