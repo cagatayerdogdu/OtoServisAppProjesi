@@ -2,6 +2,8 @@
 using OtoServisApp.Models;
 using System;
 namespace OtoServisApp.Views;
+using System.Text.Json;
+
 
 public partial class LoginView : ContentPage
 {
@@ -40,6 +42,9 @@ public partial class LoginView : ContentPage
 
         if (kullanici != null)
         {
+            // --- BURAYI EKLE: Kullanıcı ID'sini kasaya kilitliyoruz ---
+            await SecureStorage.Default.SetAsync("kullanici_id_gizli", kullanici.id.ToString());
+
             // YENİ EKLENEN KOD: Giriş başarılıysa Firebase Token'ı güncelle
             await _apiService.FcmTokenGuncelle(kullanici.id);
 
@@ -59,10 +64,13 @@ public partial class LoginView : ContentPage
             /* ESKİ KOD: Rengi siyah bırakan varsayılan sayfa yönlendirmesi
             Application.Current.MainPage = new NavigationPage(new DashboardView(kullanici)); */
             // YENİ EKLENEN REVİZE: Yeni sayfayı oluştururken üst barı turkuaz (#00BCD4) olarak yapılandırıyoruz
-            var dashNavPage = new NavigationPage(new DashboardView(kullanici));
-            dashNavPage.BarBackgroundColor = Color.FromArgb("#00BCD4");
-            dashNavPage.BarTextColor = Colors.White;
-            Application.Current.MainPage = dashNavPage;
+            //var dashNavPage = new NavigationPage(new DashboardView(kullanici));
+            //dashNavPage.BarBackgroundColor = Color.FromArgb("#00BCD4");
+            //dashNavPage.BarTextColor = Colors.White;
+            //Application.Current.MainPage = dashNavPage;
+
+            var tabbedPage = new MainTabbedPage(kullanici);
+            Application.Current.MainPage = tabbedPage;
 
             /*
             if (kullanici.rol == "Admin")
@@ -76,6 +84,30 @@ public partial class LoginView : ContentPage
         }
         else
         {
+            // YENİ EKLENEN: Kullanıcı giriş yapamadı, peki hesap pasif olduğu için mi?
+            try
+            {
+                var pasifKullanici = await _apiService.PasifKullaniciSorgulaAsync(email);
+
+                if (pasifKullanici != null)
+                {
+                    bool aktifEt = await DisplayAlert("Hesap Pasif", "Hesabınız pasif durumdadır. Tekrar aktif etmek istiyor musunuz?", "Evet", "Hayır");
+                    if (aktifEt)
+                    {
+                        await Navigation.PushAsync(new ProfileView(pasifKullanici, isActivationMode: true));
+                    }
+                    LoginButton.IsEnabled = true;
+                    LoginButton.Text = "GİRİŞ YAP";
+                    return; // BURASI ÖNEMLİ: Pasif kullanıcı işlemi yapıldıysa aşağıdaki hata mesajını göstermeden metottan çıkıyoruz.
+                }
+            }
+            catch (Exception ex)
+            {
+                // API'ye ulaşılamaması veya sunucu kaynaklı JSON hatalarında uygulamanın çökmesini engelliyoruz
+                System.Diagnostics.Debug.WriteLine($"Pasif kullanıcı kontrolü sırasında ağ veya sunucu hatası: {ex.Message}");
+            }
+
+            // BURASI ÖNEMLİ: Eğer pasif kullanıcı bulunamadıysa (gerçekten şifre/email yanlışsa) sadece bir kere bu hatayı veriyoruz.
             await DisplayAlert("Hata", "E-posta veya şifre hatalı. Lütfen tekrar deneyin.", "Tamam");
 
             LoginButton.IsEnabled = true;
@@ -108,10 +140,13 @@ public partial class LoginView : ContentPage
 
         // Doğrudan Ana Sayfaya (Dashboard) yönlendir
         // Application.Current.MainPage = new NavigationPage(new DashboardView(misafirKullanici));
-        var dashNavPage = new NavigationPage(new DashboardView(misafirKullanici));
+        /*var dashNavPage = new NavigationPage(new DashboardView(misafirKullanici));
         dashNavPage.BarBackgroundColor = Color.FromArgb("#00BCD4");
         dashNavPage.BarTextColor = Colors.White;
-        Application.Current.MainPage = dashNavPage;
+        Application.Current.MainPage = dashNavPage;*/
+
+        var tabbedPage = new MainTabbedPage(misafirKullanici);
+        Application.Current.MainPage = tabbedPage;
     }
 
     protected override async void OnAppearing()
@@ -179,6 +214,9 @@ public partial class LoginView : ContentPage
 
         if (kullanici != null)
         {
+            // --- BURAYI EKLE: Kullanıcı ID'sini kasaya kilitliyoruz ---
+            await SecureStorage.Default.SetAsync("kullanici_id_gizli", kullanici.id.ToString());
+
             // Senin yöntemin: Kullanıcı nesnesini sayfanın içine parametre olarak gönderiyoruz!
             /* Admin girişi olunca direk Admin Panele gidiyordu ve geri dönemiyordu, bu yüzden bu blok kapatıldı.
              * if (kullanici.rol == "Admin")
@@ -198,10 +236,13 @@ public partial class LoginView : ContentPage
             Application.Current.MainPage = new NavigationPage(new DashboardView(kullanici)); */
 
             // YENİ EKLENEN REVİZE: Yeni sayfayı oluştururken üst barı turkuaz (#00BCD4) olarak yapılandırıyoruz.
-            var dashNavPage = new NavigationPage(new DashboardView(kullanici));
+            /*var dashNavPage = new NavigationPage(new DashboardView(kullanici));
             dashNavPage.BarBackgroundColor = Color.FromArgb("#00BCD4");
             dashNavPage.BarTextColor = Colors.White;
-            Application.Current.MainPage = dashNavPage;
+            Application.Current.MainPage = dashNavPage;*/
+
+            var tabbedPage = new MainTabbedPage(kullanici);
+            Application.Current.MainPage = tabbedPage;
         }
         else
         {

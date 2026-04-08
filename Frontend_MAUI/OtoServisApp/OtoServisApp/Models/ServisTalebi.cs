@@ -12,6 +12,7 @@ namespace OtoServisApp.Models
         public int arac_id { get; set; }
         public int hizmet_id { get; set; }
         public string talep_tarihi { get; set; }
+        //public DateTime? talep_tarihi { get; set; }
         public string adres { get; set; }
         public string notlar { get; set; }
         public string durum { get; set; }
@@ -25,6 +26,12 @@ namespace OtoServisApp.Models
         public string randevu_tarihi { get; set; }
         public bool duzeltme_istendi_mi { get; set; }
         public string duzeltme_notu { get; set; }
+
+        // Tarihlerin null gelme ihtimaline karşı nullable yaptık
+        public DateTime? tamamlanma_tarihi { get; set; }
+        public DateTime? silinme_tarihi { get; set; }
+        public DateTime? guncelleme_tarihi { get; set; }
+        public string iptal_eden_ad_soyad { get; set; } // İptal eden kişi bilgisi
 
         // EKLENECEK SATIR: Önerilen tarih doluysa true, boşsa false döner
         public bool onerilen_tarih_var_mi => onerilen_tarih != null;

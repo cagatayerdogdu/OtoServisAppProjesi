@@ -173,6 +173,7 @@ public partial class AdminRequestsView : ContentPage
         }
     }
 
+    /*
     // =========================================================
     // KART İÇİ DURUM SEÇİM KONTROLLERİ
     // =========================================================
@@ -204,6 +205,7 @@ public partial class AdminRequestsView : ContentPage
             FiltreleriUygula();
         }
     }
+
 
     private void OnItemDurumSecildi(object sender, EventArgs e)
     {
@@ -245,6 +247,92 @@ public partial class AdminRequestsView : ContentPage
             }
         }
     }
+    */
+
+
+
+    // =========================================================
+    // KART İÇİ DURUM SEÇİM KONTROLLERİ (SCROLL KAYMAMASI İÇİN YENİDEN YAZILDI)
+    // =========================================================
+
+    private void OnItemDurumKutusuAc(object sender, EventArgs e)
+    {
+        var btn = sender as Button;
+        var parentStack = btn?.Parent as VerticalStackLayout;
+
+        if (parentStack != null)
+        {
+            // Tıklanan butonun hemen altındaki dropdown kutusunu (Border) buluyoruz
+            var dropdownBorder = parentStack.Children.OfType<Border>().FirstOrDefault();
+            if (dropdownBorder != null)
+            {
+                dropdownBorder.IsVisible = !dropdownBorder.IsVisible;
+            }
+        }
+    }
+
+    private void OnItemDurumSecildi(object sender, EventArgs e)
+    {
+        var btn = sender as Button;
+        var secilenTalep = btn?.BindingContext as ServisTalebi;
+
+        if (secilenTalep != null && btn != null)
+        {
+            var yeniDurum = btn.Text;
+            secilenTalep.durum = yeniDurum;
+
+            // Kapatılacak dropdown menüsünü bul
+            var verticalLayout = btn.Parent as VerticalStackLayout;
+            var dropdownBorder = verticalLayout?.Parent as Border;
+
+            if (dropdownBorder != null)
+            {
+                dropdownBorder.IsVisible = false; // Menüyü kapat
+
+                // Ana butonu bul ve ekrandaki metnini (durumunu) değiştir
+                var mainStack = dropdownBorder.Parent as VerticalStackLayout;
+                var mainButton = mainStack?.Children.OfType<Button>().FirstOrDefault();
+                if (mainButton != null)
+                {
+                    mainButton.Text = yeniDurum;
+                }
+            }
+        }
+    }
+
+    // =========================================================
+    // GÜNCELLEME İŞLEMİ
+    // =========================================================
+    private async void OnUpdateClicked(object sender, EventArgs e)
+    {
+        var button = sender as Button;
+        var talep = button?.CommandParameter as ServisTalebi;
+
+        if (talep != null)
+        {
+            // YENİ EKLENEN KISIM: Uygulamaya giriş yapan kişinin ID'sini alıyoruz.
+            // Bulduğun 'kullanici_id_gizli' anahtarını kullanarak ID'yi çekiyoruz
+            string idStr = await SecureStorage.Default.GetAsync("kullanici_id_gizli");
+            int? aktifAdminId = int.TryParse(idStr, out int id) ? id : (int?)null;
+
+            // API servisine bu ID'yi de parametre olarak geçiyoruz
+            bool basarili = await _apiService.AdminTalepGuncelleAsync(talep.id, talep.durum, talep.tahmini_tutar, aktifAdminId);
+            
+            if (basarili)
+            {
+                await DisplayAlert("Başarılı", "Talep başarıyla güncellendi.", "Tamam");
+                // YENİ REVİZE: VerileriYukle(); metodunu sildik! 
+                // Artık güncelledikten sonra liste asla kaymayacak, sen sayfadan çıkana kadar orada kalacak.
+            }
+            else
+            {
+                await DisplayAlert("Hata", "Güncellenirken bir sorun oluştu, lütfen tekrar deneyin.", "Tamam");
+            }
+        }
+    }
+
+
+
 
     // =========================================================
     // MAUI'nin yerleşik panoya kopyalama özelliği

@@ -120,4 +120,7 @@ ALTER TABLE otoservisdb.kullanicilar ADD COLUMN son_giris_tarihi DATETIME DEFAUL
 ALTER TABLE otoservisdb.kullanicilar ADD COLUMN mail_istiyor_mu BOOLEAN DEFAULT TRUE COMMENT 'KVKK Kapsamında mail alma izni';
 ALTER TABLE otoservisdb.kullanicilar ADD COLUMN son_hatirlatma_tarihi DATETIME DEFAULT NULL COMMENT 'Her gün mail atıp spamlememek için son hatırlatma zamanı';
 
+ALTER TABLE otoservisdb.servis_talepleri ADD COLUMN tamamlanma_tarihi DATETIME DEFAULT NULL COMMENT 'Servis tamamlanma zamanı';
+
+ALTER TABLE otoservisdb.servis_talepleri ADD COLUMN iptal_eden_id INT DEFAULT NULL COMMENT 'Talebi iptal eden kişinin IDsi';
 

@@ -6,8 +6,29 @@
              BackgroundColor="#F4F6F8"
              Title="Bildirimlerim">
 
-    <Grid>
-        <CollectionView x:Name="NotificationsList" Margin="15">
+    <Grid RowDefinitions="Auto, *">
+
+        <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Padding="15" BackgroundColor="#F8FAFC">
+            <HorizontalStackLayout Grid.Column="0" Spacing="10" VerticalOptions="Center">
+                <CheckBox x:Name="ChkSelectAll" CheckedChanged="OnSelectAllCheckedChanged" Color="#00BCD4"/>
+                <Label Text="Hepsini Seç" FontAttributes="Bold" VerticalOptions="Center" TextColor="#334155"/>
+            </HorizontalStackLayout>
+
+            <Button x:Name="BtnDeleteSelected" 
+                Grid.Column="1" 
+                Text="Seçilenleri Sil" 
+                BackgroundColor="#00BCD4" 
+                TextColor="White" 
+                IsVisible="False" 
+                Clicked="OnDeleteSelectedClicked" 
+                CornerRadius="8" 
+                HeightRequest="35" 
+                Padding="10,0"/>
+        </Grid>
+
+        <CollectionView Grid.Row="1" x:Name="NotificationList" Margin="15" 
+                SelectionMode="Multiple" SelectionChanged="OnSelectionChanged">
+
             <CollectionView.EmptyView>
                 <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="10" Margin="0,100,0,0">
                     <Label Text="{x:Static helpers:IconFont.Bell}" FontFamily="FASolid" FontSize="50" TextColor="#888888" HorizontalOptions="Center" Opacity="0.5"/>
@@ -17,33 +38,64 @@
 
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <Border Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 12" Padding="15" Margin="0,0,0,10">
-                        <Border.Triggers>
-                            <DataTrigger TargetType="Border" Binding="{Binding okundu_mu}" Value="False">
-                                <Setter Property="BackgroundColor" Value="#E0F7FA" />
-                            </DataTrigger>
-                            <DataTrigger TargetType="Border" Binding="{Binding okundu_mu}" Value="True">
-                                <Setter Property="BackgroundColor" Value="White" />
-                            </DataTrigger>
-                        </Border.Triggers>
+                    <Grid Padding="0,0,0,10">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup Name="CommonStates">
+                                <VisualState Name="Normal">
+                                    <VisualState.Setters>
+                                        <Setter TargetName="CardBorder" Property="Border.BackgroundColor" Value="White" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState Name="Selected">
+                                    <VisualState.Setters>
+                                        <Setter TargetName="CardBorder" Property="Border.BackgroundColor" Value="#E8F5E9" />
+                                        <Setter TargetName="CardBorder" Property="Border.Stroke" Value="#4CAF50" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
 
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNotificationTapped" CommandParameter="{Binding .}" />
-                        </Border.GestureRecognizers>
+                        <SwipeView>
+                            <SwipeView.RightItems>
+                                <SwipeItemView CommandParameter="{Binding .}" Invoked="OnSingleDeleteInvoked">
+                                    <Border BackgroundColor="#EF4444" StrokeShape="RoundRectangle 12" Padding="20" Margin="10,0,0,0" WidthRequest="70">
+                                        <Label Text="{x:Static helpers:IconFont.Trash}" FontFamily="FASolid" FontSize="20" TextColor="White" VerticalOptions="Center" HorizontalOptions="Center"/>
+                                    </Border>
+                                </SwipeItemView>
+                            </SwipeView.RightItems>
 
-                        <VerticalStackLayout Spacing="5">
-                            <HorizontalStackLayout Spacing="10">
-                                <Label Text="{x:Static helpers:IconFont.Bell}" FontFamily="FASolid" FontSize="16" TextColor="#00BCD4" VerticalOptions="Center"/>
-                                <Label Text="{Binding baslik}" FontSize="15" FontAttributes="Bold" TextColor="#111111" VerticalOptions="Center"/>
-                            </HorizontalStackLayout>
+                            <Border x:Name="CardBorder" StrokeShape="RoundRectangle 12" Padding="15">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnNotificationTapped" />
+                                </Border.GestureRecognizers>
 
-                            <Label Text="{Binding mesaj}" FontSize="13" TextColor="#555555" Margin="26,0,0,0"/>
+                                <Border.Triggers>
+                                    <DataTrigger TargetType="Border" Binding="{Binding okundu_mu}" Value="False">
+                                        <Setter Property="BackgroundColor" Value="#E0F7FA" />
+                                        <Setter Property="Stroke" Value="#00BCD4" />
+                                    </DataTrigger>
+                                </Border.Triggers>
 
-                            <Label Text="{Binding olusturulma_tarihi, StringFormat='{0:dd.MM.yyyy HH:mm}'}" FontSize="11" TextColor="#888888" HorizontalOptions="End" Margin="0,5,0,0"/>
-                        </VerticalStackLayout>
-                    </Border>
+                                <VerticalStackLayout Spacing="5">
+                                    <HorizontalStackLayout Spacing="10">
+                                        <Label Text="{x:Static helpers:IconFont.Bell}" FontFamily="FASolid" FontSize="16" TextColor="#00BCD4" VerticalOptions="Center"/>
+                                        <Label Text="{Binding baslik}" FontSize="15" TextColor="#111111" VerticalOptions="Center">
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label" Binding="{Binding okundu_mu}" Value="False">
+                                                    <Setter Property="FontAttributes" Value="Bold" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
+                                    </HorizontalStackLayout>
+                                    <Label Text="{Binding mesaj}" FontSize="13" TextColor="#555555" Margin="26,0,0,0" />
+                                    <Label Text="{Binding olusturulma_tarihi, StringFormat='{0:yyyy-MM-dd HH:mm}'}" FontSize="11" TextColor="#888888" HorizontalOptions="End" Margin="0,5,0,0"/>
+                                </VerticalStackLayout>
+                            </Border>
+                        </SwipeView>
+                    </Grid>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
+
     </Grid>
 </ContentPage>

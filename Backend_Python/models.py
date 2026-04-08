@@ -50,7 +50,7 @@ class Kullanici(Base):
     kayit_tarihi = Column(DateTime, default=datetime.datetime.utcnow, comment="Hesabin olusturulma zamani")
     
     # araclar = relationship("Arac", back_populates="sahip")
-    servis_talepleri = relationship("ServisTalebi", back_populates="musteri")
+    servis_talepleri = relationship("ServisTalebi", foreign_keys="[ServisTalebi.kullanici_id]", back_populates="musteri")
     araclar = relationship("Arac")
     # servis_talepleri = relationship("ServisTalebi")
     
@@ -110,7 +110,16 @@ class ServisTalebi(Base):
     # Tarih Damgaları
     insert_tarihi = Column(DateTime, server_default=func.now(), comment="Talebin olusturulma zamani")
     guncelleme_tarihi = Column(DateTime, server_default=func.now(), onupdate=func.now(), comment="Talebin son islem gorme zamani")
-
+        
+    kayit_durumu = Column(String(1), default="A", comment="A: Aktif Kayit, X: Silinmis (Soft Delete)")
+    silinme_tarihi = Column(DateTime, nullable=True, comment="Kaydin X durumuna cekildigi tarih")
+    tahmini_tutar = Column(Float, default=0.0)  # YENİ EKLENEN KOLON
+    duzeltme_istendi_mi = Column(Boolean, default=False)
+    duzeltme_notu = Column(String(500), nullable=True)
+    
+    tamamlanma_tarihi = Column(DateTime, nullable=True)    
+    iptal_eden_id = Column(Integer, ForeignKey("kullanicilar.id"), nullable=True, comment="Talebi iptal eden kişinin ID'si")
+        
     # ORM İlişkileri (Eski kodundan miras aldığımız, tabloları birbirine bağlayan kısım)
     # musteri = relationship("Kullanici", back_populates="servis_talepleri")
     # arac = relationship("Arac", back_populates="servis_talepleri")
@@ -119,14 +128,8 @@ class ServisTalebi(Base):
     # musteri = relationship("Kullanici")
     # arac = relationship("Arac")
     hizmet = relationship("Hizmet")
-    musteri = relationship("Kullanici", back_populates="servis_talepleri")
+    musteri = relationship("Kullanici", foreign_keys="[ServisTalebi.kullanici_id]", back_populates="servis_talepleri")
     arac = relationship("Arac", back_populates="servis_talepleri")
-    
-    kayit_durumu = Column(String(1), default="A", comment="A: Aktif Kayit, X: Silinmis (Soft Delete)")
-    silinme_tarihi = Column(DateTime, nullable=True, comment="Kaydin X durumuna cekildigi tarih")
-    tahmini_tutar = Column(Float, default=0.0)  # YENİ EKLENEN KOLON
-    duzeltme_istendi_mi = Column(Boolean, default=False)
-    duzeltme_notu = Column(String(500), nullable=True)
 
 class Hizmet(Base):
     __tablename__ = "hizmetler"

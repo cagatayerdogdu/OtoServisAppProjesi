@@ -27,10 +27,11 @@ import firebase_admin
 from firebase_admin import credentials, messaging
 from pydantic import BaseModel
 from sqlalchemy import nullsfirst  
+from fastapi.responses import HTMLResponse
 
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Kapıdan Bakım API", version="1.0.0")
+app = FastAPI(title="Oto Bakım Servisi API", version="1.0.0")
 
 # Firebase Başlatma (Eğer yoksa main.py'nin üst kısımlarına ekle)
 if not firebase_admin._apps:
@@ -79,7 +80,7 @@ async def catch_exceptions_middleware(request: Request, call_next):
 
 @app.get("/")
 def read_root():
-    return {"mesaj": "Kapıdan Bakım API Sistemine Hoş Geldiniz!", "durum": "Aktif"}
+    return {"mesaj": "Oto Bakım Servisi API Sistemine Hoş Geldiniz!", "durum": "Aktif"}
 
 
 # ------------------------------------------------------------------ #
@@ -318,6 +319,21 @@ def hizmetleri_getir(db: Session = Depends(get_db)):
 
 
 # --- KULLANICI İŞLEMLERİ ---
+# Madde 37: Pasif Kullanıcı Kontrolü
+@app.get("/kullanicilar/pasif/{eposta}", response_model=schemas.Kullanici)
+def pasif_kullanici_getir(eposta: str, db: Session = Depends(get_db)):
+    # aktif_mi durumu False olan kullanıcıyı bul
+    kullanici = db.query(models.Kullanici).filter(
+        models.Kullanici.eposta == eposta,
+        models.Kullanici.aktif_mi == False
+    ).first()
+    
+    if not kullanici:
+        raise HTTPException(status_code=404, detail="Pasif kullanıcı bulunamadı.")
+    
+    return kullanici
+
+# Kullanici oluştur. Aktif pasif kontrol et.
 @app.post("/kullanicilar/", response_model=schemas.Kullanici)
 def kullanici_olustur(kullanici: schemas.KullaniciCreate, db: Session = Depends(get_db)):
     # 1. Önce bu mailde biri var mı diye bakıyoruz
@@ -395,6 +411,42 @@ def kullanici_getir(kullanici_id: int, db: Session = Depends(get_db)):
     kullanici.servis_talepleri = [talep for talep in kullanici.servis_talepleri if getattr(talep, 'kayit_durumu', 'A') == 'A']
     
     return kullanici
+
+# Sadece pasif kullanıcıyı e-posta ile getiren özel bir uç nokta
+@app.get("/kullanicilar/pasif/{eposta}", response_model=schemas.Kullanici)
+def pasif_kullanici_getir(eposta: str, db: Session = Depends(get_db)):
+    kullanici = db.query(models.Kullanici).filter(models.Kullanici.eposta == eposta, models.Kullanici.aktif_mi == False).first()
+    if not kullanici:
+        raise HTTPException(status_code=404, detail="Pasif kullanıcı bulunamadı.")
+    return kullanici
+
+class AktivasyonIstegi(BaseModel):
+    yeni_sifre: str
+
+@app.put("/kullanicilar/aktif-et/{kullanici_id}")
+def hesabi_aktif_et(kullanici_id: int, istek: AktivasyonIstegi, db: Session = Depends(get_db)):
+    kullanici = db.query(models.Kullanici).filter(models.Kullanici.id == kullanici_id).first()
+    kullanici.aktif_mi = True
+    kullanici.kayit_durumu = "A"
+    kullanici.sifre_hash = istek.yeni_sifre # Yeni şifreyi atıyoruz
+    db.commit()
+    return {"mesaj": "Hesabınız başarıyla aktif edildi."}
+    
+
+# Sadece izin durumunu almak için ufak bir şema
+class MailIzniGuncelle(BaseModel):
+    mail_istiyor_mu: bool
+    
+@app.put("/kullanici/{kullanici_id}/mail-izni")
+def kullanici_mail_izni_guncelle(kullanici_id: int, istek: MailIzniGuncelle, db: Session = Depends(get_db)):
+    kullanici = db.query(models.Kullanici).filter(models.Kullanici.id == kullanici_id).first()
+    if not kullanici:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
+    
+    kullanici.mail_istiyor_mu = istek.mail_istiyor_mu
+    db.commit()
+    
+    return {"mesaj": "Mail izni başarıyla güncellendi", "mail_istiyor_mu": kullanici.mail_istiyor_mu}
 
 # ==========================================
 # --- GİRİŞ YAP & LOGLAMA ---
@@ -492,8 +544,9 @@ def kullanici_takip_listesi(
             "ad_soyad": k.ad_soyad,
             "eposta": k.eposta,
             "son_giris_tarihi": son_giris_str,
-            "kac_gun_oldu": kac_gun,
-            "mail_istiyor_mu": k.mail_istiyor_mu
+            "kac_gun_oldu": kac_gun,    # diff.days if k.son_giris_tarihi else None, bunu denemedim.
+            "mail_istiyor_mu": k.mail_istiyor_mu,
+            "son_hatirlatma_tarihi": k.son_hatirlatma_tarihi.strftime("%Y-%m-%d %H:%M") if k.son_hatirlatma_tarihi else None
         })
 
     toplam_sayfa = (toplam_kayit + sayfa_boyutu - 1) // sayfa_boyutu if toplam_kayit > 0 else 1
@@ -523,6 +576,8 @@ def manuel_hatirlatma_gonder(kullanici_id: int, istek: ManuelHatirlatmaIstegi, d
         raise HTTPException(status_code=403, detail="Kullanıcı e-posta bildirimlerini kapattığı için mail atılamaz (KVKK).")
 
     # Kurumsal İmza Ekleniyor
+    # Bu e-postayı almak istemiyorsanız <a href="https://api.otobakimservisi.com/kvkk/mail-iptal/{kullanici.id}">buraya tıklayarak</a> abonelikten çıkabilirsiniz.
+    # Natro ya taşıdığımda linki üstteki gibi güncellicez şimdi localhostta gönderiyoruz.
     mail_icerigi = f"""
     <html>
         <body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
@@ -531,17 +586,17 @@ def manuel_hatirlatma_gonder(kullanici_id: int, istek: ManuelHatirlatmaIstegi, d
             <br>
             <p>Sizi tekrar aramızda görmekten mutluluk duyarız. Araç bakımlarınız için uygulamamızı ziyaret edebilirsiniz.</p>
             <br>
-            <p>Hayırlı günler dileriz,<br><b>Kapıdan Bakım Yönetimi</b></p>
+            <p>Hayırlı günler dileriz,<br><b>Oto Bakım Yönetimi</b></p>
             <hr>
             <p style="font-size: 11px; color: #999;">
-                Bu e-postayı almak istemiyorsanız <a href="https://api.kapidanbakim.com/kvkk/mail-iptal/{kullanici.id}">buraya tıklayarak</a> abonelikten çıkabilirsiniz.
+                Bu e-postayı almak istemiyorsanız <a href="http://BURAYA_IP_VERILECEK:8000/kvkk/mail-iptal/{kullanici.id}">buraya tıklayarak</a> abonelikten çıkabilirsiniz.
             </p>
         </body>
     </html>
     """
     
     # Mail Gönder
-    basarili_mi = eposta_gonder(kullanici.eposta, "Sizi Özledik! - Kapıdan Bakım", mail_icerigi)
+    basarili_mi = eposta_gonder(kullanici.eposta, "Sizi Özledik! - Oto Bakım Servisi", mail_icerigi)
     
     if basarili_mi:
         # Spam engeli için son hatırlatma tarihini kaydet
@@ -564,19 +619,55 @@ def manuel_hatirlatma_gonder(kullanici_id: int, istek: ManuelHatirlatmaIstegi, d
     else:
         raise HTTPException(status_code=500, detail="Mail gönderilemedi, SMTP ayarlarını kontrol edin.")
 ###############################################
-        
+# ---------------------------------------------------------
+# ESKİ KOD (Silinmedi, referans amaçlı yorum satırına alındı)
+# ---------------------------------------------------------       
 # KVKK Abonelik İptal Uç Noktası
-@app.get("/kvkk/mail-iptal/{kullanici_id}")
-def kvkk_mail_iptal(kullanici_id: int, db: Session = Depends(get_db)):
-    kullanici = db.query(models.Kullanici).filter(models.Kullanici.id == kullanici_id).first()
-    if kullanici:
-        kullanici.mail_istiyor_mu = False
-        db.commit()
-        from fastapi.responses import HTMLResponse # Gerekli kütüphane eklendi
-        return HTMLResponse(content="<h3>Talebiniz alınmıştır. Artık e-posta almayacaksınız.</h3>")
+# @app.get("/kvkk/mail-iptal/{kullanici_id}")
+# def kvkk_mail_iptal(kullanici_id: int, db: Session = Depends(get_db)):
+#     kullanici = db.query(models.Kullanici).filter(models.Kullanici.id == kullanici_id).first()
+#     if kullanici:
+#         kullanici.mail_istiyor_mu = False
+#         db.commit()
+#         from fastapi.responses import HTMLResponse # Gerekli kütüphane eklendi
+#         return HTMLResponse(content="<h3>Talebiniz alınmıştır. Artık e-posta almayacaksınız.</h3>")
     
-    from fastapi.responses import HTMLResponse
-    return HTMLResponse(content="<h3>Kullanıcı bulunamadı.</h3>")
+#     from fastapi.responses import HTMLResponse
+#     return HTMLResponse(content="<h3>Kullanıcı bulunamadı.</h3>")
+# ---------------------------------------------------------
+# ---------------------------------------------------------
+# YENİ REVİZE: Daha şık HTML arayüzü ile yapılandırılmış iptal sayfası
+# KVKK Mail İptal Endpoint'i (Müşteri maildeki linke tıklayınca burası çalışır)
+@app.get("/kvkk/mail-iptal/{kullanici_id}") # response_class'ı buradan kaldır, return içinde verelim garanti olsun
+def mail_abonelik_iptal(kullanici_id: int, db: Session = Depends(get_db)):
+    kullanici = db.query(models.Kullanici).filter(models.Kullanici.id == kullanici_id).first()
+    
+    if not kullanici:
+        return HTMLResponse(content="<h2 style='color:red; text-align:center; margin-top:50px;'>Kullanıcı bulunamadı.</h2>", status_code=404)
+    
+    kullanici.mail_istiyor_mu = False
+    db.commit()
+    
+    html_icerik = f"""
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <meta charset="utf-8">
+            <title>Abonelik İptali</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; text-align: center; padding-top: 50px; background-color: #F8FAFC;">
+            <div style="background-color: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: inline-block; border: 1px solid #E2E8F0;">
+                <h2 style="color: #25D366;">Abonelikten Çıkış Başarılı</h2>
+                <p>Sayın <b>{kullanici.ad_soyad}</b>, e-posta bildirimleri kapatıldı.</p>
+                <p>Artık hatırlatma e-postaları almayacaksınız.</p>
+                <br>
+                <p style="font-size: 12px; color: #7F8C8D;">Fikrinizi değiştirirseniz, uygulamadaki profil ayarlarından tekrar açabilirsiniz.</p>
+            </div>
+        </body>
+    </html>
+    """
+    # Burası ÇOK ÖNEMLİ: media_type'ı zorla veriyoruz ki tarayıcı düz yazı sanmasın
+    return HTMLResponse(content=html_icerik, status_code=200, media_type="text/html")
 
 @app.put("/kullanicilar/{kullanici_id}", response_model=schemas.Kullanici)
 def kullanici_guncelle(kullanici_id: int, guncel_veri: schemas.KullaniciUpdate, db: Session = Depends(get_db)):
@@ -682,6 +773,20 @@ def arac_guncelle(arac_id: int, arac_data: schemas.AracCreate, db: Session = Dep
 @app.post("/servis-talepleri/", response_model=schemas.ServisTalebi)
 def servis_talebi_olustur(istek: schemas.ServisTalebiCreate, db: Session = Depends(get_db)):
     try:
+        # --- MADDE 55 KONTROLÜ BAŞLANGICI ---
+        aktif_talep = db.query(models.ServisTalebi).filter(
+            models.ServisTalebi.arac_id == istek.arac_id,
+            models.ServisTalebi.durum.in_(["Bekliyor", "Onaylandı", "İşlemde"]),
+            models.ServisTalebi.kayit_durumu == 'A'
+        ).first()
+
+        if aktif_talep:
+            if aktif_talep.hizmet_id == istek.hizmet_id:
+                raise HTTPException(status_code=400, detail="Bu araç için aynı hizmetten zaten aktif bir talebiniz bulunuyor.")
+            else:
+                raise HTTPException(status_code=400, detail="Bu araç için mevcut bir talebiniz var. Yeni bir hizmet eklemek yerine lütfen mevcut talebinizi güncelleyiniz.")
+        # --- MADDE 55 KONTROLÜ BİTİŞİ ---
+        
         # 1. Yeni servis talebini oluşturuyoruz                        
         yeni_talep = models.ServisTalebi(**istek.model_dump())
         db.add(yeni_talep)
@@ -728,16 +833,17 @@ def servis_talebi_olustur(istek: schemas.ServisTalebiCreate, db: Session = Depen
         # Hatayı log tablomuza kaydediyoruz
         hata_mesaji = str(e)
         yeni_log = models.SistemLog(
-            kullanici_ad_soyad="Sistem",
+            # kullanici_ad_soyad="Sistem",
+            kullanici_id= istek.kullanici_id,
             seviye="ERROR",
-            islem="Admin Yeni Talep Bildirimi Gönderme / Talep Oluşturma",
+            islem="Yeni Talep Oluşturma",
             detay=f"FCM Push, DB Bildirim veya Talep kaydı sırasında hata oluştu: {hata_mesaji}",
-            tarih=datetime.now()
+            # insert_tarihi=datetime.now() gereksiz çünkü tabloda server_default=func.now() var.
         )
         db.add(yeni_log)
         db.commit() # Sadece SistemLog tablosundaki kaydı kalıcı hale getiriyoruz
 
-        # Senin istediğin gibi işlemi tamamen durdurup kullanıcıya 500 hatası fırlatıyoruz
+        # Senin istediğin gibi işlemi tamamen durdurup kullanıcıya 500 hatası fırlatıyoruz.
         raise HTTPException(status_code=500, detail=f"İşlem sırasında bir hata oluştu ve talep iptal edildi: {hata_mesaji}")
     
     
@@ -909,7 +1015,7 @@ def kullanici_talep_guncelle(talep_id: int, istek: schemas.TalepGuncelleKullanic
     db.commit()
     return {"mesaj": "İşlem başarılı"}
 
-# TALEP SİLME (Soft Delete)
+# TALEP SİLME (Soft Delete) -- Kullanıcı kendi talebini iptal ettiğinde.
 @app.delete("/servis-talepleri/{talep_id}")
 def servis_talebi_iptal_et(talep_id: int, db: Session = Depends(get_db)):
     talep = db.query(models.ServisTalebi).filter(models.ServisTalebi.id == talep_id).first()
@@ -920,18 +1026,22 @@ def servis_talebi_iptal_et(talep_id: int, db: Session = Depends(get_db)):
     if talep.durum != "Bekliyor":
         raise HTTPException(status_code=400, detail="Sadece 'Bekliyor' durumundaki talepler iptal edilebilir.")
             
-    # db.delete(talep) <--- İPTAL
-    # DİKKAT: Talep tablosundaki kayit_durumu YAPISI KORUNUYOR.
+    # Tüm tarihleri ve ID'leri eksiksiz dolduruyoruz
+    zaman_simdi = datetime.now()
     talep.kayit_durumu = 'X'
-    talep.silinme_tarihi = datetime.now()
-    talep.durum = "İptal Edildi" # Hem durumu güncelliyoruz hem de siliyoruz
-    
+    talep.durum = "İptal Edildi"
+    talep.silinme_tarihi = zaman_simdi
+    talep.guncelleme_tarihi = zaman_simdi
+    talep.tamamlanma_tarihi = None
+    # Kullanıcı kendi sildiği için iptal eden kendisidir
+    talep.iptal_eden_id = talep.kullanici_id
+        
     # ---------------------------------------------------------
     # YENİ: İŞLEM BAŞARIYLA İPTAL EDİLDİĞİNDE INFO LOGU AT
     log_kaydet(
         db=db, 
         islem="Servis Talebi İptali", 
-        detay=f"Talep ID: {talep_id} numaralı işlem kullanıcı tarafından iptal edilip X durumuna çekildi.", 
+        detay=f"Talep ID: {talep_id} numaralı işlem {talep.iptal_eden_id} kullanıcısı tarafından iptal edilip X durumuna çekildi.", 
         seviye="INFO", 
         kullanici_id=talep.kullanici_id
     )
@@ -1056,7 +1166,7 @@ def sifre_sifirla_talep(istek: SifreSifirlaIstegi, db: Session = Depends(get_db)
     <html>
         <body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
             <div style="max-width: 500px; margin: 0 auto; border: 1px solid #ddd; border-radius: 10px; padding: 20px; text-align: center;">
-                <h2 style="color: #00BCD4;">🚘 Kapıdan Bakım</h2>
+                <h2 style="color: #00BCD4;">🚘 Oto Bakım Servisi</h2>
                 <p>Merhaba <b>{kullanici.ad_soyad}</b>,</p>
                 <p>OtoServisApp hesabınız için şifre sıfırlama talebiniz alınmıştır. Sisteme giriş yapabilmeniz için geçici şifreniz aşağıda yer almaktadır:</p>
                 
@@ -1250,17 +1360,23 @@ def admin_aktif_talepleri_getir(db: Session = Depends(get_db)):
         
     return sonuc
 
-# --- ADMİN: GEÇMİŞ TALEPLERİ GETİR ---
+# ---------------------------------------------------------
+# --- ADMİN: GEÇMİŞ TALEPLERİ GETİR (VERİ ÇEKME) ---
+# ---------------------------------------------------------
 @app.get("/admin/servis-talepleri/gecmis")
 def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
-    # DİKKAT: Talep tablosunda kayit_durumu KORUNDU
+    # Tamamlanmış ve İptal Edilmiş talepleri çekiyoruz
+    # Sorgu performansını artırmak için gerekli filtrelemeyi yapıyoruz
     talepler = db.query(models.ServisTalebi).filter(
-        models.ServisTalebi.kayit_durumu == 'A',
+       # models.ServisTalebi.kayit_durumu == 'A', # burada A dakileri çektiğimiz de
+       # müşterinin iptal taleplerini göremiyorduk. Bu filtreyi kaldırdım.
+       # burası için iptal eden user eklememiz gerekecek.  
         models.ServisTalebi.durum.in_(['Tamamlandı', 'İptal Edildi'])
     ).order_by(models.ServisTalebi.talep_tarihi.desc()).all()
     
     sonuc = []
-    for t in talepler:
+    for t in talepler:                        
+        # İlişkili verileri çekiyoruz
         kullanici = db.query(models.Kullanici).filter(models.Kullanici.id == t.kullanici_id).first()
         arac = db.query(models.Arac).filter(models.Arac.id == t.arac_id).first()
         hizmet = db.query(models.Hizmet).filter(models.Hizmet.id == t.hizmet_id).first()
@@ -1273,52 +1389,119 @@ def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
                 if marka and model:
                     arac_adi = f"{marka.ad} {model.ad}"
             else:
-                arac_adi = f"{arac.ozel_marka} {arac.ozel_model}"
-
-        talep_dict = {column.name: getattr(t, column.name) for column in t.__table__.columns}
+                arac_adi = f"{arac.ozel_marka} {arac.ozel_model}"        
+        
+        # 1. Mevcut kolonları sözlüğe aktar
+        talep_dict = {c.name: getattr(t, c.name) for c in t.__table__.columns}
+        
+        # Tarihleri güvenli şekilde ISO formatına çevir (None ise None bırak)
+        for key, value in talep_dict.items():
+            if isinstance(value, (datetime, date)):
+                talep_dict[key] = value.isoformat() if value else None
+        
+        # talep_tarihi C#'ta string olduğu için onu özel olarak string formatında eziyoruz (Çökme engellendi)
+        if t.talep_tarihi:
+            talep_dict["talep_tarihi"] = t.talep_tarihi.strftime("%Y-%m-%d %H:%M")
+                    
+        # 2. Kullanıcı bilgilerini yapılandır
         talep_dict["kullanici_ad_soyad"] = kullanici.ad_soyad if kullanici else "Bilinmiyor"
         talep_dict["kullanici_telefon"] = kullanici.telefon if kullanici else "Belirtilmemiş"
         talep_dict["arac_adi_tam"] = arac_adi
+
+        # 3. İptal eden bilgisini yapılandır
+        iptal_eden_isim = "İptal bilgisi yok."
+        if t.iptal_eden_id: # is not None:
+            iptal_kisi = db.query(models.Kullanici).filter(models.Kullanici.id == t.iptal_eden_id).first()
+            if iptal_kisi:
+                iptal_eden_isim = iptal_kisi.ad_soyad
+        talep_dict["iptal_eden_ad_soyad"] = iptal_eden_isim
+
+        # Tarih alanlarını C# DateTime? tipine uygun hale getir
+        # 4. ADIM: Tarih Kurtarma Operasyonu (C# tarafının beklediği isimlerle)
+        # Eğer iptal edildiyse, iptal tarihini ve tamamlanma tarihini dolduruyoruz        
+        # Eğer veritabanında tamamlanma_tarihi NULL ise, eski kayıtların boş görünmemesi 
+        # için guncelleme veya silinme tarihini baz alıyoruz.		
+        # Tarih Garantisi: Boş gelmesini engelle					   
+        # if t.durum == "İptal Edildi":
+        #    talep_dict["tamamlanma_tarihi"] = t.silinme_tarihi or t.guncelleme_tarihi
+        #elif not t.tamamlanma_tarihi:
+        #    talep_dict["tamamlanma_tarihi"] = t.guncelleme_tarihi
         
-        # --- 30. MADDE ÇÖZÜMÜ ---
+        # 4. Tamamlanma/İptal tarihi NULL ise guncelleme tarihini bas
+                # Güvenli tarih atamaları (None kontrolü)
+        talep_dict["tamamlanma_tarihi"] = t.tamamlanma_tarihi.isoformat() if t.tamamlanma_tarihi else None
+        talep_dict["silinme_tarihi"] = t.silinme_tarihi.isoformat() if t.silinme_tarihi else None
+        
+        # 5. Tutar hesaplama (30. Madde çözümü korunarak)
         mevcut_tutar = float(t.tahmini_tutar) if t.tahmini_tutar else 0.0
         if mevcut_tutar == 0.0 and hizmet and hizmet.varsayilan_fiyat:
             talep_dict["tahmini_tutar"] = float(hizmet.varsayilan_fiyat)
         else:
             talep_dict["tahmini_tutar"] = mevcut_tutar
-
+            
         sonuc.append(talep_dict)
         
     return sonuc
 
-# --- ADMİN: TALEP GÜNCELLEME (UYARI SİLİCİ) ---
-from pydantic import BaseModel
+# --- ADMİN: TALEP GÜNCELLEME (UYARI SİLİCİ) --- 
+# from pydantic import BaseModel en üstte tanımladım.
 
-class TalepAdminGuncelle(BaseModel):
-    yeni_durum: str
-    tahmini_tutar: float
-
+# ---------------------------------------------------------
+# ADMİN BİR TALEBİ GÜNCELLEDİĞİ VEYA İPTAL ETTİĞİNDE ÇALIŞAN METOT
+# ---------------------------------------------------------
 @app.put("/admin/servis-talepleri/{talep_id}/guncelle")
-def admin_talep_guncelle(talep_id: int, istek: TalepAdminGuncelle, db: Session = Depends(get_db)):
+def admin_talep_guncelle(talep_id: int, istek: schemas.TalepAdminGuncelle, db: Session = Depends(get_db)):
     talep = db.query(models.ServisTalebi).filter(models.ServisTalebi.id == talep_id).first()
     if not talep:
         raise HTTPException(status_code=404, detail="Talep bulunamadı")
     
     eski_durum = talep.durum
-    eski_tutar = talep.tahmini_tutar
+    # eski_tutar = talep.tahmini_tutar BURADA NİYE TANMLANMIŞ VE KULLANILMAMIŞ ANLAMADIM.
     
+    zaman_simdi = datetime.now()
     talep.durum = istek.yeni_durum
     talep.tahmini_tutar = istek.tahmini_tutar
+    talep.guncelleme_tarihi = zaman_simdi # Her güncellemede bu tarih güncellenmeli
+        
+    # --- MADDE 40 REVİZESİ: EĞER DURUM TAMAMLANDI YAPILDIYSA TARİH AT ---
+    # EĞER ADMİN İPTAL ETTİYSE:
+    # --- ÇAĞATAY ABİ'NİN KURALLARI ---
     
+    if istek.yeni_durum == "Tamamlandı":
+        talep.kayit_durumu = 'A'
+        talep.silinme_tarihi = None
+        talep.tamamlanma_tarihi = zaman_simdi
+        talep.iptal_eden_id = None
+        
+    elif istek.yeni_durum == "İptal Edildi":
+        talep.kayit_durumu = 'X'
+        talep.silinme_tarihi = zaman_simdi
+        talep.tamamlanma_tarihi = None
+        
+        # İptal eden ID ataması
+        if istek.islem_yapan_id is not None and istek.islem_yapan_id > 0:
+            talep.iptal_eden_id = istek.islem_yapan_id
+        else:
+            ilk_admin = db.query(models.Kullanici).filter(models.Kullanici.rol == "Admin").first()
+            talep.iptal_eden_id = ilk_admin.id if ilk_admin else None
+            
+    else:
+        # Diğer durumlar (Onaylandı, İşlemde, Bekliyor) için tarihsel alanları koru
+        talep.kayit_durumu = 'A'
+        talep.silinme_tarihi = None
+        talep.tamamlanma_tarihi = None
+        talep.iptal_eden_id = None
+    # -----------------------------------
+        
     # ADMİN MÜDAHALE ETTİĞİNDE VEYA DURUMU DEĞİŞTİRDİĞİNDE UYARI BAYRAĞINI TEMİZLİYORUZ
     if talep.duzeltme_istendi_mi:
         talep.duzeltme_istendi_mi = False
         talep.duzeltme_notu = None
-    
+            
     log_kaydet(
         db=db, 
         islem="Admin Talep Güncellemesi", 
-        detay=f"Talep ID: {talep_id} güncellendi. Durum: {eski_durum}->{istek.yeni_durum}", 
+        detay=f"Talep ID: {talep_id} güncellendi. Güncelleyen kullanıcı ID: {talep.iptal_eden_id}. Durum: {eski_durum}->{istek.yeni_durum}", 
         seviye="INFO", 
         kullanici_id=talep.kullanici_id
     )
@@ -1332,8 +1515,7 @@ def admin_talep_guncelle(talep_id: int, istek: TalepAdminGuncelle, db: Session =
         mesaj=f"Servis talebiniz '{talep.durum}' aşamasına geçmiştir.", 
         okundu_mu=False
     )
-    db.add(yeni_bildirim)
-    
+    db.add(yeni_bildirim)    
     # Hem talebi hem de bildirimi aynı anda veritabanına kaydet (commit)
     db.commit()
     
@@ -1345,7 +1527,7 @@ def admin_talep_guncelle(talep_id: int, istek: TalepAdminGuncelle, db: Session =
         try:
             message = messaging.Message(
                 notification=messaging.Notification(
-                    title="Kapıdan Bakım",
+                    title="Oto Servis Bakım",
                     body=yeni_bildirim.mesaj,
                 ),
                 token=kullanici.fcm_token,
@@ -1421,7 +1603,7 @@ def get_admin_logs(
     }
 
 @app.put("/admin/talepler/{talep_id}")
-def admin_talep_guncelle(talep_id: int, durum: str, tahmini_tutar: float, db: Session = Depends(get_db)):
+def admin_talep_guncelle_kullanilmiyor(talep_id: int, durum: str, tahmini_tutar: float, db: Session = Depends(get_db)):
     talep = db.query(models.ServisTalebi).filter(models.ServisTalebi.id == talep_id).first()
     if not talep:
         raise HTTPException(status_code=404, detail="Talep bulunamadı")
@@ -1429,6 +1611,16 @@ def admin_talep_guncelle(talep_id: int, durum: str, tahmini_tutar: float, db: Se
     eski_durum = talep.durum
     talep.durum = durum
     talep.tahmini_tutar = tahmini_tutar
+    
+    # --- MADDE 40 REVİZESİ: EĞER DURUM TAMAMLANDI YAPILDIYSA TARİH AT ---
+    # ESKİ KOD (Yazım hatası içeriyordu): if talep.yeni_durum == "Tamamlandı" and eski_durum != "Tamamlandı":
+    # YENİ REVİZE: talep.yeni_durum yerine metoda parametre gelen 'durum' değişkenini kullanıyoruz.
+    if durum == "Tamamlandı" and eski_durum != "Tamamlandı":
+        talep.tamamlanma_tarihi = datetime.now()
+    
+    if durum.yeni_durum == "İptal Edildi" and eski_durum != "İptal Edildi":
+        talep.iptal_eden_id = durum.islem_yapan_id # Hangi admin sildiyse onu kaydet
+    # --------------------------------------------------------------------
     
     # --- BİLDİRİM TETİKLEYİCİSİ BAŞLANGICI ---
     if eski_durum != durum:
@@ -1472,6 +1664,19 @@ def okunmamis_bildirim_sayisi(kullanici_id: int, db: Session = Depends(get_db)):
         models.SistemBildirimleri.okundu_mu == False
     ).count()
     return sayi
+
+@app.delete("/bildirimler/{bildirim_id}")
+def bildirim_sil(bildirim_id: int, db: Session = Depends(get_db)):
+    bildirim = db.query(models.SistemBildirimleri).filter(models.SistemBildirimleri.id == bildirim_id).first()
+    
+    if not bildirim:
+        raise HTTPException(status_code=404, detail="Silinmek istenen bildirim bulunamadı.")
+    
+    # Bildirimleri X durumuna çekmiyoruz, veritabanını şişirmemek için direkt siliyoruz (Madde 50)
+    db.delete(bildirim)
+    db.commit()
+    
+    return {"mesaj": "Bildirim başarıyla silindi."}
 
 @app.post("/kullanici/token-kaydet/")
 def token_kaydet(istek: schemas.TokenKayitIstegi, db: Session = Depends(get_db)):

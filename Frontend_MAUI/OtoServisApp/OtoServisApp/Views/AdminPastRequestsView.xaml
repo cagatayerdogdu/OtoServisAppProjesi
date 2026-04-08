@@ -59,10 +59,6 @@
                                     <Label Text="{Binding hizmet_adi}" FontSize="16" FontAttributes="Bold" TextColor="#111111"/>
                                     <Label Text="{Binding durum}" FontSize="13" FontAttributes="Bold" TextColor="#7F8C8D" Margin="0,3,0,0"/>
                                 </VerticalStackLayout>
-
-                                <VerticalStackLayout Grid.Column="1" HorizontalOptions="End">
-                                    <Label Text="{Binding randevu_tarihi, StringFormat='{0:dd.MM.yyyy}'}" FontSize="12" FontAttributes="Bold" TextColor="#888888" VerticalOptions="Center"/>
-                                </VerticalStackLayout>
                             </Grid>
 
                             <BoxView HeightRequest="1" Color="#EEEEEE"/>
@@ -77,6 +73,67 @@
                                 <Label Text="{Binding arac_adi_tam}" FontSize="14" TextColor="#444444" FontAttributes="Bold" VerticalOptions="Center"/>
                             </HorizontalStackLayout>
 
+                            <VerticalStackLayout Spacing="5" Margin="0,5,0,0">
+
+                                <HorizontalStackLayout Spacing="5">
+                                    <Label Text="{x:Static helpers:IconFont.CalendarAlt}" FontFamily="FASolid" FontSize="12" TextColor="#64748B" VerticalOptions="Center"/>
+                                    <Label Text="Talep Tarihi:" FontSize="12" TextColor="#64748B" FontAttributes="Bold" VerticalOptions="Center"/>
+                                    <Label Text="{Binding talep_tarihi, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}" FontSize="12" TextColor="#334155" VerticalOptions="Center"/>
+                                </HorizontalStackLayout>
+
+                                <HorizontalStackLayout Spacing="5">
+                                    <Label Text="{x:Static helpers:IconFont.CheckCircle}" FontFamily="FASolid" FontSize="12" TextColor="#25D366" VerticalOptions="Center">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding durum}" Value="İptal Edildi">
+                                                <Setter Property="Text" Value="{x:Static helpers:IconFont.TimesCircle}" />
+                                                <Setter Property="TextColor" Value="#EF4444" />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+
+                                    <Label Text="Tamamlanma:" FontSize="12" TextColor="#25D366" FontAttributes="Bold" VerticalOptions="Center">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding durum}" Value="İptal Edildi">
+                                                <Setter Property="Text" Value="İptal Tarihi:" />
+                                                <Setter Property="TextColor" Value="#EF4444" />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+
+                                    <Label Text="{Binding tamamlanma_tarihi, StringFormat='{}{0:yyyy-MM-dd HH:mm}', TargetNullValue='Belirtilmemiş'}" FontSize="12" TextColor="#334155" VerticalOptions="Center">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding durum}" Value="İptal Edildi">
+                                                <Setter Property="IsVisible" Value="False" />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+
+                                    <Label Text="{Binding silinme_tarihi, StringFormat='{}{0:yyyy-MM-dd HH:mm}', TargetNullValue='Belirtilmemiş'}" FontSize="12" TextColor="#EF4444" VerticalOptions="Center">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding durum}" Value="Tamamlandı">
+                                                <Setter Property="IsVisible" Value="False" />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+                                </HorizontalStackLayout>
+
+                                <HorizontalStackLayout Spacing="5">
+                                    <HorizontalStackLayout.Triggers>
+                                        <DataTrigger TargetType="HorizontalStackLayout" Binding="{Binding durum}" Value="İptal Edildi">
+                                            <Setter Property="IsVisible" Value="True" />
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="HorizontalStackLayout" Binding="{Binding durum}" Value="Tamamlandı">
+                                            <Setter Property="IsVisible" Value="False" />
+                                        </DataTrigger>
+                                    </HorizontalStackLayout.Triggers>
+
+                                    <Label Text="{x:Static helpers:IconFont.User}" FontFamily="FASolid" FontSize="12" TextColor="#EF4444" VerticalOptions="Center"/>
+                                    <Label Text="İptal Eden:" FontSize="12" TextColor="#EF4444" FontAttributes="Bold" VerticalOptions="Center"/>
+                                    <Label Text="{Binding iptal_eden_ad_soyad, TargetNullValue='Bilinmiyor'}" FontSize="12" TextColor="#EF4444" VerticalOptions="Center"/>
+                                </HorizontalStackLayout>
+
+                            </VerticalStackLayout>
+
                             <Border BackgroundColor="#E0F7FA" Stroke="Transparent" StrokeShape="RoundRectangle 5" Padding="10" Margin="0,5">
                                 <HorizontalStackLayout Spacing="5">
                                     <Label Text="{x:Static helpers:IconFont.Coins}" FontFamily="FASolid" FontSize="14" TextColor="#00796B" VerticalOptions="Center"/>
@@ -90,6 +147,6 @@
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
-        
+
     </Grid>
 </ContentPage>

@@ -98,9 +98,16 @@ public partial class AdminUserTrackingView : ContentPage
             var res = await _api.PostAsync($"admin/kullanici-takip/{m.id}/hatirlatma-gonder", body);
 
             if (res.IsSuccessStatusCode)
-                await DisplayAlert("Başarılı", "Hatırlatma başarıyla gönderildi.", "Tamam");
+            {
+                await DisplayAlert("Başarılı", "Hatırlatma maili gönderildi.", "Tamam");
+
+                // KRİTİK DOKUNUŞ: Listeyi API'den tekrar çek ki yeni tarih ekrana yansısın
+                await Yukle();
+            }
             else
                 await DisplayAlert("Uyarı", "Gönderim yapılamadı (KVKK veya sistem hatası).", "Tamam");
+
+            
         }
         catch (Exception ex)
         {
@@ -127,7 +134,7 @@ public partial class AdminUserTrackingView : ContentPage
     }
 }
 
-public class TakipMusteri
+public class TakipMusteriEski
 {
     [JsonPropertyName("id")]
     public int id { get; set; }
@@ -152,6 +159,54 @@ public class TakipMusteri
     public string SonGirisText => string.IsNullOrEmpty(son_giris_tarihi) ? "Hiç giriş yok" : son_giris_tarihi;
     public string MailIzinDurum => mail_istiyor_mu ? "✅ Mail izni var" : "❌ Mail izni yok";
     public Color MailIzinRengi => mail_istiyor_mu ? Colors.Green : Colors.Red;
+}
+
+public class TakipMusteri
+{
+    [JsonPropertyName("id")]
+    public int id { get; set; }
+
+    [JsonPropertyName("ad_soyad")]
+    public string ad_soyad { get; set; }
+
+    [JsonPropertyName("eposta")]
+    public string eposta { get; set; }
+
+    [JsonPropertyName("son_giris_tarihi")]
+    public string son_giris_tarihi { get; set; }
+
+    [JsonPropertyName("kac_gun_oldu")]
+    public int? kac_gun_oldu { get; set; }
+
+    [JsonPropertyName("mail_istiyor_mu")]
+    public bool mail_istiyor_mu { get; set; }
+
+    [JsonPropertyName("son_hatirlatma_tarihi")]
+    public string son_hatirlatma_tarihi { get; set; }
+
+    // Senin Eklediğin Güzel Görüntüleme Metinleri
+    public string KacGunText => kac_gun_oldu.HasValue ? $"{kac_gun_oldu} gündür girmiyor" : "Hiç giriş yapmamış";
+    public string SonGirisText => string.IsNullOrEmpty(son_giris_tarihi) ? "Hiç giriş yok" : son_giris_tarihi;
+    public string MailIzinDurum => mail_istiyor_mu ? "✅ Mail izni var" : "❌ Mail izni yok";
+    public Color MailIzinRengi => mail_istiyor_mu ? Colors.Green : Colors.Red;
+
+    // Yeni Eklenen Hatırlatma Metinleri
+    public string SonHatirlatmaText
+    {
+        get
+        {
+            if (string.IsNullOrEmpty(son_hatirlatma_tarihi))
+                return "📌 Henüz hatırlatma maili atılmadı";
+
+            if (DateTime.TryParse(son_hatirlatma_tarihi, out DateTime tarih))
+                return $"⏰ Son Hatırlatma: {tarih.ToString("dd.MM.yyyy HH:mm")}";
+
+            return "📌 Hatırlatma durumu bilinmiyor";
+        }
+    }
+
+    public Color HatirlatmaRenk => string.IsNullOrEmpty(son_hatirlatma_tarihi) ? Color.FromArgb("#7F8C8D") : Color.FromArgb("#E67E22");
+
 }
 
 public class TakipResponse

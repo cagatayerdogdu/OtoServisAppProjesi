@@ -2,11 +2,11 @@
 {
     public static class IconFont
     {
-        public const string Car = "\uf1b9";         // 🚗 yerine
-        public const string User = "\uf007";        // 👤 yerine
+        public const string Car = "\uf1b9";         // 🚗 Araçlarım yerine
+        public const string User = "\uf007";        // 👤 Profil yerine
         public const string ClipboardList = "\uf46d"; // 📝 yerine
         public const string CheckCircle = "\uf058"; // Onay ikonu
-        public const string Wrench = "\uf0ad";      // Tamir ikonu
+        public const string Wrench = "\uf0ad";      // 🔧 Taleplerim Tamir ikonu
         public const string MapMarkerAlt = "\uf3c5"; // 🏠 yerine
         public const string Phone = "\uf095";       // 📞 yerine
         public const string CalendarAlt = "\uf073"; // Tarih ikonu
@@ -33,5 +33,9 @@
         public const string Whatsapp = "\uf232";        // WhatsApp (Brands fontu gerekir)
         public const string PhoneAlt = "\uf879";        // Telefon
         public const string Instagram = "\uf16d";       // Instagram
+        public const string Home = "\uf015";       // 🏠 Anasayfa
+        public const string Trash = "\uf1f8";      // 🗑️ Çöp Kutusu (Madde 50 için)
+        public const string CheckSquare = "\uf14a"; // ☑️ Seçili Kutu
+        public const string Square = "\uf0c8";      // ⬜ Boş Kutu
     }
 }

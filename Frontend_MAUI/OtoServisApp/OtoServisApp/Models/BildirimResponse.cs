@@ -1,4 +1,6 @@
 ﻿using System;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace OtoServisApp.Models
 {
@@ -6,7 +8,8 @@ namespace OtoServisApp.Models
     /// API'den gelen SistemBildirimleri verisi için C# Model Sınıfı.
     /// AÇIKLAMA: Kullanıcının uygulama içi bildirimlerinin detaylarını tutar.
     /// </summary>
-    public class BildirimResponse
+    // Sınıfına INotifyPropertyChanged arayüzünü (interface) ekleyelim. Bildirimleri okuyunca yazı düzelsin.
+    public class BildirimResponse : INotifyPropertyChanged
     {
         /// <summary>
         /// Bildirimin benzersiz numarası [PK]
@@ -26,11 +29,33 @@ namespace OtoServisApp.Models
         /// <summary>
         /// Kullanıcının bildirimi okuyup okumadığı bilgisi
         /// </summary>
-        public bool okundu_mu { get; set; }
+        // public bool okundu_mu { get; set; }
 
         /// <summary>
         /// Bildirimin oluşturulduğu tarih ve saat
         /// </summary>
         public DateTime olusturulma_tarihi { get; set; }
+
+        // DÜZELTME: okundu_mu özelliği değiştiğinde UI'ı tetikleyecek yapı
+        private bool _okundu_mu;
+        public bool okundu_mu
+        {
+            get => _okundu_mu;
+            set
+            {
+                if (_okundu_mu != value)
+                {
+                    _okundu_mu = value;
+                    OnPropertyChanged(); // UI'a "Fontu güncelle" emrini verir
+                }
+            }
+        }
+
+        // INotifyPropertyChanged Zorunlu Uygulaması
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }
