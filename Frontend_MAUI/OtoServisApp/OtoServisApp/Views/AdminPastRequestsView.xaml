@@ -60,13 +60,6 @@
                                     <Label Text="{Binding durum}" FontSize="13" FontAttributes="Bold" TextColor="#7F8C8D" Margin="0,3,0,0"/>
                                 </VerticalStackLayout>
 
-                                <VerticalStackLayout Grid.Column="1" HorizontalOptions="End">
-                                    <Label Text="{Binding randevu_tarihi}" 
-                                           FontSize="12" 
-                                           FontAttributes="Bold" 
-                                           TextColor="#888888" 
-                                           VerticalOptions="Center"/>
-                                </VerticalStackLayout>
                             </Grid>
 
                             <BoxView HeightRequest="1" Color="#EEEEEE"/>

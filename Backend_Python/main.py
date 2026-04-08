@@ -1032,6 +1032,7 @@ def servis_talebi_iptal_et(talep_id: int, db: Session = Depends(get_db)):
     talep.silinme_tarihi = zaman_simdi
     talep.tamamlanma_tarihi = zaman_simdi
     talep.guncelleme_tarihi = zaman_simdi
+    # Kullanıcı kendi sildiği için iptal eden kendisidir
     talep.iptal_eden_id = talep.kullanici_id
         
     # ---------------------------------------------------------
@@ -1358,7 +1359,9 @@ def admin_aktif_talepleri_getir(db: Session = Depends(get_db)):
         
     return sonuc
 
-# --- ADMİN: GEÇMİŞ TALEPLERİ GETİR ---
+# ---------------------------------------------------------
+# --- ADMİN: GEÇMİŞ TALEPLERİ GETİR (VERİ ÇEKME) ---
+# ---------------------------------------------------------
 @app.get("/admin/servis-talepleri/gecmis")
 def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
     # Tamamlanmış ve İptal Edilmiş talepleri çekiyoruz
@@ -1408,10 +1411,10 @@ def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
         # 4. ADIM: Tarih Kurtarma Operasyonu (C# tarafının beklediği isimlerle)
         # Eğer iptal edildiyse, iptal tarihini ve tamamlanma tarihini dolduruyoruz        
         # Eğer veritabanında tamamlanma_tarihi NULL ise, eski kayıtların boş görünmemesi 
-        # için guncelleme veya silinme tarihini baz alıyoruz.							   
+        # için guncelleme veya silinme tarihini baz alıyoruz.		
+        # Tarih Garantisi: Boş gelmesini engelle					   
         if t.durum == "İptal Edildi":
-            kurtarilan_tarih = t.silinme_tarihi or t.guncelleme_tarihi
-            talep_dict["tamamlanma_tarihi"] = kurtarilan_tarih
+            talep_dict["tamamlanma_tarihi"] = t.silinme_tarihi or t.guncelleme_tarihi
         elif not t.tamamlanma_tarihi:
             talep_dict["tamamlanma_tarihi"] = t.guncelleme_tarihi
         
@@ -1427,13 +1430,16 @@ def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
     return sonuc
 
 # --- ADMİN: TALEP GÜNCELLEME (UYARI SİLİCİ) ---
-from pydantic import BaseModel
+# from pydantic import BaseModel en üstte tanımladım.
 
+# ADMİN GÜNCELLEME ŞEMASINI YAPILANDIR
 class TalepAdminGuncelle(BaseModel):
     yeni_durum: str
     tahmini_tutar: float
-    iptal_eden_id: int
-
+    islem_yapan_id: Optional[int] = None  # C#'tan gelmeme ihtimaline karşı Opsiyonel yaptık
+# ---------------------------------------------------------
+# ADMİN BİR TALEBİ GÜNCELLEDİĞİ VEYA İPTAL ETTİĞİNDE ÇALIŞAN METOT
+# ---------------------------------------------------------
 @app.put("/admin/servis-talepleri/{talep_id}/guncelle")
 def admin_talep_guncelle(talep_id: int, istek: TalepAdminGuncelle, db: Session = Depends(get_db)):
     talep = db.query(models.ServisTalebi).filter(models.ServisTalebi.id == talep_id).first()
@@ -1441,21 +1447,30 @@ def admin_talep_guncelle(talep_id: int, istek: TalepAdminGuncelle, db: Session =
         raise HTTPException(status_code=404, detail="Talep bulunamadı")
     
     eski_durum = talep.durum
-    eski_tutar = talep.tahmini_tutar
+    # eski_tutar = talep.tahmini_tutar BURADA NİYE TANMLANMIŞ VE KULLANILMAMIŞ ANLAMADIM.
     
     talep.durum = istek.yeni_durum
     talep.tahmini_tutar = istek.tahmini_tutar
     
     zaman_simdi = datetime.now()
     talep.guncelleme_tarihi = zaman_simdi # Her harekette güncellenme tarihi değişsin
+    if istek.yeni_durum == "Tamamlandı" and eski_durum != "Tamamlandı":
+        talep.tamamlanma_tarihi = zaman_simdi
     
     # --- MADDE 40 REVİZESİ: EĞER DURUM TAMAMLANDI YAPILDIYSA TARİH AT ---
     # EĞER ADMİN İPTAL ETTİYSE:
     if istek.yeni_durum == "İptal Edildi" and eski_durum != "İptal Edildi":
-        talep.iptal_eden_id = istek.iptal_eden_id # İstek modelinde bu ID olmalı
-        talep.silinme_tarihi = zaman_simdi
-        talep.tamamlanma_tarihi = zaman_simdi
         talep.kayit_durumu = 'X'
+        talep.silinme_tarihi = zaman_simdi
+        # talep.tamamlanma_tarihi = zaman_simdi  BURADA BU ALANI DOLDURMAYA GEREK YOK.
+        
+        # C# arayüzünden ID gelmişse onu kullan
+        if istek.islem_yapan_id:
+            talep.iptal_eden_id = istek.islem_yapan_id
+        else:
+            # Gelmediyse sistemdeki ilk Admin kullanıcısını iptal eden olarak ata (Güvenlik Ağı)
+            admin_kisi = db.query(models.Kullanici).filter(models.Kullanici.rol == "Admin").first()
+            talep.iptal_eden_id = admin_kisi.id if admin_kisi else None
         
     # ADMİN MÜDAHALE ETTİĞİNDE VEYA DURUMU DEĞİŞTİRDİĞİNDE UYARI BAYRAĞINI TEMİZLİYORUZ
     if talep.duzeltme_istendi_mi:
