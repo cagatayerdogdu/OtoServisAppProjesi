@@ -1393,10 +1393,10 @@ def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
         # 1. Mevcut kolonları sözlüğe aktar
         talep_dict = {c.name: getattr(t, c.name) for c in t.__table__.columns}
         
-        # Tarihleri C# DateTime? alanı için güvenli T'li ISO formatına çevir
+        # Tarihleri güvenli şekilde ISO formatına çevir (None ise None bırak)
         for key, value in talep_dict.items():
             if isinstance(value, (datetime, date)):
-                talep_dict[key] = value.isoformat()
+                talep_dict[key] = value.isoformat() if value else None
         
         # talep_tarihi C#'ta string olduğu için onu özel olarak string formatında eziyoruz (Çökme engellendi)
         if t.talep_tarihi:
@@ -1427,12 +1427,9 @@ def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
         #    talep_dict["tamamlanma_tarihi"] = t.guncelleme_tarihi
         
         # 4. Tamamlanma/İptal tarihi NULL ise guncelleme tarihini bas
-        if not t.tamamlanma_tarihi:
-            talep_dict["tamamlanma_tarihi"] = t.guncelleme_tarihi.isoformat() if t.guncelleme_tarihi else None
-            talep_dict["silinme_tarihi"] = t.silinme_tarihi.isoformat() if t.silinme_tarihi else None
-        else:
-            talep_dict["tamamlanma_tarihi"] = t.tamamlanma_tarihi.isoformat()
-            talep_dict["silinme_tarihi"] = t.silinme_tarihi.isoformat()
+                # Güvenli tarih atamaları (None kontrolü)
+        talep_dict["tamamlanma_tarihi"] = t.tamamlanma_tarihi.isoformat() if t.tamamlanma_tarihi else None
+        talep_dict["silinme_tarihi"] = t.silinme_tarihi.isoformat() if t.silinme_tarihi else None
         
         # 5. Tutar hesaplama (30. Madde çözümü korunarak)
         mevcut_tutar = float(t.tahmini_tutar) if t.tahmini_tutar else 0.0
