@@ -833,11 +833,12 @@ def servis_talebi_olustur(istek: schemas.ServisTalebiCreate, db: Session = Depen
         # Hatayı log tablomuza kaydediyoruz
         hata_mesaji = str(e)
         yeni_log = models.SistemLog(
-            kullanici_ad_soyad="Sistem",
+            # kullanici_ad_soyad="Sistem",
+            kullanici_id= istek.kullanici_id,
             seviye="ERROR",
             islem="Admin Yeni Talep Bildirimi Gönderme / Talep Oluşturma",
             detay=f"FCM Push, DB Bildirim veya Talep kaydı sırasında hata oluştu: {hata_mesaji}",
-            tarih=datetime.now()
+            # insert_tarihi=datetime.now() gereksiz çünkü tabloda server_default=func.now() var.
         )
         db.add(yeni_log)
         db.commit() # Sadece SistemLog tablosundaki kaydı kalıcı hale getiriyoruz
