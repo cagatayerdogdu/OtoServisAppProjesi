@@ -1030,8 +1030,8 @@ def servis_talebi_iptal_et(talep_id: int, db: Session = Depends(get_db)):
     talep.kayit_durumu = 'X'
     talep.durum = "İptal Edildi"
     talep.silinme_tarihi = zaman_simdi
-    talep.tamamlanma_tarihi = None
     talep.guncelleme_tarihi = zaman_simdi
+    talep.tamamlanma_tarihi = None
     # Kullanıcı kendi sildiği için iptal eden kendisidir
     talep.iptal_eden_id = talep.kullanici_id
         
@@ -1040,7 +1040,7 @@ def servis_talebi_iptal_et(talep_id: int, db: Session = Depends(get_db)):
     log_kaydet(
         db=db, 
         islem="Servis Talebi İptali", 
-        detay=f"Talep ID: {talep_id} numaralı işlem kullanıcı tarafından iptal edilip X durumuna çekildi.", 
+        detay=f"Talep ID: {talep_id} numaralı işlem {talep.iptal_eden_id} kullanıcısı tarafından iptal edilip X durumuna çekildi.", 
         seviye="INFO", 
         kullanici_id=talep.kullanici_id
     )
@@ -1429,8 +1429,10 @@ def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
         # 4. Tamamlanma/İptal tarihi NULL ise guncelleme tarihini bas
         if not t.tamamlanma_tarihi:
             talep_dict["tamamlanma_tarihi"] = t.guncelleme_tarihi.isoformat() if t.guncelleme_tarihi else None
+            talep_dict["silinme_tarihi"] = t.silinme_tarihi.isoformat() if t.silinme_tarihi else None
         else:
             talep_dict["tamamlanma_tarihi"] = t.tamamlanma_tarihi.isoformat()
+            talep_dict["silinme_tarihi"] = t.silinme_tarihi.isoformat()
         
         # 5. Tutar hesaplama (30. Madde çözümü korunarak)
         mevcut_tutar = float(t.tahmini_tutar) if t.tahmini_tutar else 0.0
@@ -1469,7 +1471,7 @@ def admin_talep_guncelle(talep_id: int, istek: schemas.TalepAdminGuncelle, db: S
     
     if istek.yeni_durum == "Tamamlandı":
         talep.kayit_durumu = 'A'
-        talep.silinme_tarihi = zaman_simdi
+        talep.silinme_tarihi = None
         talep.tamamlanma_tarihi = zaman_simdi
         talep.iptal_eden_id = None
         
@@ -1484,7 +1486,13 @@ def admin_talep_guncelle(talep_id: int, istek: schemas.TalepAdminGuncelle, db: S
         else:
             ilk_admin = db.query(models.Kullanici).filter(models.Kullanici.rol == "Admin").first()
             talep.iptal_eden_id = ilk_admin.id if ilk_admin else None
-
+            
+    else:
+        # Diğer durumlar (Onaylandı, İşlemde, Bekliyor) için tarihsel alanları koru
+        talep.kayit_durumu = 'A'
+        talep.silinme_tarihi = None
+        talep.tamamlanma_tarihi = None
+        talep.iptal_eden_id = None
     # -----------------------------------
         
     # ADMİN MÜDAHALE ETTİĞİNDE VEYA DURUMU DEĞİŞTİRDİĞİNDE UYARI BAYRAĞINI TEMİZLİYORUZ
@@ -1495,7 +1503,7 @@ def admin_talep_guncelle(talep_id: int, istek: schemas.TalepAdminGuncelle, db: S
     log_kaydet(
         db=db, 
         islem="Admin Talep Güncellemesi", 
-        detay=f"Talep ID: {talep_id} güncellendi. Durum: {eski_durum}->{istek.yeni_durum}", 
+        detay=f"Talep ID: {talep_id} güncellendi. Güncelleyen kullanıcı ID: {talep.iptal_eden_id}. Durum: {eski_durum}->{istek.yeni_durum}", 
         seviye="INFO", 
         kullanici_id=talep.kullanici_id
     )
@@ -1509,8 +1517,7 @@ def admin_talep_guncelle(talep_id: int, istek: schemas.TalepAdminGuncelle, db: S
         mesaj=f"Servis talebiniz '{talep.durum}' aşamasına geçmiştir.", 
         okundu_mu=False
     )
-    db.add(yeni_bildirim)
-    
+    db.add(yeni_bildirim)    
     # Hem talebi hem de bildirimi aynı anda veritabanına kaydet (commit)
     db.commit()
     
@@ -1522,7 +1529,7 @@ def admin_talep_guncelle(talep_id: int, istek: schemas.TalepAdminGuncelle, db: S
         try:
             message = messaging.Message(
                 notification=messaging.Notification(
-                    title="Oto",
+                    title="Oto Servis Bakım",
                     body=yeni_bildirim.mesaj,
                 ),
                 token=kullanici.fcm_token,
