@@ -1450,19 +1450,14 @@ def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
         
     return sonuc
 
-# --- ADMİN: TALEP GÜNCELLEME (UYARI SİLİCİ) ---
+# --- ADMİN: TALEP GÜNCELLEME (UYARI SİLİCİ) --- 
 # from pydantic import BaseModel en üstte tanımladım.
 
-# ADMİN GÜNCELLEME ŞEMASINI YAPILANDIR
-class TalepAdminGuncelle(BaseModel):
-    yeni_durum: str
-    tahmini_tutar: float
-    islem_yapan_id: Optional[int] = None  # C#'tan gelmeme ihtimaline karşı Opsiyonel yaptık
 # ---------------------------------------------------------
 # ADMİN BİR TALEBİ GÜNCELLEDİĞİ VEYA İPTAL ETTİĞİNDE ÇALIŞAN METOT
 # ---------------------------------------------------------
 @app.put("/admin/servis-talepleri/{talep_id}/guncelle")
-def admin_talep_guncelle(talep_id: int, istek: TalepAdminGuncelle, db: Session = Depends(get_db)):
+def admin_talep_guncelle(talep_id: int, istek: schemas.TalepAdminGuncelle, db: Session = Depends(get_db)):
     talep = db.query(models.ServisTalebi).filter(models.ServisTalebi.id == talep_id).first()
     if not talep:
         raise HTTPException(status_code=404, detail="Talep bulunamadı")
