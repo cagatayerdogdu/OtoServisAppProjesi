@@ -1014,7 +1014,7 @@ def kullanici_talep_guncelle(talep_id: int, istek: schemas.TalepGuncelleKullanic
     db.commit()
     return {"mesaj": "İşlem başarılı"}
 
-# TALEP SİLME (Soft Delete)
+# TALEP SİLME (Soft Delete) -- Kullanıcı kendi talebini iptal ettiğinde.
 @app.delete("/servis-talepleri/{talep_id}")
 def servis_talebi_iptal_et(talep_id: int, db: Session = Depends(get_db)):
     talep = db.query(models.ServisTalebi).filter(models.ServisTalebi.id == talep_id).first()
@@ -1030,7 +1030,7 @@ def servis_talebi_iptal_et(talep_id: int, db: Session = Depends(get_db)):
     talep.kayit_durumu = 'X'
     talep.durum = "İptal Edildi"
     talep.silinme_tarihi = zaman_simdi
-    talep.tamamlanma_tarihi = zaman_simdi
+    talep.tamamlanma_tarihi = None
     talep.guncelleme_tarihi = zaman_simdi
     # Kullanıcı kendi sildiği için iptal eden kendisidir
     talep.iptal_eden_id = talep.kullanici_id
@@ -1462,34 +1462,30 @@ def admin_talep_guncelle(talep_id: int, istek: schemas.TalepAdminGuncelle, db: S
     talep.durum = istek.yeni_durum
     talep.tahmini_tutar = istek.tahmini_tutar
     talep.guncelleme_tarihi = zaman_simdi # Her güncellemede bu tarih güncellenmeli
-    
-    if istek.yeni_durum == "Tamamlandı":
-        talep.tamamlanma_tarihi = zaman_simdi
-    
+        
     # --- MADDE 40 REVİZESİ: EĞER DURUM TAMAMLANDI YAPILDIYSA TARİH AT ---
     # EĞER ADMİN İPTAL ETTİYSE:
-    if istek.yeni_durum == "İptal Edildi":
+    # --- ÇAĞATAY ABİ'NİN KURALLARI ---
+    
+    if istek.yeni_durum == "Tamamlandı":
+        talep.kayit_durumu = 'A'
+        talep.silinme_tarihi = zaman_simdi
+        talep.tamamlanma_tarihi = zaman_simdi
+        talep.iptal_eden_id = None
+        
+    elif istek.yeni_durum == "İptal Edildi":
         talep.kayit_durumu = 'X'
         talep.silinme_tarihi = zaman_simdi
-        # talep.iptal_eden_id = istek.islem_yapan_id # Şemaya eklediğimiz için artık hata vermez
-    # --------------------------------------------
+        talep.tamamlanma_tarihi = None
         
-       # C# arayüzünden ID gelmişse onu kullan
-       # if istek.islem_yapan_id:
-       #     talep.iptal_eden_id = istek.islem_yapan_id
-       # else:
-       #     # Gelmediyse sistemdeki ilk Admin kullanıcısını iptal eden olarak ata (Güvenlik Ağı)
-       #     admin_kisi = db.query(models.Kullanici).filter(models.Kullanici.rol == "Admin").first()
-       #     talep.iptal_eden_id = admin_kisi.id if admin_kisi else None
-       
-    # C#'tan ID gelmiyorsa bile güvenlik ağı olarak veritabanından ilk admini bul ve İptal Eden olarak ata (Boş kalmasın).
+        # İptal eden ID ataması
         if istek.islem_yapan_id is not None and istek.islem_yapan_id > 0:
-        #if istek.islem_yapan_id:
             talep.iptal_eden_id = istek.islem_yapan_id
         else:
             ilk_admin = db.query(models.Kullanici).filter(models.Kullanici.rol == "Admin").first()
-            if ilk_admin:
-                talep.iptal_eden_id = ilk_admin.id
+            talep.iptal_eden_id = ilk_admin.id if ilk_admin else None
+
+    # -----------------------------------
         
     # ADMİN MÜDAHALE ETTİĞİNDE VEYA DURUMU DEĞİŞTİRDİĞİNDE UYARI BAYRAĞINI TEMİZLİYORUZ
     if talep.duzeltme_istendi_mi:
@@ -1602,7 +1598,7 @@ def get_admin_logs(
     }
 
 @app.put("/admin/talepler/{talep_id}")
-def admin_talep_guncelle(talep_id: int, durum: str, tahmini_tutar: float, db: Session = Depends(get_db)):
+def admin_talep_guncelle_kullanilmiyor(talep_id: int, durum: str, tahmini_tutar: float, db: Session = Depends(get_db)):
     talep = db.query(models.ServisTalebi).filter(models.ServisTalebi.id == talep_id).first()
     if not talep:
         raise HTTPException(status_code=404, detail="Talep bulunamadı")
