@@ -1409,7 +1409,7 @@ def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
 
         # 3. İptal eden bilgisini yapılandır
         iptal_eden_isim = "İptal bilgisi yok."
-        if t.iptal_eden_id is not None:
+        if t.iptal_eden_id: # is not None:
             iptal_kisi = db.query(models.Kullanici).filter(models.Kullanici.id == t.iptal_eden_id).first()
             if iptal_kisi:
                 iptal_eden_isim = iptal_kisi.ad_soyad
@@ -1426,18 +1426,11 @@ def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
         #elif not t.tamamlanma_tarihi:
         #    talep_dict["tamamlanma_tarihi"] = t.guncelleme_tarihi
         
-        # 4. KISIM: Tamamlanma/İptal Tarihi Kurtarma Operasyonu
-        kurtarilan_tarih = None
-        if t.durum == "İptal Edildi":
-            kurtarilan_tarih = t.silinme_tarihi or t.guncelleme_tarihi
+        # 4. Tamamlanma/İptal tarihi NULL ise guncelleme tarihini bas
+        if not t.tamamlanma_tarihi:
+            talep_dict["tamamlanma_tarihi"] = t.guncelleme_tarihi.isoformat() if t.guncelleme_tarihi else None
         else:
-            kurtarilan_tarih = t.tamamlanma_tarihi or t.guncelleme_tarihi
-            
-        # C#'ta bu alan DateTime? olduğu için yine ISO format gönderiyoruz
-        if kurtarilan_tarih:
-            talep_dict["tamamlanma_tarihi"] = kurtarilan_tarih.isoformat()
-        else:
-            talep_dict["tamamlanma_tarihi"] = None
+            talep_dict["tamamlanma_tarihi"] = t.tamamlanma_tarihi.isoformat()
         
         # 5. Tutar hesaplama (30. Madde çözümü korunarak)
         mevcut_tutar = float(t.tahmini_tutar) if t.tahmini_tutar else 0.0
@@ -1475,7 +1468,7 @@ def admin_talep_guncelle(talep_id: int, istek: schemas.TalepAdminGuncelle, db: S
     
     # --- MADDE 40 REVİZESİ: EĞER DURUM TAMAMLANDI YAPILDIYSA TARİH AT ---
     # EĞER ADMİN İPTAL ETTİYSE:
-    elif istek.yeni_durum == "İptal Edildi":
+    if istek.yeni_durum == "İptal Edildi":
         talep.kayit_durumu = 'X'
         talep.silinme_tarihi = zaman_simdi
         # talep.iptal_eden_id = istek.islem_yapan_id # Şemaya eklediğimiz için artık hata vermez
@@ -1489,14 +1482,14 @@ def admin_talep_guncelle(talep_id: int, istek: schemas.TalepAdminGuncelle, db: S
        #     admin_kisi = db.query(models.Kullanici).filter(models.Kullanici.rol == "Admin").first()
        #     talep.iptal_eden_id = admin_kisi.id if admin_kisi else None
        
-    # C#'tan ID gelmiyorsa bile güvenlik ağı olarak veritabanından ilk admini bul ve İptal Eden olarak ata
-        # if istek.islem_yapan_id is not None and istek.islem_yapan_id > 0:
-        if istek.islem_yapan_id:
+    # C#'tan ID gelmiyorsa bile güvenlik ağı olarak veritabanından ilk admini bul ve İptal Eden olarak ata (Boş kalmasın).
+        if istek.islem_yapan_id is not None and istek.islem_yapan_id > 0:
+        #if istek.islem_yapan_id:
             talep.iptal_eden_id = istek.islem_yapan_id
-        # else:
-        #    ilk_admin = db.query(models.Kullanici).filter(models.Kullanici.rol == "Admin").first()
-        #    if ilk_admin:
-        #        talep.iptal_eden_id = ilk_admin.id
+        else:
+            ilk_admin = db.query(models.Kullanici).filter(models.Kullanici.rol == "Admin").first()
+            if ilk_admin:
+                talep.iptal_eden_id = ilk_admin.id
         
     # ADMİN MÜDAHALE ETTİĞİNDE VEYA DURUMU DEĞİŞTİRDİĞİNDE UYARI BAYRAĞINI TEMİZLİYORUZ
     if talep.duzeltme_istendi_mi:
