@@ -836,14 +836,14 @@ def servis_talebi_olustur(istek: schemas.ServisTalebiCreate, db: Session = Depen
             # kullanici_ad_soyad="Sistem",
             kullanici_id= istek.kullanici_id,
             seviye="ERROR",
-            islem="Admin Yeni Talep Bildirimi Gönderme / Talep Oluşturma",
+            islem="Yeni Talep Oluşturma",
             detay=f"FCM Push, DB Bildirim veya Talep kaydı sırasında hata oluştu: {hata_mesaji}",
             # insert_tarihi=datetime.now() gereksiz çünkü tabloda server_default=func.now() var.
         )
         db.add(yeni_log)
         db.commit() # Sadece SistemLog tablosundaki kaydı kalıcı hale getiriyoruz
 
-        # Senin istediğin gibi işlemi tamamen durdurup kullanıcıya 500 hatası fırlatıyoruz
+        # Senin istediğin gibi işlemi tamamen durdurup kullanıcıya 500 hatası fırlatıyoruz.
         raise HTTPException(status_code=500, detail=f"İşlem sırasında bir hata oluştu ve talep iptal edildi: {hata_mesaji}")
     
     
