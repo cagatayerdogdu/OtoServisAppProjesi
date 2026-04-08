@@ -1393,16 +1393,15 @@ def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
         # 1. Mevcut kolonları sözlüğe aktar
         talep_dict = {c.name: getattr(t, c.name) for c in t.__table__.columns}
         
-        # 1. KISIM: talep_tarihi C#'ta STRING olduğu için formatı doğrudan Python'da veriyoruz (yyyy-MM-dd HH:mm)
-        if t.talep_tarihi:
-            talep_dict["talep_tarihi"] = t.talep_tarihi.strftime("%Y-%m-%d %H:%M")
-            talep_dict["randevu_tarihi"] = t.talep_tarihi.strftime("%Y-%m-%d %H:%M") # Ne olur ne olmaz bunu da dolduruyoruz
-            
-        # 2. KISIM: Kalan tüm DateTime verilerini C# okuyabilsin diye standart ISO formatında (T'li) bırakıyoruz
+        # Tarihleri C# DateTime? alanı için güvenli T'li ISO formatına çevir
         for key, value in talep_dict.items():
-            if key not in ["talep_tarihi", "randevu_tarihi"] and isinstance(value, (datetime, date)):
+            if isinstance(value, (datetime, date)):
                 talep_dict[key] = value.isoformat()
         
+        # talep_tarihi C#'ta string olduğu için onu özel olarak string formatında eziyoruz (Çökme engellendi)
+        if t.talep_tarihi:
+            talep_dict["talep_tarihi"] = t.talep_tarihi.strftime("%Y-%m-%d %H:%M")
+                    
         # 2. Kullanıcı bilgilerini yapılandır
         talep_dict["kullanici_ad_soyad"] = kullanici.ad_soyad if kullanici else "Bilinmiyor"
         talep_dict["kullanici_telefon"] = kullanici.telefon if kullanici else "Belirtilmemiş"
@@ -1410,7 +1409,7 @@ def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
 
         # 3. İptal eden bilgisini yapılandır
         iptal_eden_isim = "İptal bilgisi yok."
-        if t.iptal_eden_id:
+        if t.iptal_eden_id is not None:
             iptal_kisi = db.query(models.Kullanici).filter(models.Kullanici.id == t.iptal_eden_id).first()
             if iptal_kisi:
                 iptal_eden_isim = iptal_kisi.ad_soyad
@@ -1481,19 +1480,28 @@ def admin_talep_guncelle(talep_id: int, istek: TalepAdminGuncelle, db: Session =
     
     # --- MADDE 40 REVİZESİ: EĞER DURUM TAMAMLANDI YAPILDIYSA TARİH AT ---
     # EĞER ADMİN İPTAL ETTİYSE:
-    if istek.yeni_durum == "İptal Edildi":
+    elif istek.yeni_durum == "İptal Edildi":
         talep.kayit_durumu = 'X'
         talep.silinme_tarihi = zaman_simdi
-        talep.iptal_eden_id = istek.islem_yapan_id # Şemaya eklediğimiz için artık hata vermez
+        # talep.iptal_eden_id = istek.islem_yapan_id # Şemaya eklediğimiz için artık hata vermez
     # --------------------------------------------
         
-        # C# arayüzünden ID gelmişse onu kullan
+       # C# arayüzünden ID gelmişse onu kullan
        # if istek.islem_yapan_id:
        #     talep.iptal_eden_id = istek.islem_yapan_id
        # else:
        #     # Gelmediyse sistemdeki ilk Admin kullanıcısını iptal eden olarak ata (Güvenlik Ağı)
        #     admin_kisi = db.query(models.Kullanici).filter(models.Kullanici.rol == "Admin").first()
        #     talep.iptal_eden_id = admin_kisi.id if admin_kisi else None
+       
+    # C#'tan ID gelmiyorsa bile güvenlik ağı olarak veritabanından ilk admini bul ve İptal Eden olarak ata
+        # if istek.islem_yapan_id is not None and istek.islem_yapan_id > 0:
+        if istek.islem_yapan_id:
+            talep.iptal_eden_id = istek.islem_yapan_id
+        # else:
+        #    ilk_admin = db.query(models.Kullanici).filter(models.Kullanici.rol == "Admin").first()
+        #    if ilk_admin:
+        #        talep.iptal_eden_id = ilk_admin.id
         
     # ADMİN MÜDAHALE ETTİĞİNDE VEYA DURUMU DEĞİŞTİRDİĞİNDE UYARI BAYRAĞINI TEMİZLİYORUZ
     if talep.duzeltme_istendi_mi:

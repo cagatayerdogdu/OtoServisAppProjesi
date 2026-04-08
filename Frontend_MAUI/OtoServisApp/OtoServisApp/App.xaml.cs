@@ -2,6 +2,8 @@
 using System.Text;
 using OtoServisApp.Models;
 using OtoServisApp.Views;
+using System.Diagnostics;
+using OtoServisApp.Services;
 
 namespace OtoServisApp
 {
@@ -93,18 +95,26 @@ namespace OtoServisApp
                 var json = System.Text.Json.JsonSerializer.Serialize(errorData);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
                 // Ngrok adresi
-                await _httpClient.PostAsync("https://runny-scrutinizingly-ela.ngrok-free.dev/api/log-client-error", content);
+                //await _httpClient.PostAsync("https://runny-scrutinizingly-ela.ngrok-free.dev/api/log-client-error", content);
+
+                // YENİ REVİZE: Ngrok yerine ApiConfig üzerinden dinamik URL alıyoruz
+                // (Eğer ApiConfig hata verirse en yukarıya "using OtoServisApp.Services;" eklemeyi unutma)
+                string apiUrl = $"{ApiConfig.BaseUrl}/api/log-client-error";
+                await _httpClient.PostAsync(apiUrl, content);
             }
-            catch { /* Sessiz geç */ }
+            catch (Exception)
+            {
+                Debug.WriteLine($"LogExceptionToBackend__App_xaml: {ex.Message}");
+            }
 
             // Ayrıca cihazdaki crash.log dosyasına da yaz
             try
             {
-                var logPath = Path.Combine(FileSystem.AppDataDirectory, "KapidanBakim_crash.log");
+                var logPath = Path.Combine(FileSystem.AppDataDirectory, "OtoServisBakim_crash.log");
                 var logText = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [{type}] {ex?.Message}\n{ex?.StackTrace}\n\n";
                 File.AppendAllText(logPath, logText);
             }
-            catch { }
+            catch { Debug.WriteLine($"LogExceptionToBackend__App_xaml_CrashLog: {ex?.Message}"); }
         }
 
         // App.xaml.cs içindeki Login başarılı olduktan sonraki yönlendirme:

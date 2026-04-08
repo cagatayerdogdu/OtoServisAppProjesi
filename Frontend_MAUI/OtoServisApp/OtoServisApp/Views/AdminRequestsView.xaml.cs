@@ -310,8 +310,14 @@ public partial class AdminRequestsView : ContentPage
 
         if (talep != null)
         {
-            bool basarili = await _apiService.AdminTalepGuncelleAsync(talep.id, talep.durum, talep.tahmini_tutar);
+            // YENİ EKLENEN KISIM: Uygulamaya giriş yapan kişinin ID'sini alıyoruz.
+            // Bulduğun 'kullanici_id_gizli' anahtarını kullanarak ID'yi çekiyoruz
+            string idStr = await SecureStorage.Default.GetAsync("kullanici_id_gizli");
+            int? aktifAdminId = int.TryParse(idStr, out int id) ? id : (int?)null;
 
+            // API servisine bu ID'yi de parametre olarak geçiyoruz
+            bool basarili = await _apiService.AdminTalepGuncelleAsync(talep.id, talep.durum, talep.tahmini_tutar, aktifAdminId);
+            
             if (basarili)
             {
                 await DisplayAlert("Başarılı", "Talep başarıyla güncellendi.", "Tamam");

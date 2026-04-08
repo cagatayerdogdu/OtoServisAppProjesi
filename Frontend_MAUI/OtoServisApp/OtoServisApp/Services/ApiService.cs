@@ -328,16 +328,27 @@ namespace OtoServisApp.Services
             }
         }
 
-        public async Task<bool> AdminTalepGuncelleAsync(int talepId, string yeniDurum, double tutar)
+        // Parametreye islem_yapan_id eklendi (Opsiyonel olarak)
+        public async Task<bool> AdminTalepGuncelleAsync(int talepId, string yeniDurum, double tutar, int? islem_yapan_id = null)
         {
             try
             {
-                var payload = new { yeni_durum = yeniDurum, tahmini_tutar = tutar };
+                var payload = new 
+                { 
+                    yeni_durum = yeniDurum,
+                    tahmini_tutar = tutar,
+                    islem_yapan_id = islem_yapan_id 
+                };
+
+                var json = JsonSerializer.Serialize(payload);
+                var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
                 var response = await _httpClient.PutAsJsonAsync($"/admin/servis-talepleri/{talepId}/guncelle", payload).ConfigureAwait(false);
                 return response.IsSuccessStatusCode;
             }
-            catch
+            catch (Exception ex)
             {
+                Debug.WriteLine($"Güncelleme hatası: {ex.Message}");
                 return false;
             }
         }
