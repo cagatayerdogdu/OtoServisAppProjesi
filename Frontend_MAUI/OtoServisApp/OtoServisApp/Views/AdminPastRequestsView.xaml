@@ -61,7 +61,11 @@
                                 </VerticalStackLayout>
 
                                 <VerticalStackLayout Grid.Column="1" HorizontalOptions="End">
-                                    <Label Text="{Binding randevu_tarihi, StringFormat='{0:dd.MM.yyyy}'}" FontSize="12" FontAttributes="Bold" TextColor="#888888" VerticalOptions="Center"/>
+                                    <Label Text="{Binding randevu_tarihi}" 
+                                           FontSize="12" 
+                                           FontAttributes="Bold" 
+                                           TextColor="#888888" 
+                                           VerticalOptions="Center"/>
                                 </VerticalStackLayout>
                             </Grid>
 
@@ -103,7 +107,7 @@
                                         </Label.Triggers>
                                     </Label>
 
-                                    <Label Text="{Binding tamamlanma_tarihi, TargetNullValue='Belirtilmemiş', StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" FontSize="12" TextColor="#334155" VerticalOptions="Center"/>
+                                    <Label Text="{Binding tamamlanma_tarihi, StringFormat='{}{0:yyyy-MM-dd HH:mm}', TargetNullValue='Belirtilmemiş'}" FontSize="12" TextColor="#334155" VerticalOptions="Center"/>
                                 </HorizontalStackLayout>
 
                                 <HorizontalStackLayout Spacing="5" Margin="0,5,0,0">

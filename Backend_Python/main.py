@@ -1363,21 +1363,22 @@ def admin_aktif_talepleri_getir(db: Session = Depends(get_db)):
 # --- ADMİN: GEÇMİŞ TALEPLERİ GETİR ---
 @app.get("/admin/servis-talepleri/gecmis")
 def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
-    # DİKKAT: Talep tablosunda kayit_durumu KORUNDU
+    # Tamamlanmış ve İptal Edilmiş talepleri çekiyoruz
+    # Sorgu performansını artırmak için gerekli filtrelemeyi yapıyoruz
     talepler = db.query(models.ServisTalebi).filter(
        # models.ServisTalebi.kayit_durumu == 'A', # burada A dakileri çektiğimiz de
        # müşterinin iptal taleplerini göremiyorduk. Bu filtreyi kaldırdım.
-       # burası için iptal eden user eklememiz gerekecek.
+       # burası için iptal eden user eklememiz gerekecek.  
         models.ServisTalebi.durum.in_(['Tamamlandı', 'İptal Edildi'])
     ).order_by(models.ServisTalebi.talep_tarihi.desc()).all()
     
     sonuc = []
     for t in talepler:
+        # İlişkili verileri çekiyoruz
         kullanici = db.query(models.Kullanici).filter(models.Kullanici.id == t.kullanici_id).first()
         arac = db.query(models.Arac).filter(models.Arac.id == t.arac_id).first()
         hizmet = db.query(models.Hizmet).filter(models.Hizmet.id == t.hizmet_id).first()
         
-        # Araç adı oluşturma (Mevcut mantığın - dokunmadım)
         arac_adi = "Silinmiş Araç"
         if arac:
             if arac.marka_id and arac.model_id:
@@ -1388,35 +1389,39 @@ def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
             else:
                 arac_adi = f"{arac.ozel_marka} {arac.ozel_model}"
         
-        # 1. Sözlüğü TEK BİR SEFERDE oluşturuyoruz. (Aşağıdaki mükerrer satırı sildik)
+        # 1. Mevcut kolonları sözlüğe aktar
         talep_dict = {c.name: getattr(t, c.name) for c in t.__table__.columns}
         
-        # 2. Kullanıcı bilgilerini ekle
+        # C# tarafındaki XAML'da 'randevu_tarihi' olarak bind edildiği için bu anahtarı ekliyoruz
+        # Veritabanındaki 'talep_tarihi' değerini buraya kopyalıyoruz
+        talep_dict["randevu_tarihi"] = t.talep_tarihi.isoformat() if t.talep_tarihi else None
+        
+        # 2. Kullanıcı bilgilerini yapılandır
         talep_dict["kullanici_ad_soyad"] = kullanici.ad_soyad if kullanici else "Bilinmiyor"
         talep_dict["kullanici_telefon"] = kullanici.telefon if kullanici else "Belirtilmemiş"
         talep_dict["arac_adi_tam"] = arac_adi
 
-        # 3. İptal eden kullanıcıyı bul ve sözlüğe işle
+        # 3. İptal eden bilgisini yapılandır
         iptal_eden_isim = "Bilinmiyor"
         if t.iptal_eden_id:
             iptal_eden_kisi = db.query(models.Kullanici).filter(models.Kullanici.id == t.iptal_eden_id).first()
             if iptal_eden_kisi:
                 iptal_eden_isim = iptal_eden_kisi.ad_soyad
+        
         talep_dict["iptal_eden_ad_soyad"] = iptal_eden_isim
 
+        # Tarih alanlarını C# DateTime? tipine uygun hale getir
         # 4. ADIM: Tarih Kurtarma Operasyonu (C# tarafının beklediği isimlerle)
         # Eğer iptal edildiyse, iptal tarihini ve tamamlanma tarihini dolduruyoruz        
         # Eğer veritabanında tamamlanma_tarihi NULL ise, eski kayıtların boş görünmemesi 
-        # için guncelleme veya silinme tarihini baz alıyoruz.
+        # için guncelleme veya silinme tarihini baz alıyoruz.							   
         if t.durum == "İptal Edildi":
             kurtarilan_tarih = t.silinme_tarihi or t.guncelleme_tarihi
             talep_dict["tamamlanma_tarihi"] = kurtarilan_tarih
-            talep_dict["iptal_tarihi"] = kurtarilan_tarih # C# modelinde bu alan varsa garantiye aldık
-        elif not talep_dict.get("tamamlanma_tarihi"):
+        elif not t.tamamlanma_tarihi:
             talep_dict["tamamlanma_tarihi"] = t.guncelleme_tarihi
-
-        # 5. ADIM: Tutar Hesaplama        
-        # --- 30. MADDE ÇÖZÜMÜ ---
+        
+        # 5. Tutar hesaplama (30. Madde çözümü korunarak)
         mevcut_tutar = float(t.tahmini_tutar) if t.tahmini_tutar else 0.0
         if mevcut_tutar == 0.0 and hizmet and hizmet.varsayilan_fiyat:
             talep_dict["tahmini_tutar"] = float(hizmet.varsayilan_fiyat)

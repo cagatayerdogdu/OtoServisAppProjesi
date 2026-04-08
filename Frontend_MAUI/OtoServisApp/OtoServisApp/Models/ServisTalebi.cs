@@ -26,10 +26,11 @@ namespace OtoServisApp.Models
         public bool duzeltme_istendi_mi { get; set; }
         public string duzeltme_notu { get; set; }
 
-        public DateTime? silinme_tarihi { get; set; }
+        // Tarihlerin null gelme ihtimaline karşı nullable yaptık
         public DateTime? tamamlanma_tarihi { get; set; }
-
-        public string iptal_eden_ad_soyad { get; set; }
+        public DateTime? silinme_tarihi { get; set; }
+        public DateTime? guncelleme_tarihi { get; set; }
+        public string iptal_eden_ad_soyad { get; set; } // İptal eden kişi bilgisi
 
         // EKLENECEK SATIR: Önerilen tarih doluysa true, boşsa false döner
         public bool onerilen_tarih_var_mi => onerilen_tarih != null;
