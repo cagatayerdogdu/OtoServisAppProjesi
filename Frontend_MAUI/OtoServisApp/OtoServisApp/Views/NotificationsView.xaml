@@ -8,6 +8,7 @@
 
     <Grid RowDefinitions="Auto, *">
 
+        <!-- Üst bar: Hepsini seç checkbox ve seçilenleri sil butonu -->
         <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Padding="15" BackgroundColor="#F8FAFC">
             <HorizontalStackLayout Grid.Column="0" Spacing="10" VerticalOptions="Center">
                 <CheckBox x:Name="ChkSelectAll" CheckedChanged="OnSelectAllCheckedChanged" Color="#00BCD4"/>
@@ -26,6 +27,7 @@
                 Padding="10,0"/>
         </Grid>
 
+        <!-- Bildirim listesi -->
         <CollectionView Grid.Row="1" x:Name="NotificationList" Margin="15" 
                 SelectionMode="Multiple" SelectionChanged="OnSelectionChanged">
 
@@ -39,22 +41,27 @@
             <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <Grid Padding="0,0,0,10">
+                        <!-- Seçili durum görseli için VisualStateManager -->
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup Name="CommonStates">
                                 <VisualState Name="Normal">
                                     <VisualState.Setters>
                                         <Setter TargetName="CardBorder" Property="Border.BackgroundColor" Value="White" />
+                                        <!-- Okunmamış bildirimlerde renk ve çerçeve DataTrigger ile ayarlanacak, burada normalde sadece arkaplan beyaz kalır -->
                                     </VisualState.Setters>
                                 </VisualState>
                                 <VisualState Name="Selected">
                                     <VisualState.Setters>
                                         <Setter TargetName="CardBorder" Property="Border.BackgroundColor" Value="#E8F5E9" />
+                                        <!-- Seçilince açık yeşil -->
                                         <Setter TargetName="CardBorder" Property="Border.Stroke" Value="#4CAF50" />
+                                        <!-- Yeşil kenarlık -->
                                     </VisualState.Setters>
                                 </VisualState>
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
 
+                        <!-- Sola kaydırarak silme (SwipeView) -->
                         <SwipeView>
                             <SwipeView.RightItems>
                                 <SwipeItemView CommandParameter="{Binding .}" Invoked="OnSingleDeleteInvoked">
@@ -64,25 +71,42 @@
                                 </SwipeItemView>
                             </SwipeView.RightItems>
 
+                            <!-- YENİ REVİZE: Okunmamış bildirimler için border rengi #0284C7, gölge efekti -->
+                            <!-- Bildirim kartı -->
                             <Border x:Name="CardBorder" StrokeShape="RoundRectangle 12" Padding="15">
+                                <!-- Tıklama ile okundu işaretleme (seçim yapmadan) -->
                                 <Border.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="OnNotificationTapped" />
                                 </Border.GestureRecognizers>
 
+                                <!-- Okunmamış bildirimlerde arkaplan ve kenarlık rengi (DataTrigger ile) -->
                                 <Border.Triggers>
                                     <DataTrigger TargetType="Border" Binding="{Binding okundu_mu}" Value="False">
-                                        <Setter Property="BackgroundColor" Value="#E0F7FA" />
-                                        <Setter Property="Stroke" Value="#00BCD4" />
+                                        <Setter Property="BackgroundColor" Value="#F0F9FF" />
+                                        <!-- Çok açık mavi arka plan -->
+                                        <Setter Property="Stroke" Value="#0284C7" />
+                                        <!-- Açık mavi border -->
+                                        <Setter Property="StrokeThickness" Value="1.5" />
+                                        <!-- Gölge efekti (Shadow) -->
+                                        <Setter Property="Shadow">
+                                            <Setter.Value>
+                                                <Shadow Brush="#0284C7" Offset="0,2" Radius="4" Opacity="0.2"/>
+                                            </Setter.Value>
+                                        </Setter>
                                     </DataTrigger>
                                 </Border.Triggers>
 
+                                <!-- İçerik -->
                                 <VerticalStackLayout Spacing="5">
                                     <HorizontalStackLayout Spacing="10">
                                         <Label Text="{x:Static helpers:IconFont.Bell}" FontFamily="FASolid" FontSize="16" TextColor="#00BCD4" VerticalOptions="Center"/>
                                         <Label Text="{Binding baslik}" FontSize="15" TextColor="#111111" VerticalOptions="Center">
                                             <Label.Triggers>
+                                                <!-- REVİZE: Okunmamış bildirim başlığı kalın ve #0284C7 renk -->
                                                 <DataTrigger TargetType="Label" Binding="{Binding okundu_mu}" Value="False">
                                                     <Setter Property="FontAttributes" Value="Bold" />
+                                                    <Setter Property="TextColor" Value="#0284C7" />
+                                                    <!-- Okunmamış başlık rengi -->
                                                 </DataTrigger>
                                             </Label.Triggers>
                                         </Label>

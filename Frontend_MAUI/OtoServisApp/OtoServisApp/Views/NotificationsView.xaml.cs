@@ -6,6 +6,7 @@ namespace OtoServisApp.Views;
 public partial class NotificationsView : ContentPage
 {
     private readonly ApiService _apiService;
+    private bool _isBatchSelecting = false; // Toplu seçim sırasında event tetiklenmesini engeller
 
     public NotificationsView()
     {
@@ -16,123 +17,99 @@ public partial class NotificationsView : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-
-        // YENİ REVİZE: Arayüzün (UI) donmasını ve uygulamanın çökmesini engellemek için 
-        // veri çekme işlemine geçmeden önce çok kısa bir süre (100ms) bekleyip thread'i rahatlatıyoruz.
-        // await Task.Delay(20);
-
-        // Yükleme işlemini bu rahatlamadan sonra tetikliyoruz.
         await BildirimleriYukle();
+    }
+
+    // YENİ REVİZE: Kullanıcı ID'yi SecureStorage'dan al
+    private async Task<int?> GetCurrentUserIdAsync()
+    {
+        string idStr = await SecureStorage.Default.GetAsync("kullanici_id_gizli");
+        if (int.TryParse(idStr, out int id))
+            return id;
+        return null;
     }
 
     private async Task BildirimleriYukle()
     {
-        // NOT: Kendi sistemindeki Kullanıcı ID'yi buraya çek (Örn: Preferences.Get("kullanici_id", 0))
-        int aktifKullaniciId = 1;
+        int? aktifKullaniciId = await GetCurrentUserIdAsync();
+        if (aktifKullaniciId == null)
+        {
+            // Kullanıcı ID yoksa hata göster veya boş liste gönder
+            NotificationList.ItemsSource = new List<BildirimResponse>();
+            return;
+        }
 
-        var bildirimler = await _apiService.KullaniciBildirimleriniGetirAsync(aktifKullaniciId);
-        // UI'ın (Arayüzün) silindikten sonra tazelenmesini (Refresh) zorluyoruz
+        var bildirimler = await _apiService.KullaniciBildirimleriniGetirAsync(aktifKullaniciId.Value);
+        // Seçimleri temizle ve Hepsini Seç checkbox'ını sıfırla
         NotificationList.ItemsSource = null;
         NotificationList.ItemsSource = bildirimler;
     }
 
+    // REVİZE: Tek tıklamada okundu işaretle, seçim yapma
     private async void OnNotificationTapped(object sender, TappedEventArgs e)
     {
         var border = sender as Border;
         var bildirim = border?.BindingContext as BildirimResponse;
 
-        if (bildirim != null)
-        {
-            // 1. ADIM: Okunmamışsa DB'de okundu yap
-            if (!bildirim.okundu_mu)
-            {
-                bool basarili = await _apiService.BildirimOkunduIsaretleAsync(bildirim.id);
-                if (basarili)
-                {
-                    bildirim.okundu_mu = true;
-                    // Listeyi yenilemeden sadece rengi değiştirmek için veriyi tazeliyoruz
-                    await BildirimleriYukle();
-                }
-            }
-
-            // 2. ADIM: Tıklama sonrası otomatik seçimi temizle (Senin istemediğin seçim modu)
-            _isBatchSelecting = true;
-            NotificationList.SelectedItems.Remove(bildirim);
-            _isBatchSelecting = false;
-        }
-
-
-        /*if (bildirim != null && !bildirim.okundu_mu)
+        if (bildirim != null && !bildirim.okundu_mu)
         {
             bool basarili = await _apiService.BildirimOkunduIsaretleAsync(bildirim.id);
             if (basarili)
             {
                 bildirim.okundu_mu = true;
+                // Sadece ilgili öğenin görünümünü güncellemek için tüm listeyi yeniden yükle
                 await BildirimleriYukle();
             }
-        }*/
+        }
     }
 
-    // Sayfanın en üstüne (sınıfın içine) bu bayrağı ekle
-    private bool _isBatchSelecting = false;
-
+    // Hepsini Seç checkbox'ı değiştiğinde
     private void OnSelectAllCheckedChanged(object sender, CheckedChangedEventArgs e)
     {
-        _isBatchSelecting = true; // Döngüyü kilitliyoruz ki UI donmasın
-
-        if (e.Value)
+        _isBatchSelecting = true;
+        var allItems = NotificationList.ItemsSource as IEnumerable<BildirimResponse>;
+        if (allItems != null)
         {
-            var allItems = NotificationList.ItemsSource as IEnumerable<BildirimResponse>;
-            if (allItems != null)
+            if (e.Value)
             {
-                /*NotificationList.SelectedItems.Clear();
-                foreach (var item in allItems)
-                {
-                    NotificationList.SelectedItems.Add(item);
-                }*/
+                // Hepsini seç: Henüz seçili değilse ekle										 
                 foreach (var item in allItems)
                 {
                     if (!NotificationList.SelectedItems.Contains(item))
                         NotificationList.SelectedItems.Add(item);
                 }
             }
+            else
+            {
+                NotificationList.SelectedItems.Clear();
+            }
         }
-        else
-        {
-            NotificationList.SelectedItems.Clear();
-        }
-
-        _isBatchSelecting = false; // Döngü bitti, kilidi açtık
+        _isBatchSelecting = false; // Kilidi aç
         BtnDeleteSelected.IsVisible = NotificationList.SelectedItems.Count > 0;
     }
 
-    private async void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+    // Seçim değiştiğinde (manuel seçimleri engellemek için bu event'i kullanmıyoruz)
+    private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (_isBatchSelecting) return; // Toplu seçim yapılıyorsa burayı atla (ÇÖKMEYİ ENGELLEYEN KOD)
+        if (_isBatchSelecting) return;
+        // Sadece silme butonunun görünürlüğünü güncelle
+        BtnDeleteSelected.IsVisible = NotificationList.SelectedItems.Count > 0;
 
-        int seciliSayisi = NotificationList.SelectedItems.Count;
-        BtnDeleteSelected.IsVisible = seciliSayisi > 0;
-
-        // Eğer manuel olarak tüm tikleri kaldırdıysa, Hepsini Seç kutusunun da tikini kaldır
-        /*if (seciliSayisi == 0 && ChkSelectAll.IsChecked)
+        // Eğer tüm elemanlar seçili değilse checkbox'ı kaldır
+        var allItems = NotificationList.ItemsSource as IEnumerable<BildirimResponse>;
+        if (allItems != null && ChkSelectAll.IsChecked)
         {
-            ChkSelectAll.IsChecked = false;
+            int seciliSayisi = NotificationList.SelectedItems.Count;
+            int toplamSayi = allItems.Count();
+            if (seciliSayisi != toplamSayi)
+                ChkSelectAll.IsChecked = false;
         }
-
-        var sonSecilen = e.CurrentSelection.FirstOrDefault() as BildirimResponse;
-        if (sonSecilen != null && !sonSecilen.okundu_mu)
-        {
-            bool basarili = await _apiService.BildirimOkunduIsaretleAsync(sonSecilen.id);
-            if (basarili)
-            {
-                sonSecilen.okundu_mu = true;
-            }
-        }*/
     }
 
+    // Seçilenleri sil butonu
     private async void OnDeleteSelectedClicked(object sender, EventArgs e)
     {
-        var secilenler = NotificationList.SelectedItems.Cast<BildirimResponse>().ToList(); // Modelin adı neyse ona göre cast et
+        var secilenler = NotificationList.SelectedItems.Cast<BildirimResponse>().ToList();
         if (!secilenler.Any()) return;
 
         bool onay = await DisplayAlert("Onay", $"{secilenler.Count} adet bildirimi silmek istiyor musunuz?", "Evet", "İptal");
@@ -141,20 +118,19 @@ public partial class NotificationsView : ContentPage
         foreach (var bildirim in secilenler)
         {
             await _apiService.NotificationsDeleteAsync($"bildirimler/{bildirim.id}");
-            // ObservableCollection listenden çıkar: BildirimListesi.Remove(bildirim);
         }
 
+        // Seçimleri temizle
         NotificationList.SelectedItems.Clear();
         ChkSelectAll.IsChecked = false;
         await BildirimleriYukle();
         await DisplayAlert("Bilgi", "Seçilen bildirimler silindi.", "Tamam");
     }
 
+    // Tek bildirim silme (sola kaydırma)
     private async void OnSingleDeleteInvoked(object sender, EventArgs e)
     {
         var swipeItem = sender as SwipeItemView;
-        // var bildirim = swipeItem?.CommandParameter as BildirimResponse;
-        // CommandParameter yerine güvenli olan BindingContext'i kullanıyoruz
         var bildirim = swipeItem?.BindingContext as BildirimResponse;
 
         if (bildirim != null)
@@ -163,9 +139,8 @@ public partial class NotificationsView : ContentPage
             if (onay)
             {
                 await _apiService.NotificationsDeleteAsync($"bildirimler/{bildirim.id}");
-                await BildirimleriYukle(); // Listeyi güncelle
+                await BildirimleriYukle();
             }
         }
     }
-
 }
