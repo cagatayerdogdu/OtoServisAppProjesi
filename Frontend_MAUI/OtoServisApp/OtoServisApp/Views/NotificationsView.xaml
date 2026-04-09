@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:helpers="clr-namespace:OtoServisApp.Helpers"
+             xmlns:models="clr-namespace:OtoServisApp.Models" 
              x:Class="OtoServisApp.Views.NotificationsView"
              BackgroundColor="#F4F6F8"
              Title="Bildirimlerim">
@@ -37,7 +38,7 @@
             </CollectionView.EmptyView>
 
             <CollectionView.ItemTemplate>
-                <DataTemplate>
+                <DataTemplate x:DataType="models:BildirimResponse">
                     <Grid Padding="0,0,0,10">
                         <!-- Sola kaydırarak silme (SwipeView) - Kenarlık kaldırıldı -->
                         <SwipeView>
@@ -50,54 +51,42 @@
                             </SwipeView.RightItems>
 
                             <!-- Bildirim kartı -->
-                            <Border x:Name="CardBorder" StrokeShape="RoundRectangle 12" Padding="15">
+                            <Border x:Name="CardBorder" StrokeShape="RoundRectangle 12" Padding="15" StrokeThickness="1.5">
                                 <!-- Kısa tıklama ile okundu işaretleme -->
                                 <Border.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="OnNotificationTapped" NumberOfTapsRequired="1" />
                                 </Border.GestureRecognizers>
 
-                                <!-- Okunmamış bildirimlerde stil (açık mavi arka plan, mavi border, gölge) -->
-                                <!-- Okunmuş bildirimlerde border yok, sadece gölge -->
-                                <Border.Triggers>
-                                    <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
-                                        <Setter Property="BackgroundColor" Value="#E8F5E9" />
-                                        <Setter Property="Stroke" Value="#4CAF50" />
-                                        <Setter Property="StrokeThickness" Value="1" />
-                                    </DataTrigger>
-                                    <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="False">
+                                <Border.Shadow>
+                                    <Shadow Brush="#000000" Offset="0,2" Radius="3" Opacity="0.08"/>
+                                </Border.Shadow>
+
+                                <Border.Style>
+                                    <Style TargetType="Border">
                                         <Setter Property="BackgroundColor" Value="White" />
                                         <Setter Property="Stroke" Value="Transparent" />
-                                        <Setter Property="StrokeThickness" Value="0" />
-                                    </DataTrigger>
-                                    
-                                    <DataTrigger TargetType="Border" Binding="{Binding okundu_mu}" Value="False">
-                                        <Setter Property="BackgroundColor" Value="#F0F9FF" />
-                                        <Setter Property="Stroke" Value="#0284C7" />
-                                        <Setter Property="StrokeThickness" Value="1.5" />
-                                        <Setter Property="Shadow">
-                                            <Setter.Value>
-                                                <Shadow Brush="#0284C7" Offset="0,2" Radius="4" Opacity="0.2"/>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </DataTrigger>
-                                    <DataTrigger TargetType="Border" Binding="{Binding okundu_mu}" Value="True">
-                                        <Setter Property="StrokeThickness" Value="0" />
-                                        <Setter Property="BackgroundColor" Value="White" />
-                                        <Setter Property="Shadow">
-                                            <Setter.Value>
-                                                <Shadow Brush="#000000" Offset="0,2" Radius="3" Opacity="0.05"/>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </DataTrigger>
-                                </Border.Triggers>
+
+                                        <Style.Triggers>
+                                            <DataTrigger TargetType="Border" Binding="{Binding okundu_mu}" Value="False">
+                                                <Setter Property="BackgroundColor" Value="#F0F9FF" />
+                                                <Setter Property="Stroke" Value="#0284C7" />
+                                            </DataTrigger>
+
+                                            <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
+                                                <Setter Property="BackgroundColor" Value="#E8F5E9" />
+                                                <Setter Property="Stroke" Value="#4CAF50" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
 
                                 <Grid ColumnDefinitions="Auto, *">
                                     <!-- Seçim CheckBox'u (TwoWay binding ile) -->
                                     <CheckBox Grid.Column="0" 
-                                              IsChecked="{Binding IsSelected, Mode=TwoWay}" 
-                                              Color="#00BCD4" 
-                                              VerticalOptions="Center"
-                                              CheckedChanged="OnItemCheckChanged"/>
+                              IsChecked="{Binding IsSelected}" 
+                              Color="#00BCD4" 
+                              VerticalOptions="Center"
+                              CheckedChanged="OnItemCheckChanged"/>
 
                                     <!-- Bildirim içeriği -->
                                     <VerticalStackLayout Grid.Column="1" Spacing="5" Margin="10,0,0,0">

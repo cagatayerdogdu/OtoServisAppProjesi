@@ -2,6 +2,7 @@
 using OtoServisApp.Services;
 using System.Collections.ObjectModel;
 using System.Linq;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace OtoServisApp.Views;
 
@@ -105,6 +106,7 @@ public partial class NotificationsView : ContentPage
     private void OnItemCheckChanged(object sender, CheckedChangedEventArgs e)
     {
         if (_isUpdating) return;
+        /*
         var checkBox = sender as CheckBox;
         var bildirim = checkBox?.BindingContext as BildirimResponse;
         if (bildirim != null)
@@ -120,6 +122,18 @@ public partial class NotificationsView : ContentPage
                 ChkSelectAll.IsChecked = hepsiSecili;
                 _isSelectAllUpdating = false;
             }
+        }
+        */
+        // CheckBox tıklandığında XAML zaten IsSelected değerini otomatik günceller.
+        // Biz burada sadece Buton görünürlüğü ve "Hepsini Seç" kontrolünü yapıyoruz.
+        BtnDeleteSelected.IsVisible = Bildirimler.Any(b => b.IsSelected);
+
+        bool hepsiSecili = Bildirimler.Any() && Bildirimler.All(b => b.IsSelected);
+        if (ChkSelectAll.IsChecked != hepsiSecili)
+        {
+            _isSelectAllUpdating = true;
+            ChkSelectAll.IsChecked = hepsiSecili;
+            _isSelectAllUpdating = false;
         }
     }
 
