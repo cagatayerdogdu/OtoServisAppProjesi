@@ -20,7 +20,7 @@ namespace OtoServisApp
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
 
-                    // YENİ FONT AWESOME 7 EKLENDİ:
+                    // YENİ FONT AWESOME 7 EKLENDİ: 
                     fonts.AddFont("FontAwesomeSolid.otf", "FASolid");
                     fonts.AddFont("fa-brands-400.ttf", "FABrands");
 

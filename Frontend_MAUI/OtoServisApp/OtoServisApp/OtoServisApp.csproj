@@ -62,6 +62,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Platforms\Android\AndroidManifest.xml" />
     <None Remove="Platforms\Android\Resources\values\strings.xml" />
     <None Remove="Resources\AppIcon\appiconfg.svg" />
   </ItemGroup>
@@ -86,6 +87,10 @@
   <ItemGroup>
     <Folder Include="Resources\AppIcon\" />
     <Folder Include="Resources\Splash\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <GoogleServicesJson Include="Platforms\Android\AndroidManifest.xml" />
   </ItemGroup>
 
 </Project>
