@@ -59,6 +59,17 @@
                                 <!-- Okunmamış bildirimlerde stil (açık mavi arka plan, mavi border, gölge) -->
                                 <!-- Okunmuş bildirimlerde border yok, sadece gölge -->
                                 <Border.Triggers>
+                                    <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="#E8F5E9" />
+                                        <Setter Property="Stroke" Value="#4CAF50" />
+                                        <Setter Property="StrokeThickness" Value="1" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="False">
+                                        <Setter Property="BackgroundColor" Value="White" />
+                                        <Setter Property="Stroke" Value="Transparent" />
+                                        <Setter Property="StrokeThickness" Value="0" />
+                                    </DataTrigger>
+                                    
                                     <DataTrigger TargetType="Border" Binding="{Binding okundu_mu}" Value="False">
                                         <Setter Property="BackgroundColor" Value="#F0F9FF" />
                                         <Setter Property="Stroke" Value="#0284C7" />
