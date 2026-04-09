@@ -16,17 +16,18 @@
             </HorizontalStackLayout>
 
             <Button x:Name="BtnDeleteSelected" 
-                    Grid.Column="1" 
-                    Text="Seçilenleri Sil" 
-                    BackgroundColor="#00BCD4" 
-                    TextColor="White" 
-                    IsVisible="False" 
-                    Clicked="OnDeleteSelectedClicked" 
-                    CornerRadius="8" 
-                    HeightRequest="35" 
-                    Padding="10,0"/>
+                Grid.Column="1" 
+                Text="Seçilenleri Sil" 
+                BackgroundColor="#00BCD4" 
+                TextColor="White" 
+                IsVisible="False" 
+                Clicked="OnDeleteSelectedClicked" 
+                CornerRadius="8" 
+                HeightRequest="35" 
+                Padding="10,0"/>
         </Grid>
 
+        <!-- Bildirim listesi -->
         <CollectionView Grid.Row="1" x:Name="NotificationList" Margin="15">
             <CollectionView.EmptyView>
                 <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="10" Margin="0,100,0,0">
@@ -38,7 +39,7 @@
             <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <Grid Padding="0,0,0,10">
-                        <!-- Sola kaydırma ile silme -->
+                        <!-- Sola kaydırarak silme (SwipeView) - Kenarlık kaldırıldı -->
                         <SwipeView>
                             <SwipeView.RightItems>
                                 <SwipeItemView CommandParameter="{Binding .}" Invoked="OnSingleDeleteInvoked">
@@ -48,28 +49,56 @@
                                 </SwipeItemView>
                             </SwipeView.RightItems>
 
-                            <!-- Bildirim kartı (arka plan ve stiller burada) -->
+                            <!-- Bildirim kartı (Border) - Gölge efekti Border'da -->
                             <Border x:Name="CardBorder" StrokeShape="RoundRectangle 12" Padding="15">
                                 <Border.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="OnNotificationTapped" NumberOfTapsRequired="1" />
                                 </Border.GestureRecognizers>
 
+                                <!-- DİKKAT: Stroke ve diğer border özellikleri sadece Border etiketi içinde kullanılır. Grid'de kullanılmaz! -->
+                                <Border.Triggers>
+                                    <!-- Okunmamış bildirim: açık mavi arka plan, mavi border, gölge -->
+                                    <DataTrigger TargetType="Border" Binding="{Binding okundu_mu}" Value="False">
+                                        <Setter Property="BackgroundColor" Value="#F0F9FF" />
+                                        <Setter Property="Stroke" Value="#0284C7" />
+                                        <Setter Property="StrokeThickness" Value="1.5" />
+                                        <Setter Property="Shadow">
+                                            <Setter.Value>
+                                                <Shadow Brush="#0284C7" Offset="0,2" Radius="4" Opacity="0.2"/>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </DataTrigger>
+                                    <!-- Okunmuş bildirim: beyaz arka plan, border yok, sadece hafif gölge -->
+                                    <DataTrigger TargetType="Border" Binding="{Binding okundu_mu}" Value="True">
+                                        <Setter Property="StrokeThickness" Value="0" />
+                                        <Setter Property="BackgroundColor" Value="White" />
+                                        <Setter Property="Shadow">
+                                            <Setter.Value>
+                                                <Shadow Brush="#000000" Offset="0,2" Radius="3" Opacity="0.05"/>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </DataTrigger>
+                                    <!-- Seçili bildirim: açık yeşil arka plan, yeşil border (VisualState ile değil, DataTrigger ile) -->
+                                    <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="#E8F5E9" />
+                                        <Setter Property="Stroke" Value="#4CAF50" />
+                                        <Setter Property="StrokeThickness" Value="1" />
+                                    </DataTrigger>
+                                </Border.Triggers>
+
+                                <!-- İçerik Grid'i (Stroke içermez, sadece layout) -->
                                 <Grid ColumnDefinitions="Auto, *">
-                                    <!-- Seçim CheckBox'u (TwoWay binding ile) -->
                                     <CheckBox Grid.Column="0" 
                                               IsChecked="{Binding IsSelected, Mode=TwoWay}" 
                                               Color="#00BCD4" 
                                               VerticalOptions="Center"
                                               CheckedChanged="OnItemCheckChanged"/>
 
-                                    <!-- Bildirim içeriği -->
                                     <VerticalStackLayout Grid.Column="1" Spacing="5" Margin="10,0,0,0">
                                         <HorizontalStackLayout Spacing="10">
                                             <Label Text="{x:Static helpers:IconFont.Bell}" FontFamily="FASolid" FontSize="16" TextColor="#00BCD4" VerticalOptions="Center"/>
                                             <Label Text="{Binding baslik}" FontSize="15" TextColor="#111111" VerticalOptions="Center">
                                                 <Label.Triggers>
-                                                    <!-- Okunmamış başlık kalın ve renkli -->
-
                                                     <DataTrigger TargetType="Label" Binding="{Binding okundu_mu}" Value="False">
                                                         <Setter Property="FontAttributes" Value="Bold" />
                                                         <Setter Property="TextColor" Value="#0284C7" />

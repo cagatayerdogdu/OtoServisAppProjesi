@@ -9,8 +9,9 @@ public partial class NotificationsView : ContentPage
 {
     private readonly ApiService _apiService;
     private bool _isUpdating = false;
+    private int _seciliSayisi = 0;
 
-    // Bildirim listesi için ObservableCollection kullanıyoruz (seçim durumu için)																								  
+    // Bildirim listesi için ObservableCollection kullanıyoruz (seçim durumu için)																	
     public ObservableCollection<BildirimResponse> Bildirimler { get; set; } = new();
 
     public NotificationsView()
@@ -40,6 +41,7 @@ public partial class NotificationsView : ContentPage
         if (aktifKullaniciId == null)
         {
             Bildirimler.Clear();
+            _seciliSayisi = 0;
             return;
         }
 
@@ -47,14 +49,15 @@ public partial class NotificationsView : ContentPage
         Bildirimler.Clear();
         foreach (var item in bildirimler)
         {
-            item.IsSelected = false; // Yeni yüklenenlerde seçim yok
+            item.IsSelected = false;  // Yeni yüklenenlerde seçim yok
             Bildirimler.Add(item);
         }
+        _seciliSayisi = 0;
         ChkSelectAll.IsChecked = false;
         BtnDeleteSelected.IsVisible = false;
     }
 
-    // Tıklama: okundu işaretle
+    // Kısa tıklama: okundu işaretle (UI anında güncellenir)
     private async void OnNotificationTapped(object sender, TappedEventArgs e)
     {
         var border = sender as Border;
@@ -66,12 +69,16 @@ public partial class NotificationsView : ContentPage
             if (basarili)
             {
                 bildirim.okundu_mu = true;
-                // UI otomatik güncellenir (DataTrigger ile)
+                // UI otomatik güncellenir (DataTrigger ile). Border'ın yeniden çizilmesi için BindingContext'i zorla yenile (gerekirse)
+                // Ancak DataTrigger çalışmazsa manuel olarak tetikle:
+                var bindingContext = border.BindingContext;
+                border.BindingContext = null;
+                border.BindingContext = bindingContext;
             }
         }
     }
 
-    // Sola kaydırma ile silme
+    // Tek bildirim silme (sola kaydırma)
     private async void OnSingleDeleteInvoked(object sender, EventArgs e)
     {
         var swipeItem = sender as SwipeItemView;
@@ -83,14 +90,16 @@ public partial class NotificationsView : ContentPage
             if (onay)
             {
                 await _apiService.NotificationsDeleteAsync($"bildirimler/{bildirim.id}");
+                if (bildirim.IsSelected) _seciliSayisi--;
                 Bildirimler.Remove(bildirim);
-                BtnDeleteSelected.IsVisible = Bildirimler.Any(b => b.IsSelected);
-                ChkSelectAll.IsChecked = Bildirimler.Count > 0 && Bildirimler.All(b => b.IsSelected);
+                BtnDeleteSelected.IsVisible = _seciliSayisi > 0;
+                if (Bildirimler.Count == 0) ChkSelectAll.IsChecked = false;
+                else if (_seciliSayisi == Bildirimler.Count) ChkSelectAll.IsChecked = true;
             }
         }
     }
 
-    // CheckBox değiştiğinde
+    // CheckBox değiştiğinde (tek tek seçim)
     private void OnItemCheckChanged(object sender, CheckedChangedEventArgs e)
     {
         if (_isUpdating) return;
@@ -99,8 +108,14 @@ public partial class NotificationsView : ContentPage
         if (bildirim != null)
         {
             bildirim.IsSelected = e.Value;
-            BtnDeleteSelected.IsVisible = Bildirimler.Any(b => b.IsSelected);
-            ChkSelectAll.IsChecked = Bildirimler.Count > 0 && Bildirimler.All(b => b.IsSelected);
+            _seciliSayisi += e.Value ? 1 : -1;
+            BtnDeleteSelected.IsVisible = _seciliSayisi > 0;
+
+            // Hepsini seç checkbox'ını güncelle
+            if (_seciliSayisi == Bildirimler.Count)
+                ChkSelectAll.IsChecked = true;
+            else
+                ChkSelectAll.IsChecked = false;
         }
     }
 
@@ -112,11 +127,12 @@ public partial class NotificationsView : ContentPage
         {
             item.IsSelected = e.Value;
         }
+        _seciliSayisi = e.Value ? Bildirimler.Count : 0;
         BtnDeleteSelected.IsVisible = e.Value;
         _isUpdating = false;
     }
 
-    // Seçilenleri sil
+    // Seçilenleri sil butonu
     private async void OnDeleteSelectedClicked(object sender, EventArgs e)
     {
         var secilenler = Bildirimler.Where(b => b.IsSelected).ToList();
@@ -130,6 +146,7 @@ public partial class NotificationsView : ContentPage
             await _apiService.NotificationsDeleteAsync($"bildirimler/{bildirim.id}");
             Bildirimler.Remove(bildirim);
         }
+        _seciliSayisi = 0;
         BtnDeleteSelected.IsVisible = false;
         ChkSelectAll.IsChecked = false;
         await DisplayAlert("Bilgi", "Seçilen bildirimler silindi.", "Tamam");
