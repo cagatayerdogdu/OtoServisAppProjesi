@@ -12,7 +12,6 @@ namespace OtoServisApp.Models
         public bool okundu_mu { get; set; }
         public DateTime olusturulma_tarihi { get; set; }
 
-        // YENİ: Seçim durumu için property (INotifyPropertyChanged destekli)
         private bool _isSelected;
         public bool IsSelected
         {
@@ -28,9 +27,9 @@ namespace OtoServisApp.Models
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        protected void OnPropertyChanged([CallerMemberName] string name = null)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
     }
 }

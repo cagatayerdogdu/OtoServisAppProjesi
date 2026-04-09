@@ -16,18 +16,17 @@
             </HorizontalStackLayout>
 
             <Button x:Name="BtnDeleteSelected" 
-                Grid.Column="1" 
-                Text="Seçilenleri Sil" 
-                BackgroundColor="#00BCD4" 
-                TextColor="White" 
-                IsVisible="False" 
-                Clicked="OnDeleteSelectedClicked" 
-                CornerRadius="8" 
-                HeightRequest="35" 
-                Padding="10,0"/>
+                    Grid.Column="1" 
+                    Text="Seçilenleri Sil" 
+                    BackgroundColor="#00BCD4" 
+                    TextColor="White" 
+                    IsVisible="False" 
+                    Clicked="OnDeleteSelectedClicked" 
+                    CornerRadius="8" 
+                    HeightRequest="35" 
+                    Padding="10,0"/>
         </Grid>
 
-        <!-- Bildirim listesi -->
         <CollectionView Grid.Row="1" x:Name="NotificationList" Margin="15">
             <CollectionView.EmptyView>
                 <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="10" Margin="0,100,0,0">
@@ -39,7 +38,7 @@
             <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <Grid Padding="0,0,0,10">
-                        <!-- Sola kaydırarak silme (SwipeView) - Kenarlık kaldırıldı -->
+                        <!-- Sola kaydırma ile silme -->
                         <SwipeView>
                             <SwipeView.RightItems>
                                 <SwipeItemView CommandParameter="{Binding .}" Invoked="OnSingleDeleteInvoked">
@@ -49,46 +48,11 @@
                                 </SwipeItemView>
                             </SwipeView.RightItems>
 
-                            <!-- Bildirim kartı -->
+                            <!-- Bildirim kartı (arka plan ve stiller burada) -->
                             <Border x:Name="CardBorder" StrokeShape="RoundRectangle 12" Padding="15">
-                                <!-- Kısa tıklama ile okundu işaretleme -->
                                 <Border.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="OnNotificationTapped" NumberOfTapsRequired="1" />
                                 </Border.GestureRecognizers>
-
-                                <!-- Okunmamış bildirimlerde stil (açık mavi arka plan, mavi border, gölge) -->
-                                <!-- Okunmuş bildirimlerde border yok, sadece gölge -->
-                                <!-- Seçim durumu için DataTrigger (yeşil arka plan) -->
-                                <Border.Triggers>
-                                    <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
-                                        <Setter Property="BackgroundColor" Value="#E8F5E9" />
-                                        <Setter Property="Stroke" Value="#4CAF50" />
-                                        <Setter Property="StrokeThickness" Value="1" />
-                                    </DataTrigger>
-                                    <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="False">
-                                        <Setter Property="BackgroundColor" Value="White" />
-                                        <Setter Property="Stroke" Value="Transparent" />
-                                        <Setter Property="StrokeThickness" Value="0" />
-                                    </DataTrigger>
-                                    <!-- Okunmamış bildirimlerde açık mavi arka plan ve mavi border -->
-                                    <DataTrigger TargetType="Border" Binding="{Binding okundu_mu}" Value="False">
-                                        <Setter Property="BackgroundColor" Value="#F0F9FF" />
-                                        <Setter Property="Stroke" Value="#0284C7" />
-                                        <Setter Property="StrokeThickness" Value="1.5" />
-                                        <Setter Property="Shadow">
-                                            <Setter.Value>
-                                                <Shadow Brush="#0284C7" Offset="0,2" Radius="4" Opacity="0.2"/>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </DataTrigger>
-                                    <DataTrigger TargetType="Border" Binding="{Binding okundu_mu}" Value="True">
-                                        <Setter Property="Shadow">
-                                            <Setter.Value>
-                                                <Shadow Brush="#000000" Offset="0,2" Radius="3" Opacity="0.05"/>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </DataTrigger>
-                                </Border.Triggers>
 
                                 <Grid ColumnDefinitions="Auto, *">
                                     <!-- Seçim CheckBox'u (TwoWay binding ile) -->
@@ -105,6 +69,7 @@
                                             <Label Text="{Binding baslik}" FontSize="15" TextColor="#111111" VerticalOptions="Center">
                                                 <Label.Triggers>
                                                     <!-- Okunmamış başlık kalın ve renkli -->
+
                                                     <DataTrigger TargetType="Label" Binding="{Binding okundu_mu}" Value="False">
                                                         <Setter Property="FontAttributes" Value="Bold" />
                                                         <Setter Property="TextColor" Value="#0284C7" />
