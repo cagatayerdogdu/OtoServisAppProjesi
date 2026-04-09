@@ -1,9 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
-	<application android:allowBackup="true" android:supportsRtl="true" android:usesCleartextTraffic="true" android:label="Oto Servis Bakım">
-		<meta-data android:name="firebase_crashlytics_collection_enabled" android:value="false" />
-	</application>
-	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-	<uses-permission android:name="android.permission.INTERNET" />
-	<uses-sdk />
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="com.companyname.otoservisapp">
+    <application android:allowBackup="true"
+                 android:supportsRtl="true"
+                 android:usesCleartextTraffic="true"
+                 android:label="Oto Servis Bakım">
+        <meta-data android:name="firebase_crashlytics_collection_enabled" android:value="false" />
+    </application>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- <uses-sdk /> kaldırıldı – SDK sürümleri .csproj üzerinden yönetilir -->
 </manifest>
