@@ -58,7 +58,19 @@
 
                                 <!-- Okunmamış bildirimlerde stil (açık mavi arka plan, mavi border, gölge) -->
                                 <!-- Okunmuş bildirimlerde border yok, sadece gölge -->
+                                <!-- Seçim durumu için DataTrigger (yeşil arka plan) -->
                                 <Border.Triggers>
+                                    <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="#E8F5E9" />
+                                        <Setter Property="Stroke" Value="#4CAF50" />
+                                        <Setter Property="StrokeThickness" Value="1" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="False">
+                                        <Setter Property="BackgroundColor" Value="White" />
+                                        <Setter Property="Stroke" Value="Transparent" />
+                                        <Setter Property="StrokeThickness" Value="0" />
+                                    </DataTrigger>
+                                    <!-- Okunmamış bildirimlerde açık mavi arka plan ve mavi border -->
                                     <DataTrigger TargetType="Border" Binding="{Binding okundu_mu}" Value="False">
                                         <Setter Property="BackgroundColor" Value="#F0F9FF" />
                                         <Setter Property="Stroke" Value="#0284C7" />
@@ -70,8 +82,6 @@
                                         </Setter>
                                     </DataTrigger>
                                     <DataTrigger TargetType="Border" Binding="{Binding okundu_mu}" Value="True">
-                                        <Setter Property="StrokeThickness" Value="0" />
-                                        <Setter Property="BackgroundColor" Value="White" />
                                         <Setter Property="Shadow">
                                             <Setter.Value>
                                                 <Shadow Brush="#000000" Offset="0,2" Radius="3" Opacity="0.05"/>
