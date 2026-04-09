@@ -28,9 +28,7 @@
         </Grid>
 
         <!-- Bildirim listesi -->
-        <CollectionView Grid.Row="1" x:Name="NotificationList" Margin="15" 
-                SelectionMode="Multiple" SelectionChanged="OnSelectionChanged">
-
+        <CollectionView Grid.Row="1" x:Name="NotificationList" Margin="15">
             <CollectionView.EmptyView>
                 <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="10" Margin="0,100,0,0">
                     <Label Text="{x:Static helpers:IconFont.Bell}" FontFamily="FASolid" FontSize="50" TextColor="#888888" HorizontalOptions="Center" Opacity="0.5"/>
@@ -41,79 +39,73 @@
             <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <Grid Padding="0,0,0,10">
-                        <!-- Seçili durum görseli için VisualStateManager -->
-                        <VisualStateManager.VisualStateGroups>
-                            <VisualStateGroup Name="CommonStates">
-                                <VisualState Name="Normal">
-                                    <VisualState.Setters>
-                                        <Setter TargetName="CardBorder" Property="Border.BackgroundColor" Value="White" />
-                                        <!-- Okunmamış bildirimlerde renk ve çerçeve DataTrigger ile ayarlanacak, burada normalde sadece arkaplan beyaz kalır -->
-                                    </VisualState.Setters>
-                                </VisualState>
-                                <VisualState Name="Selected">
-                                    <VisualState.Setters>
-                                        <Setter TargetName="CardBorder" Property="Border.BackgroundColor" Value="#E8F5E9" />
-                                        <!-- Seçilince açık yeşil -->
-                                        <Setter TargetName="CardBorder" Property="Border.Stroke" Value="#4CAF50" />
-                                        <!-- Yeşil kenarlık -->
-                                    </VisualState.Setters>
-                                </VisualState>
-                            </VisualStateGroup>
-                        </VisualStateManager.VisualStateGroups>
-
-                        <!-- Sola kaydırarak silme (SwipeView) -->
+                        <!-- Sola kaydırarak silme (SwipeView) - Kenarlık kaldırıldı -->
                         <SwipeView>
                             <SwipeView.RightItems>
                                 <SwipeItemView CommandParameter="{Binding .}" Invoked="OnSingleDeleteInvoked">
-                                    <Border BackgroundColor="#EF4444" StrokeShape="RoundRectangle 12" Padding="20" Margin="10,0,0,0" WidthRequest="70">
+                                    <Border BackgroundColor="#EF4444" StrokeThickness="0" StrokeShape="RoundRectangle 12" Padding="20" Margin="10,0,0,0" WidthRequest="70">
                                         <Label Text="{x:Static helpers:IconFont.Trash}" FontFamily="FASolid" FontSize="20" TextColor="White" VerticalOptions="Center" HorizontalOptions="Center"/>
                                     </Border>
                                 </SwipeItemView>
                             </SwipeView.RightItems>
 
-                            <!-- YENİ REVİZE: Okunmamış bildirimler için border rengi #0284C7, gölge efekti -->
                             <!-- Bildirim kartı -->
                             <Border x:Name="CardBorder" StrokeShape="RoundRectangle 12" Padding="15">
-                                <!-- Tıklama ile okundu işaretleme (seçim yapmadan) -->
+                                <!-- Kısa tıklama ile okundu işaretleme -->
                                 <Border.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="OnNotificationTapped" />
+                                    <TapGestureRecognizer Tapped="OnNotificationTapped" NumberOfTapsRequired="1" />
                                 </Border.GestureRecognizers>
 
-                                <!-- Okunmamış bildirimlerde arkaplan ve kenarlık rengi (DataTrigger ile) -->
+                                <!-- Okunmamış bildirimlerde stil (açık mavi arka plan, mavi border, gölge) -->
+                                <!-- Okunmuş bildirimlerde border yok, sadece gölge -->
                                 <Border.Triggers>
                                     <DataTrigger TargetType="Border" Binding="{Binding okundu_mu}" Value="False">
                                         <Setter Property="BackgroundColor" Value="#F0F9FF" />
-                                        <!-- Çok açık mavi arka plan -->
                                         <Setter Property="Stroke" Value="#0284C7" />
-                                        <!-- Açık mavi border -->
                                         <Setter Property="StrokeThickness" Value="1.5" />
-                                        <!-- Gölge efekti (Shadow) -->
                                         <Setter Property="Shadow">
                                             <Setter.Value>
                                                 <Shadow Brush="#0284C7" Offset="0,2" Radius="4" Opacity="0.2"/>
                                             </Setter.Value>
                                         </Setter>
                                     </DataTrigger>
+                                    <DataTrigger TargetType="Border" Binding="{Binding okundu_mu}" Value="True">
+                                        <Setter Property="StrokeThickness" Value="0" />
+                                        <Setter Property="BackgroundColor" Value="White" />
+                                        <Setter Property="Shadow">
+                                            <Setter.Value>
+                                                <Shadow Brush="#000000" Offset="0,2" Radius="3" Opacity="0.05"/>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </DataTrigger>
                                 </Border.Triggers>
 
-                                <!-- İçerik -->
-                                <VerticalStackLayout Spacing="5">
-                                    <HorizontalStackLayout Spacing="10">
-                                        <Label Text="{x:Static helpers:IconFont.Bell}" FontFamily="FASolid" FontSize="16" TextColor="#00BCD4" VerticalOptions="Center"/>
-                                        <Label Text="{Binding baslik}" FontSize="15" TextColor="#111111" VerticalOptions="Center">
-                                            <Label.Triggers>
-                                                <!-- REVİZE: Okunmamış bildirim başlığı kalın ve #0284C7 renk -->
-                                                <DataTrigger TargetType="Label" Binding="{Binding okundu_mu}" Value="False">
-                                                    <Setter Property="FontAttributes" Value="Bold" />
-                                                    <Setter Property="TextColor" Value="#0284C7" />
-                                                    <!-- Okunmamış başlık rengi -->
-                                                </DataTrigger>
-                                            </Label.Triggers>
-                                        </Label>
-                                    </HorizontalStackLayout>
-                                    <Label Text="{Binding mesaj}" FontSize="13" TextColor="#555555" Margin="26,0,0,0" />
-                                    <Label Text="{Binding olusturulma_tarihi, StringFormat='{0:yyyy-MM-dd HH:mm}'}" FontSize="11" TextColor="#888888" HorizontalOptions="End" Margin="0,5,0,0"/>
-                                </VerticalStackLayout>
+                                <Grid ColumnDefinitions="Auto, *">
+                                    <!-- Seçim CheckBox'u (TwoWay binding ile) -->
+                                    <CheckBox Grid.Column="0" 
+                                              IsChecked="{Binding IsSelected, Mode=TwoWay}" 
+                                              Color="#00BCD4" 
+                                              VerticalOptions="Center"
+                                              CheckedChanged="OnItemCheckChanged"/>
+
+                                    <!-- Bildirim içeriği -->
+                                    <VerticalStackLayout Grid.Column="1" Spacing="5" Margin="10,0,0,0">
+                                        <HorizontalStackLayout Spacing="10">
+                                            <Label Text="{x:Static helpers:IconFont.Bell}" FontFamily="FASolid" FontSize="16" TextColor="#00BCD4" VerticalOptions="Center"/>
+                                            <Label Text="{Binding baslik}" FontSize="15" TextColor="#111111" VerticalOptions="Center">
+                                                <Label.Triggers>
+                                                    <!-- Okunmamış başlık kalın ve renkli -->
+                                                    <DataTrigger TargetType="Label" Binding="{Binding okundu_mu}" Value="False">
+                                                        <Setter Property="FontAttributes" Value="Bold" />
+                                                        <Setter Property="TextColor" Value="#0284C7" />
+                                                    </DataTrigger>
+                                                </Label.Triggers>
+                                            </Label>
+                                        </HorizontalStackLayout>
+                                        <Label Text="{Binding mesaj}" FontSize="13" TextColor="#555555" />
+                                        <Label Text="{Binding olusturulma_tarihi, StringFormat='{0:yyyy-MM-dd HH:mm}'}" FontSize="11" TextColor="#888888" HorizontalOptions="End" Margin="0,5,0,0"/>
+                                    </VerticalStackLayout>
+                                </Grid>
                             </Border>
                         </SwipeView>
                     </Grid>
