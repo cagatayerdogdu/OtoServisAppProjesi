@@ -589,7 +589,7 @@ def manuel_hatirlatma_gonder(kullanici_id: int, istek: ManuelHatirlatmaIstegi, d
             <p>Hayırlı günler dileriz,<br><b>Oto Bakım Yönetimi</b></p>
             <hr>
             <p style="font-size: 11px; color: #999;">
-                Bu e-postayı almak istemiyorsanız <a href="http://BURAYA_IP_VERILECEK:8000/kvkk/mail-iptal/{kullanici.id}">buraya tıklayarak</a> abonelikten çıkabilirsiniz.
+                Bu e-postayı almak istemiyorsanız <a href="http://136.115.53.49:8000/kvkk/mail-iptal/{kullanici.id}">buraya tıklayarak</a> abonelikten çıkabilirsiniz.
             </p>
         </body>
     </html>
@@ -826,6 +826,11 @@ def servis_talebi_olustur(istek: schemas.ServisTalebiCreate, db: Session = Depen
         db.refresh(yeni_talep)
         return yeni_talep
 
+    # YENİ REVİZE (HATA YUTULMASINI ENGELLEYEN BLOK): 
+    # Bizim bilerek fırlattığımız 400 hatalarının aşağıdaki Exception'a düşüp 500 olmasını engeller.
+    except HTTPException as http_exc:
+        raise http_exc
+
     except Exception as e:
         # 4. YENİ REVİZE: Hata anında yukarıdaki db.add ile hafızaya alınan tüm işlemleri iptal ediyoruz (Atomic Rollback)
         db.rollback()
@@ -928,7 +933,7 @@ def kullanici_talep_guncelle(talep_id: int, istek: schemas.TalepGuncelleKullanic
             talep.notlar = istek.notlar
         # --- YENİ REVİZE BİTİŞİ ---
         
-        # KULLANICI DÜZELTMEYİ YAPTIĞI İÇİN BAYRAĞI İNDİRİYORUZ                                                                                                                                                                                                         
+        # KULLANICI DÜZELTMEYİ YAPTIĞI İÇİN BAYRAĞI İNDİRİYORUZ                                                                          
         talep.duzeltme_istendi_mi = False
         talep.duzeltme_notu = None
         
