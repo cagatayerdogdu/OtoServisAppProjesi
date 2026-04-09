@@ -62,11 +62,11 @@
                                         <Setter Property="BackgroundColor" Value="#F0F9FF" />
                                         <Setter Property="Stroke" Value="#0284C7" />
                                         <Setter Property="StrokeThickness" Value="1.5" />
-                                        <Setter Property="Shadow">
+                                        <!--<Setter Property="Shadow">
                                             <Setter.Value>
                                                 <Shadow Brush="#0284C7" Offset="0,2" Radius="4" Opacity="0.2"/>
                                             </Setter.Value>
-                                        </Setter>
+                                        </Setter> -->
                                     </DataTrigger>
                                     <!-- Okunmuş bildirim: beyaz arka plan, border yok, sadece hafif gölge -->
                                     <DataTrigger TargetType="Border" Binding="{Binding okundu_mu}" Value="True">
