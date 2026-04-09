@@ -57,10 +57,6 @@
                                     <TapGestureRecognizer Tapped="OnNotificationTapped" NumberOfTapsRequired="1" />
                                 </Border.GestureRecognizers>
 
-                                <Border.Shadow>
-                                    <Shadow Brush="#000000" Offset="0,2" Radius="3" Opacity="0.08"/>
-                                </Border.Shadow>
-
                                 <Border.Style>
                                     <Style TargetType="Border">
                                         <Setter Property="BackgroundColor" Value="White" />
