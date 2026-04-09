@@ -72,11 +72,11 @@
                                     <DataTrigger TargetType="Border" Binding="{Binding okundu_mu}" Value="True">
                                         <Setter Property="StrokeThickness" Value="0" />
                                         <Setter Property="BackgroundColor" Value="White" />
-                                        <Setter Property="Shadow">
+                                        <!-- <Setter Property="Shadow">
                                             <Setter.Value>
                                                 <Shadow Brush="#000000" Offset="0,2" Radius="3" Opacity="0.05"/>
                                             </Setter.Value>
-                                        </Setter>
+                                        </Setter> -->
                                     </DataTrigger>
                                     <!-- Seçili bildirim: açık yeşil arka plan, yeşil border (VisualState ile değil, DataTrigger ile) -->
                                     <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
