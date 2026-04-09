@@ -20,7 +20,7 @@ public partial class NotificationsView : ContentPage
         await BildirimleriYukle();
     }
 
-    // YENİ REVİZE: Kullanıcı ID'yi SecureStorage'dan al
+    // YENİ REVİZE: Kullanıcı ID'yi SecureStorage'dan al.
     private async Task<int?> GetCurrentUserIdAsync()
     {
         string idStr = await SecureStorage.Default.GetAsync("kullanici_id_gizli");
