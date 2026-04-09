@@ -9,8 +9,9 @@ public partial class NotificationsView : ContentPage
 {
     private readonly ApiService _apiService;
     private bool _isUpdating = false;
+    private bool _isSelectAllUpdating = false; // Hepsini seç event'ini geçici engellemek için
 
-    // Bildirim listesi için ObservableCollection (seçim durumu için)
+    // Bildirim listesi için ObservableCollection kullanıyoruz (seçim durumu için)																					  
     public ObservableCollection<BildirimResponse> Bildirimler { get; set; } = new();
 
     public NotificationsView()
@@ -26,7 +27,6 @@ public partial class NotificationsView : ContentPage
         await BildirimleriYukle();
     }
 
-    // Kullanıcı ID'yi SecureStorage'dan al
     private async Task<int?> GetCurrentUserIdAsync()
     {
         string idStr = await SecureStorage.Default.GetAsync("kullanici_id_gizli");
@@ -48,14 +48,16 @@ public partial class NotificationsView : ContentPage
         Bildirimler.Clear();
         foreach (var item in bildirimler)
         {
-            item.IsSelected = false; // Yeni yüklenen bildirimler seçili değil
+            item.IsSelected = false; // Yeni yüklenenlerde seçim yok
             Bildirimler.Add(item);
         }
+        // Hepsini seç checkbox'ını sıfırlarken event tetiklenmesini engelle
+        _isSelectAllUpdating = true;
         ChkSelectAll.IsChecked = false;
+        _isSelectAllUpdating = false;
         BtnDeleteSelected.IsVisible = false;
     }
 
-    // Kısa tıklama: okundu işaretle (seçim yapmaz)
     private async void OnNotificationTapped(object sender, TappedEventArgs e)
     {
         var border = sender as Border;
@@ -67,13 +69,13 @@ public partial class NotificationsView : ContentPage
             if (basarili)
             {
                 bildirim.okundu_mu = true;
-                // Sadece bu bildirimin stilini güncellemek için listeyi yeniden yükle (pratik çözüm)
-                await BildirimleriYukle();
+                // UI güncellemesi için PropertyChanged event'i gerekli. Model'de INotifyPropertyChanged uygulanmalı.
+                // Alternatif: Listeyi yeniden yükle (basitçe)
+                await BildirimleriYukle(); // veya daha performanslı: sadece ilgili öğeyi güncelle
             }
         }
     }
 
-    // Sola kaydırma ile tek bildirim silme
     private async void OnSingleDeleteInvoked(object sender, EventArgs e)
     {
         var swipeItem = sender as SwipeItemView;
@@ -87,13 +89,23 @@ public partial class NotificationsView : ContentPage
                 await _apiService.NotificationsDeleteAsync($"bildirimler/{bildirim.id}");
                 Bildirimler.Remove(bildirim);
                 BtnDeleteSelected.IsVisible = Bildirimler.Any(b => b.IsSelected);
-                if (Bildirimler.Count == 0) ChkSelectAll.IsChecked = false;
-                else if (Bildirimler.All(b => b.IsSelected)) ChkSelectAll.IsChecked = true;
+                if (Bildirimler.Count == 0)
+                {
+                    _isSelectAllUpdating = true;
+                    ChkSelectAll.IsChecked = false;
+                    _isSelectAllUpdating = false;
+                }
+                else if (Bildirimler.All(b => b.IsSelected))
+                {
+                    _isSelectAllUpdating = true;
+                    ChkSelectAll.IsChecked = true;
+                    _isSelectAllUpdating = false;
+                }
             }
         }
     }
 
-    // CheckBox değiştiğinde (tek tek seçim)
+    // CheckBox değiştiğinde (tek tek seçim)				
     private void OnItemCheckChanged(object sender, CheckedChangedEventArgs e)
     {
         if (_isUpdating) return;
@@ -104,17 +116,21 @@ public partial class NotificationsView : ContentPage
             bildirim.IsSelected = e.Value;
             BtnDeleteSelected.IsVisible = Bildirimler.Any(b => b.IsSelected);
 
-            // Hepsini seç checkbox'ını güncelle
-            if (Bildirimler.All(b => b.IsSelected))
-                ChkSelectAll.IsChecked = true;
-            else
-                ChkSelectAll.IsChecked = false;
+            // Hepsini seç checkbox'ını güncelle (event tetiklenmesini engelle)
+            bool hepsiSecili = Bildirimler.All(b => b.IsSelected);
+            if (ChkSelectAll.IsChecked != hepsiSecili)
+            {
+                _isSelectAllUpdating = true;
+                ChkSelectAll.IsChecked = hepsiSecili;
+                _isSelectAllUpdating = false;
+            }
         }
     }
 
-    // Hepsini seç checkbox'ı değiştiğinde
     private void OnSelectAllCheckedChanged(object sender, CheckedChangedEventArgs e)
     {
+        if (_isSelectAllUpdating) return; // Event'i manuel değişikliklerde tetikleme
+        if (_isUpdating) return;
         _isUpdating = true;
         foreach (var item in Bildirimler)
         {
@@ -124,7 +140,6 @@ public partial class NotificationsView : ContentPage
         _isUpdating = false;
     }
 
-    // Seçilenleri sil butonu
     private async void OnDeleteSelectedClicked(object sender, EventArgs e)
     {
         var secilenler = Bildirimler.Where(b => b.IsSelected).ToList();
@@ -139,7 +154,9 @@ public partial class NotificationsView : ContentPage
             Bildirimler.Remove(bildirim);
         }
         BtnDeleteSelected.IsVisible = false;
+        _isSelectAllUpdating = true;
         ChkSelectAll.IsChecked = false;
+        _isSelectAllUpdating = false;
         await DisplayAlert("Bilgi", "Seçilen bildirimler silindi.", "Tamam");
     }
 }
