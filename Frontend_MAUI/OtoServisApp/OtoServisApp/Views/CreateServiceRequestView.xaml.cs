@@ -160,6 +160,20 @@ public partial class CreateServiceRequestView : ContentPage
         SubmitButton.Text = "GÖNDERİLİYOR...";
         LoadingOverlay.IsVisible = true;
 
+        // --- YENİ DİNAMİK METİN AYARI ---
+        if (SecilenFotograflar != null && SecilenFotograflar.Count > 0)
+        {
+            LoadingTitle.Text = "Fotoğraflarınız Yükleniyor...";
+            LoadingSubText.Text = "Dosya boyutlarına göre bu işlem biraz zaman alabilir.\nLütfen bekleyiniz.";
+        }
+        else
+        {
+            LoadingTitle.Text = "İşleminiz Yapılıyor...";
+            LoadingSubText.Text = "Lütfen bekleyiniz.";
+        }
+
+        LoadingOverlay.IsVisible = true; // Ekranı şimdi açıyoruz
+
         try
         {
             string formatliTarih = RequestDatePicker.Date.ToString("yyyy-MM-dd");

@@ -194,6 +194,18 @@ public partial class EditServiceRequestView : ContentPage
         LoadingOverlay.IsVisible = true;
         bool basarili = false;
 
+        // --- YENİ DİNAMİK METİN AYARI ---
+        if (SecilenFotograflar != null && SecilenFotograflar.Count > 0)
+        {
+            LoadingTitle.Text = "Fotoğraflarınız Yükleniyor...";
+            LoadingSubText.Text = "Dosya boyutlarına göre bu işlem biraz zaman alabilir.\nLütfen bekleyiniz.";
+        }
+        else
+        {
+            LoadingTitle.Text = "İşleminiz Yapılıyor...";
+            LoadingSubText.Text = "Lütfen bekleyiniz.";
+        }
+
         try
         {
             // 3. ÖNCE VERİTABANI GÜNCELLEMESİ YAPILIR
