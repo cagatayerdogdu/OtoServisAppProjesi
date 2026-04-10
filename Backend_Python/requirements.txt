@@ -15,3 +15,4 @@ pymysql
 email-validator
 firebase-admin
 mysql-connector-repackaged
+Pillow

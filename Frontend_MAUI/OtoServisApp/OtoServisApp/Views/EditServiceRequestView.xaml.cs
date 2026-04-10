@@ -14,12 +14,20 @@ public partial class EditServiceRequestView : ContentPage
     // YENİ: AracPicker yerine seçilen aracı hafızada tutacağımız değişken
     private dynamic _secilenArac;
 
+    // --- YENİ REVİZE BAŞLANGICI: Fotoğraf Değişkenleri ---
+    private int MaksimumFotoSayisi = 3;
+    public System.Collections.ObjectModel.ObservableCollection<FileResult> SecilenFotograflar { get; set; } = new();
+    // --- YENİ REVİZE BİTİŞİ ---
+
     public EditServiceRequestView(ServisTalebi talep, Kullanici aktifKullanici)
     {
         InitializeComponent();
         _talep = talep;
         _aktifKullanici = aktifKullanici;
         _apiService = new ApiService();
+
+        // --- Hasar Fotoğrafları Ekleme için ---
+        BindingContext = this;
     }
 
     protected override async void OnAppearing()
@@ -202,16 +210,56 @@ public partial class EditServiceRequestView : ContentPage
                 DuzeltmeNotuEditor.Text
             );
         }
+        try
+        {
+            if (basarili)
+            {
+                //await DisplayAlert("Başarılı", "İşleminiz başarıyla kaydedildi.", "Tamam");
+                //await Navigation.PopAsync(); // Bir önceki sayfaya dön
 
-        if (basarili)
-        {
-            await DisplayAlert("Başarılı", "İşleminiz başarıyla kaydedildi.", "Tamam");
-            await Navigation.PopAsync(); // Bir önceki sayfaya dön
+                // --- YENİ REVİZE BAŞLANGICI: Fotoğraf Yükleme İşlemi (Madde 72) ---
+                int yuklenemeyen = 0;
+                string hataMesajlari = "";
+
+                // Eğer listeye fotoğraf eklendiyse, bunları sunucuya gönder
+                if (SecilenFotograflar.Any())
+                {
+                    foreach (var foto in SecilenFotograflar)
+                    {
+                        // Edit sayfasında zaten "_talep.id" değişkeni elimizde olduğu için direkt kullanıyoruz
+                        string uploadSonuc = await _apiService.UploadHasarFotografAsync(_talep.id, foto.FullPath);
+                        if (uploadSonuc != "OK")
+                        {
+                            yuklenemeyen++;
+                            hataMesajlari += $"- {foto.FileName}: {uploadSonuc}\n";
+                        }
+                    }
+                }
+
+                // Hata mekanizması: Kısmi başarılı mı yoksa tam başarılı mı kontrolü
+                if (yuklenemeyen > 0)
+                {
+                    await DisplayAlert("Kısmi Başarılı", $"Talebiniz güncellendi ancak bazı fotoğraflar yüklenemedi:\n{hataMesajlari}", "Anladım");
+                }
+                else
+                {
+                    await DisplayAlert("Başarılı", "Talep bilgileriniz ve fotoğraflarınız başarıyla güncellendi.", "Tamam");
+                }
+                // --- YENİ REVİZE BİTİŞİ ---
+
+                // Listeyi yenilemek için anasayfaya dönüş
+                await Navigation.PopAsync();
+
+            }
+            else
+            {
+                await DisplayAlert("Hata", "Bir sorun oluştu, lütfen tekrar deneyin.", "Tamam");
+            }
         }
-        else
+        catch (Exception ex)
         {
-            await DisplayAlert("Hata", "Bir sorun oluştu, lütfen tekrar deneyin.", "Tamam");
-        }
+            await DisplayAlert("Hata", "Fotoğraf düzenlenirken bir hata oluştu: " + ex.Message, "Tamam");
+        }        
     }
 
     // --- HİZMET SEÇİMİ METOTLARI ---
@@ -286,4 +334,39 @@ public partial class EditServiceRequestView : ContentPage
             AracListesi.SelectedItem = null; // Seçimi sıfırla
         }
     }
+
+    // --- YENİ REVİZE BAŞLANGICI: Hasar Fotoğrafı Seçme ve Silme İşlemleri ---
+    private async void OnAddPhotoClicked(object sender, EventArgs e)
+    {
+        if (SecilenFotograflar.Count >= MaksimumFotoSayisi)
+        {
+            await DisplayAlert("Bilgi", $"En fazla {MaksimumFotoSayisi} adet fotoğraf ekleyebilirsiniz.", "Tamam");
+            return;
+        }
+
+        try
+        {
+            var photo = await MediaPicker.Default.PickPhotoAsync();
+            if (photo != null)
+            {
+                SecilenFotograflar.Add(photo);
+            }
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Hata", "Fotoğraf seçilirken bir hata oluştu: " + ex.Message, "Tamam");
+        }
+    }
+
+    private void OnRemovePhotoClicked(object sender, EventArgs e)
+    {
+        var button = sender as Button;
+        var photo = button?.CommandParameter as FileResult;
+        if (photo != null)
+        {
+            SecilenFotograflar.Remove(photo);
+        }
+    }
+    // --- YENİ REVİZE BİTİŞİ ---
+
 }

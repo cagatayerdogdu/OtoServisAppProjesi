@@ -28,10 +28,23 @@ from firebase_admin import credentials, messaging
 from pydantic import BaseModel
 from sqlalchemy import nullsfirst  
 from fastapi.responses import HTMLResponse
+# hasarlı resim ekleme importları
+import os
+import io
+import uuid
+from PIL import Image
+from fastapi import UploadFile, File
+from fastapi.staticfiles import StaticFiles
+##########
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Oto Bakım Servisi API", version="1.0.0")
+
+# hasarlı resim ekleme kodları
+os.makedirs("HasarImg", exist_ok=True) # Klasör yoksa otomatik oluşturur
+app.mount("/HasarImg", StaticFiles(directory="HasarImg"), name="HasarImg") # Klasörü dışa açar
+#################
 
 # Firebase Başlatma (Eğer yoksa main.py'nin üst kısımlarına ekle)
 if not firebase_admin._apps:
@@ -1951,3 +1964,8 @@ def log_client_error(error: ClientErrorLog, db: Session = Depends(get_db)):
     except Exception as e:
         print("Log yazma hatası:", e)
         return {"success": False}
+    
+
+#################################################################
+##################### HASARLI RESİM EKLEME ######################
+#################################################################

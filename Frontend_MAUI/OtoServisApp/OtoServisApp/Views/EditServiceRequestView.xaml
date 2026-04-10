@@ -92,12 +92,32 @@
                 <Editor x:Name="NotlarEditor" HeightRequest="80" BackgroundColor="#FAFAFA" TextColor="#111111" PlaceholderColor="#888888"/>
             </VerticalStackLayout>
 
+            <VerticalStackLayout Spacing="10" Margin="0,15,0,0">
+                <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
+                    <Label Text="{x:Static helpers:IconFont.Camera}" FontFamily="FASolid" FontSize="16" TextColor="#666666" VerticalOptions="Center"/>
+                    <Label Text="Yeni Hasar Fotoğrafı Ekle (Maks 3)" TextColor="#666666" FontSize="13" FontAttributes="Bold" VerticalOptions="Center"/>
+                </HorizontalStackLayout>
+
+                <Button Text="+ Fotoğraf Seç" Clicked="OnAddPhotoClicked" BackgroundColor="#E0F2F1" TextColor="#00796B" CornerRadius="8" HeightRequest="40" Margin="0,0,0,5"/>
+
+                <FlexLayout x:Name="PhotosContainer" BindableLayout.ItemsSource="{Binding SecilenFotograflar}" Wrap="Wrap" JustifyContent="Start">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate>
+                            <Grid WidthRequest="80" HeightRequest="80" Margin="0,0,10,10">
+                                <Image Source="{Binding FullPath}" Aspect="AspectFill" WidthRequest="80" HeightRequest="80"/>
+                                <Button Text="X" CommandParameter="{Binding .}" Clicked="OnRemovePhotoClicked" BackgroundColor="#EF4444" TextColor="White" WidthRequest="25" HeightRequest="25" CornerRadius="12" HorizontalOptions="End" VerticalOptions="Start" Margin="3" Padding="0" FontSize="10" FontAttributes="Bold"/>
+                            </Grid>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </FlexLayout>
+            </VerticalStackLayout>
+
             <VerticalStackLayout x:Name="DuzeltmeTalebiFormu" Spacing="15" IsVisible="False">
                 <Label Text="Yöneticiye Düzeltme İletin" FontSize="16" FontAttributes="Bold" TextColor="#F57C00"/>
                 <Label Text="Talebiniz onaylandığı için doğrudan değiştiremezsiniz. Lütfen düzeltmek istediğiniz kısımları (örn: adres değişikliği) aşağıya yazarak yöneticiye iletin." FontSize="12" TextColor="#666666"/>
                 <Editor x:Name="DuzeltmeNotuEditor" HeightRequest="100" Placeholder="Düzeltme talebinizi buraya yazın..." BackgroundColor="#FAFAFA" TextColor="#111111" PlaceholderColor="#888888"/>
             </VerticalStackLayout>
-
+            
             <Button x:Name="KaydetButton" Text="Değişiklikleri Kaydet" BackgroundColor="#4CAF50" TextColor="White" CornerRadius="8" HeightRequest="50" FontAttributes="Bold" Clicked="OnKaydetClicked" Margin="0,20,0,0"/>
 
         </VerticalStackLayout>

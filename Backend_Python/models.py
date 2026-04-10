@@ -198,3 +198,19 @@ class SistemBildirimleri(Base):
     
     # Oluşturulma Zamanı (Yılan gibi FastAPI func.now() ile otomatik atar)
     olusturulma_tarihi = Column(DateTime(timezone=True), server_default=func.now(), comment="Bildirimin oluşturulduğu tarih ve saat")
+    
+    
+# ==============================================================================
+# TABLO: SERVIS_TALEBI_FOTOGRAFLARI
+# ==============================================================================
+class ServisTalebiFotograf(Base):
+    __tablename__ = "servis_talebi_fotograflar"
+    __table_args__ = {'comment': 'Servis taleplerine eklenen hasar fotograflari.'}
+
+    id = Column(Integer, primary_key=True, index=True)
+    talep_id = Column(Integer, ForeignKey("servis_talepleri.id"), nullable=False)
+    dosya_yolu = Column(String(255), nullable=False)
+    olusturulma_tarihi = Column(DateTime, server_default=func.now())
+
+    # ServisTalebi modelinle ilişkilendirme (İleride çekmek istersen diye)
+    talep = relationship("ServisTalebi", backref="fotograflar")

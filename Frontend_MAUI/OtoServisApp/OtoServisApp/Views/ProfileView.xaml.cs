@@ -228,40 +228,6 @@ public partial class ProfileView : ContentPage
     }
     // --- YENİ REVİZE BİTİŞİ ---
 
-
-    /* --- ESKİ KOD BAŞLANGICI ---
-    // Anahtar (Switch) her değiştirildiğinde tetiklenecek metot
-    private async void OnMailIzniToggled(object sender, ToggledEventArgs e)
-    {
-        // Cihazda kayıtlı kullanıcı ID'sini alıyoruz (Senin projende ID'yi nasıl tutuyorsan ona göre uyarla)
-        var kullaniciIdStr = await SecureStorage.GetAsync("kullanici_id_gizli");
-        if (string.IsNullOrEmpty(kullaniciIdStr)) return;
-
-        int kullaniciId = int.Parse(kullaniciIdStr);
-        bool yeniDurum = e.Value;
-
-        try
-        {
-            // Az önce Python'da yazdığımız API'ye istek atıyoruz
-            var body = new { mail_istiyor_mu = yeniDurum };
-            var res = await _apiService.PutAsync($"kullanici/{kullaniciId}/mail-izni", body);
-
-            if (!res.IsSuccessStatusCode)
-            {
-                // Eğer API hata verirse anahtarı eski haline geri getiriyoruz
-                MailIzniSwitch.IsToggled = !yeniDurum;
-                await DisplayAlert("Hata", "Bildirim ayarı güncellenemedi, lütfen bağlantınızı kontrol edin.", "Tamam");
-            }
-        }
-        catch (Exception ex)
-        {
-            // Olası bir çökmede yine eski duruma alıp kullanıcıyı uyarıyoruz
-            MailIzniSwitch.IsToggled = !yeniDurum;
-            System.Diagnostics.Debug.WriteLine($"Mail izni güncellenirken hata: {ex.Message}");
-        }
-    }
-    --- ESKİ KOD BİTİŞİ --- */
-
     // YENİ EKLENEN DEĞİŞKEN: Switch'in kod tarafından mı yoksa kullanıcı tarafından mı değiştirildiğini anlamak için
     private bool _isMailSwitchProgrammaticChange = false;
     // --- YENİ REVİZE BAŞLANGICI: Nazik Uyarı ile Mail İzni Değiştirme ---

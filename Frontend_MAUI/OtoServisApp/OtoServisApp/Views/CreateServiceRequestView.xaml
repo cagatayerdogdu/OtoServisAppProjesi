@@ -101,6 +101,26 @@
                         </Border>
                     </VerticalStackLayout>
 
+                    <VerticalStackLayout Spacing="10">
+                        <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
+                            <Label Text="{x:Static helpers:IconFont.Camera}" FontFamily="FASolid" FontSize="16" TextColor="#666666" VerticalOptions="Center"/>
+                            <Label Text="Hasar Fotoğrafları (Maks 3)" TextColor="#666666" FontSize="13" FontAttributes="Bold" VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+
+                        <Button Text="+ Fotoğraf Seç" Clicked="OnAddPhotoClicked" BackgroundColor="#E0F2F1" TextColor="#00796B" CornerRadius="8" HeightRequest="40" Margin="0,0,0,5"/>
+
+                        <FlexLayout x:Name="PhotosContainer" BindableLayout.ItemsSource="{Binding SecilenFotograflar}" Wrap="Wrap" JustifyContent="Start">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid WidthRequest="80" HeightRequest="80" Margin="0,0,10,10">
+                                        <Image Source="{Binding FullPath}" Aspect="AspectFill" WidthRequest="80" HeightRequest="80"/>
+                                        <Button Text="X" CommandParameter="{Binding .}" Clicked="OnRemovePhotoClicked" BackgroundColor="#EF4444" TextColor="White" WidthRequest="25" HeightRequest="25" CornerRadius="12" HorizontalOptions="End" VerticalOptions="Start" Margin="3" Padding="0" FontSize="10" FontAttributes="Bold"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </FlexLayout>
+                    </VerticalStackLayout>
+
                     <Button x:Name="SubmitButton" 
                             Text="TALEBİ OLUŞTUR" 
                             Clicked="OnSubmitClicked"

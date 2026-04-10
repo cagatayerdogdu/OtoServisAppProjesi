@@ -12,6 +12,10 @@ public partial class CreateServiceRequestView : ContentPage
     private Hizmet _secilenHizmet;
     private dynamic _secilenArac;
 
+    // Hasar Resimleri için Parametrik değişkenimiz
+    private int MaksimumFotoSayisi = 3;
+    public System.Collections.ObjectModel.ObservableCollection<FileResult> SecilenFotograflar { get; set; } = new();
+
     public CreateServiceRequestView(Kullanici kullanici)
     {
         InitializeComponent();
@@ -22,6 +26,8 @@ public partial class CreateServiceRequestView : ContentPage
         {
             AddressEditor.Text = _aktifKullanici.adres;
         }
+        // Hasar Resimleri için
+        BindingContext = this;
     }
 
     protected override async void OnAppearing()
@@ -165,9 +171,38 @@ public partial class CreateServiceRequestView : ContentPage
 
         string sonuc = await _apiService.ServisTalebiOlusturAsync(yeniTalep);
 
-        if (sonuc == "OK")
+        //if (sonuc == "OK")
+        //{
+        //    await DisplayAlert("Başarılı", "Servis talebiniz alınmıştır. En kısa sürede sizinle iletişime geçeceğiz.", "Tamam");
+        //    await Navigation.PopAsync();
+        //}
+        // Eski: if (sonuc == "OK")
+        // Yeni: if hasarlı resim eklemeye uygun.
+        if (int.TryParse(sonuc, out int olusturulanTalepId))
         {
-            await DisplayAlert("Başarılı", "Servis talebiniz alınmıştır. En kısa sürede sizinle iletişime geçeceğiz.", "Tamam");
+            // Talebimiz başarılı oluştu, şimdi fotoğrafları yüklüyoruz
+            int yuklenemeyen = 0;
+            string hataMesajlari = "";
+
+            foreach (var foto in SecilenFotograflar)
+            {
+                string uploadSonuc = await _apiService.UploadHasarFotografAsync(olusturulanTalepId, foto.FullPath);
+                if (uploadSonuc != "OK")
+                {
+                    yuklenemeyen++;
+                    hataMesajlari += $"- {foto.FileName}: {uploadSonuc}\n";
+                }
+            }
+
+            if (yuklenemeyen > 0)
+            {
+                await DisplayAlert("Kısmi Başarılı", $"Servis talebiniz oluşturuldu ancak bazı fotoğraflar yüklenemedi:\n{hataMesajlari}\nDaha sonra talebi düzenle (Taleplerim/Durum Takibi) ekranından tekrar yüklemeyi deneyebilirsiniz.", "Anladım");
+            }
+            else
+            {
+                await DisplayAlert("Başarılı", "Servis talebiniz ve fotoğraflarınız başarıyla alınmıştır. En kısa sürede sizinle iletişime geçeceğiz.", "Tamam");
+            }
+
             await Navigation.PopAsync();
         }
         else
@@ -210,6 +245,39 @@ public partial class CreateServiceRequestView : ContentPage
 
             }
 
+        }
+    }
+
+    // Hasarlı Araç Resimleri Ekleme Fonksiyonu
+    private async void OnAddPhotoClicked(object sender, EventArgs e)
+    {
+        if (SecilenFotograflar.Count >= MaksimumFotoSayisi)
+        {
+            await DisplayAlert("Bilgi", $"En fazla {MaksimumFotoSayisi} adet fotoğraf ekleyebilirsiniz.", "Tamam");
+            return;
+        }
+
+        try
+        {
+            var photo = await MediaPicker.Default.PickPhotoAsync();
+            if (photo != null)
+            {
+                SecilenFotograflar.Add(photo);
+            }
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Hata", "Fotoğraf seçilirken bir hata oluştu: " + ex.Message, "Tamam");
+        }
+    }
+
+    private void OnRemovePhotoClicked(object sender, EventArgs e)
+    {
+        var button = sender as Button;
+        var photo = button?.CommandParameter as FileResult;
+        if (photo != null)
+        {
+            SecilenFotograflar.Remove(photo);
         }
     }
 }
