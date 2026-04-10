@@ -648,24 +648,48 @@ def mail_abonelik_iptal(kullanici_id: int, db: Session = Depends(get_db)):
     kullanici.mail_istiyor_mu = False
     db.commit()
     
+#    html_icerik = f"""
+#    <!DOCTYPE html>
+#    <html>
+#        <head>
+#            <meta charset="utf-8">
+#            <title>Abonelik İptali</title>
+#        </head>
+#        <body style="font-family: Arial, sans-serif; text-align: center; padding-top: 50px; #background-color: #F8FAFC;">
+#            <div style="background-color: white; padding: 40px; border-radius: 10px; #box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: inline-block; border: 1px solid #E2E8F0;">
+#                <h2 style="color: #25D366;">Abonelikten Çıkış Başarılı</h2>
+#                <p>Sayın <b>{kullanici.ad_soyad}</b>, e-posta bildirimleri kapatıldı.</p>
+#                <p>Artık hatırlatma e-postaları almayacaksınız.</p>
+#                <br>
+#                <p style="font-size: 12px; color: #7F8C8D;">Fikrinizi değiştirirseniz, #uygulamadaki profil ayarlarından tekrar açabilirsiniz.</p>
+#            </div>
+#        </body>
+#    </html>
+#    """
+
+# YENİ REVİZE: <meta name="viewport"...> etiketi sayesinde artık telefonda dev gibi ve net görünecek
     html_icerik = f"""
     <!DOCTYPE html>
     <html>
         <head>
             <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
             <title>Abonelik İptali</title>
         </head>
-        <body style="font-family: Arial, sans-serif; text-align: center; padding-top: 50px; background-color: #F8FAFC;">
-            <div style="background-color: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: inline-block; border: 1px solid #E2E8F0;">
-                <h2 style="color: #25D366;">Abonelikten Çıkış Başarılı</h2>
-                <p>Sayın <b>{kullanici.ad_soyad}</b>, e-posta bildirimleri kapatıldı.</p>
-                <p>Artık hatırlatma e-postaları almayacaksınız.</p>
+        <body style="font-family: Arial, sans-serif; text-align: center; padding: 20px; background-color: #F8FAFC; margin: 0;">
+            <div style="background-color: white; padding: 30px 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); display: block; max-width: 400px; margin: 40px auto; border: 1px solid #E2E8F0;">
+                <h2 style="color: #25D366; margin-top: 0;">Abonelikten Çıkış Başarılı</h2>
+                <p style="font-size: 16px; color: #333; line-height: 1.5;">Sayın <b>{kullanici.ad_soyad}</b>,<br>e-posta bildirimleri kapatıldı.</p>
+                <p style="font-size: 16px; color: #333;">Artık hatırlatma e-postaları almayacaksınız.</p>
                 <br>
-                <p style="font-size: 12px; color: #7F8C8D;">Fikrinizi değiştirirseniz, uygulamadaki profil ayarlarından tekrar açabilirsiniz.</p>
+                <p style="font-size: 13px; color: #7F8C8D; border-top: 1px solid #eee; padding-top: 15px;">
+                    Fikrinizi değiştirirseniz, uygulamadaki profil ayarlarından tekrar açabilirsiniz.
+                </p>
             </div>
         </body>
     </html>
     """
+
     # Burası ÇOK ÖNEMLİ: media_type'ı zorla veriyoruz ki tarayıcı düz yazı sanmasın
     return HTMLResponse(content=html_icerik, status_code=200, media_type="text/html")
 

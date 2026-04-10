@@ -133,7 +133,7 @@ namespace OtoServisApp.Services
                 return new List<Hizmet>();
             }
         }
-
+        /*
         public async Task<string> ServisTalebiOlusturAsync(ServisTalebiRequest talep)
         {
             try
@@ -143,6 +143,60 @@ namespace OtoServisApp.Services
 
                 string errorDetail = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 return $"Sunucu Hatası: {errorDetail}";
+            }
+            catch (Exception ex)
+            {
+                return $"Bağlantı Hatası: {ex.Message}\nÇözüm: İnternet bağlantınızı ve API sunucusunu kontrol edin.";
+            }
+        }
+        */
+
+        public async Task<string> ServisTalebiOlusturAsync(ServisTalebiRequest talep)
+        {
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync("/servis-talepleri/", talep).ConfigureAwait(false);
+                if (response.IsSuccessStatusCode) return "OK";
+
+                // API'den dönen ham yanıtı (JSON) okuyoruz
+                string rawError = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                string temizMesaj = rawError; // Parse edilemezse varsayılan olarak ham yanıt dönsün
+
+                try
+                {
+                    // Gelen JSON paketini açıyoruz
+                    using var jsonDoc = System.Text.Json.JsonDocument.Parse(rawError);
+                    var root = jsonDoc.RootElement;
+
+                    // 1. Durum: Standart FastAPI Hatası -> {"detail": "Bu araç için..."}
+                    if (root.ValueKind == System.Text.Json.JsonValueKind.Object && root.TryGetProperty("detail", out var detailElement))
+                    {
+                        if (detailElement.ValueKind == System.Text.Json.JsonValueKind.String)
+                        {
+                            temizMesaj = detailElement.GetString();
+                        }
+                        // Eğer detail'in kendisi köşeli parantezli bir dizi ise
+                        else if (detailElement.ValueKind == System.Text.Json.JsonValueKind.Array && detailElement.GetArrayLength() > 0)
+                        {
+                            temizMesaj = detailElement[0].TryGetProperty("msg", out var msgProp) ? msgProp.GetString() : detailElement.ToString();
+                        }
+                    }
+                    // 2. Durum: Doğrudan Dizi Olarak Gelen Hatalar (Validation) -> [{"msg": "...", ...}]
+                    else if (root.ValueKind == System.Text.Json.JsonValueKind.Array && root.GetArrayLength() > 0)
+                    {
+                        var firstError = root[0];
+                        if (firstError.TryGetProperty("msg", out var msgProp))
+                        {
+                            temizMesaj = msgProp.GetString();
+                        }
+                    }
+                }
+                catch
+                {
+                    // Gelen yanıt JSON değilse (örneğin düz HTML 500 sayfasıysa) hiçbir şey yapma, ham hali kalsın
+                }
+
+                return temizMesaj;
             }
             catch (Exception ex)
             {
