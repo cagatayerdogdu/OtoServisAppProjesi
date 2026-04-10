@@ -172,9 +172,44 @@ public partial class CreateServiceRequestView : ContentPage
         }
         else
         {
-            await DisplayAlert("Hata Oluştu", sonuc, "Tamam");
             SubmitButton.IsEnabled = true;
             SubmitButton.Text = "TALEBİ OLUŞTUR";
+
+            // YENİ REVİZE: Backend'den bizim özel sorumuz gelirse devreye girer
+            if (sonuc.Contains("yeni bir talep açmak ister misiniz?"))
+            {
+                bool cevap = await DisplayAlert("Mevcut Talep Uyarısı", sonuc, "Evet", "Vazgeç");
+                if (cevap)
+                {
+                    // Kullanıcı evet derse, seçtiği aktif hizmeti listeden çıkarıyoruz (artık seçilemez)
+                    var silinecekHizmet = _orijinalHizmetler.FirstOrDefault(h => h.id == _secilenHizmet.id);
+                    if (silinecekHizmet != null)
+                    {
+                        _orijinalHizmetler.Remove(silinecekHizmet);
+                    }
+
+                    // Listeyi arayüzde yenile
+                    HizmetListesi.ItemsSource = null;
+                    HizmetListesi.ItemsSource = _orijinalHizmetler;
+
+                    // Seçilen hizmeti temizle
+                    _secilenHizmet = null;
+                    SecilenHizmetButonu.Text = "Hizmet Seçiniz";
+                    SecilenHizmetButonu.TextColor = Color.FromArgb("#888888");
+
+                    // Hizmet listesi kutusunu otomatik aç ki yeni hizmet seçebilsin
+                    HizmetAramaKutusu.IsVisible = true;
+                    HizmetAramaBar.Focus();
+                }
+            }
+            else
+            {
+                await DisplayAlert("Hata Oluştu", sonuc, "Tamam");
+                SubmitButton.IsEnabled = true;
+                SubmitButton.Text = "TALEBİ OLUŞTUR";
+
+            }
+
         }
     }
 }

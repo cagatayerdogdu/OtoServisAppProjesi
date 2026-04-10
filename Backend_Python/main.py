@@ -798,17 +798,20 @@ def arac_guncelle(arac_id: int, arac_data: schemas.AracCreate, db: Session = Dep
 def servis_talebi_olustur(istek: schemas.ServisTalebiCreate, db: Session = Depends(get_db)):
     try:
         # --- MADDE 55 KONTROLÜ BAŞLANGICI ---
-        aktif_talep = db.query(models.ServisTalebi).filter(
+        aktif_talepler = db.query(models.ServisTalebi).filter(
             models.ServisTalebi.arac_id == istek.arac_id,
             models.ServisTalebi.durum.in_(["Bekliyor", "Onaylandı", "İşlemde"]),
             models.ServisTalebi.kayit_durumu == 'A'
-        ).first()
+        ).all()
 
-        if aktif_talep:
-            if aktif_talep.hizmet_id == istek.hizmet_id:
-                raise HTTPException(status_code=400, detail="Bu araç için aynı hizmetten zaten aktif bir talebiniz bulunuyor.")
-            else:
-                raise HTTPException(status_code=400, detail="Bu araç için mevcut bir talebiniz var. Yeni bir hizmet eklemek yerine lütfen mevcut talebinizi güncelleyiniz.")
+        if aktif_talepler:
+            # Bu araç için aktif olan taleplerin hizmet id'lerini bulalım
+            aktif_hizmetler = [t.hizmet_id for t in aktif_talepler]
+            
+            if istek.hizmet_id in aktif_hizmetler:
+                # Kullanıcı zaten aktif olan aynı hizmeti tekrar oluşturmaya çalışıyor -> Soru soralım
+                raise HTTPException(status_code=400, detail="Bu araç için mevcut bir talebiniz var. Yeni bir hizmet seçerek yeni bir talep açmak ister misiniz?")
+            # Eğer farklı bir hizmet ise kod hiçbir şeye takılmadan aşağıya devam edip yeni talebi oluşturacak.
         # --- MADDE 55 KONTROLÜ BİTİŞİ ---
         
         # 1. Yeni servis talebini oluşturuyoruz                        

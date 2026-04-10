@@ -89,8 +89,4 @@
     <Folder Include="Resources\Splash\" />
   </ItemGroup>
 
-  <ItemGroup>
-    <GoogleServicesJson Include="Platforms\Android\AndroidManifest.xml" />
-  </ItemGroup>
-
 </Project>
