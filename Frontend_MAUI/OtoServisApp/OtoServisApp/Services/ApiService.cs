@@ -741,5 +741,19 @@ namespace OtoServisApp.Services
             }
         }
 
+        // Düzenleme ekranında yeni fotoğraflar yüklenmeden önce eskileri temizler
+        public async Task<bool> EskiFotograflariTemizleAsync(int talepId)
+        {
+            try
+            {
+                var response = await _httpClient.DeleteAsync($"/servis-talepleri/{talepId}/fotograflari-temizle").ConfigureAwait(false);
+                return response.IsSuccessStatusCode;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
     }
 }

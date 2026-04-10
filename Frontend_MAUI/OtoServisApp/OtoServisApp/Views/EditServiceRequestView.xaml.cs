@@ -214,71 +214,87 @@ public partial class EditServiceRequestView : ContentPage
         {
             if (basarili)
             {
-                //await DisplayAlert("Başarılı", "İşleminiz başarıyla kaydedildi.", "Tamam");
-                //await Navigation.PopAsync(); // Bir önceki sayfaya dön
-
-                // --- YENİ REVİZE BAŞLANGICI: Fotoğraf Yükleme İşlemi (Madde 72) ---
                 int yuklenemeyen = 0;
                 string hataMesajlari = "";
 
-                // Eğer listeye fotoğraf eklendiyse, bunları sunucuya gönder
-                foreach (var foto in SecilenFotograflar)
+                // YENİ: Liste boş değilse yükleme işlemine başla
+                if (SecilenFotograflar != null && SecilenFotograflar.Count > 0)
                 {
-                    using var stream = await foto.OpenReadAsync();
+                    // YENİ MANTIK: Önce eski fotoğrafları sunucudan tamamen temizle
+                    await _apiService.EskiFotograflariTemizleAsync(_talep.id);
 
-                    // --- YENİ REVİZE: Çökmeyi Engelleyen (Bulletproof) İsimlendirme ---
-
-                    // 1. Güvenlik: Kullanıcının Ad Soyad bilgisi veritabanında boş olabilir. Boşsa "Kullanici" yaz, doluysa boşlukları sil.
-                    string temizAdSoyad = string.IsNullOrWhiteSpace(_aktifKullanici?.ad_soyad)
-                                          ? "Kullanici"
-                                          : _aktifKullanici.ad_soyad.Replace(" ", "");
-
-                    // 2. Güvenlik: Dosya uzantısı telefondan okunamayabilir. Okunamazsa varsayılan olarak .jpg yap.
-                    string uzanti = Path.GetExtension(foto.FileName);
-                    if (string.IsNullOrEmpty(uzanti))
+                    foreach (var foto in SecilenFotograflar)
                     {
-                        uzanti = ".jpg";
-                    }
+                        using var stream = await foto.OpenReadAsync();
 
-                    // 3. Güvenlik: Toplu seçimde 5 fotoğraf aynı saniyede yüklenir. 
-                    // Birbirlerini ezmemeleri için sonuna "fff" (Milisaniye) ekliyoruz.
-                    // Not: _talep.id kısmını Create sayfasında "olusturulanTalepId" olarak değiştirmeyi unutma!
-                    string ozelDosyaAdi = $"{temizAdSoyad}-{_talep.id}-{DateTime.Now.ToString("yyyyMMddHHmmssfff")}{uzanti}";
+                        // 1. ÇÖKME ÖNLEMİ: Kullanıcı objesi null gelme ihtimaline karşı
+                        string temizAdSoyad = "Kullanici";
+                        if (_aktifKullanici != null &&
+                            !string.IsNullOrWhiteSpace(_aktifKullanici.ad_soyad))
+                        {
+                            temizAdSoyad = _aktifKullanici.ad_soyad.Replace(" ", "");
+                        }
 
-                    // Servise kendi hazırladığımız özel ismi (ozelDosyaAdi) gönderiyoruz
-                    string uploadSonuc = await _apiService.UploadHasarFotografAsync(_talep.id, stream, ozelDosyaAdi);
+                        // 2. ÇÖKME ÖNLEMİ: Telefondan dosya adı boş (null) gelebilir
+                        string uzanti = ".jpg"; // Varsayılan uzantı
+                        if (foto != null && !string.IsNullOrWhiteSpace(foto.FileName))
+                        {
+                            uzanti = Path.GetExtension(foto.FileName);
+                        }
 
-                    if (uploadSonuc != "OK")
-                    {
-                        yuklenemeyen++;
-                        hataMesajlari += $"- {foto.FileName}: {uploadSonuc}\n";
+                        // Eğer telefondan uzantı okunamadıysa yine .jpg yap
+                        if (string.IsNullOrEmpty(uzanti))
+                        {
+                            uzanti = ".jpg";
+                        }
+
+                        // 3. Milisaniye (fff) ekleyerek aynı saniyedeki dosyaları ayır
+                        string zaman = DateTime.Now.ToString("yyyyMMddHHmmssfff");
+                        string ozelDosyaAdi =
+                            $"{temizAdSoyad}-{_talep.id}-{zaman}{uzanti}";
+
+                        // API'ye gönderim yapıyoruz
+                        string uploadSonuc = await _apiService.UploadHasarFotografAsync(
+                            _talep.id,
+                            stream,
+                            ozelDosyaAdi);
+
+                        if (uploadSonuc != "OK")
+                        {
+                            yuklenemeyen++;
+                            string dosyaIsmi = foto?.FileName ?? "BilinmeyenDosya";
+                            hataMesajlari += $"- {dosyaIsmi}: {uploadSonuc}\n";
+                        }
                     }
                 }
 
-                // Hata mekanizması: Kısmi başarılı mı yoksa tam başarılı mı kontrolü
+                // --- SONUÇ MESAJLARI ---
                 if (yuklenemeyen > 0)
                 {
-                    await DisplayAlert("Kısmi Başarılı", $"Talebiniz güncellendi ancak bazı fotoğraflar yüklenemedi:\n{hataMesajlari}", "Anladım");
+                    await DisplayAlert("Kısmi Başarılı",
+                        $"Talebiniz güncellendi ancak bazı fotoğraflar yüklenemedi:\n" +
+                        $"{hataMesajlari}",
+                        "Anladım");
                 }
                 else
                 {
-                    await DisplayAlert("Başarılı", "Talep bilgileriniz ve fotoğraflarınız başarıyla güncellendi.", "Tamam");
+                    await DisplayAlert("Başarılı",
+                        "Talep bilgileriniz ve fotoğraflarınız başarıyla güncellendi.",
+                        "Tamam");
                 }
-                // --- YENİ REVİZE BİTİŞİ ---
 
-                // Listeyi yenilemek için anasayfaya dönüş
+                // Anasayfaya dönüş
                 await Navigation.PopAsync();
-
             }
             else
             {
-                await DisplayAlert("Hata", "Bir sorun oluştu, lütfen tekrar deneyin.", "Tamam");
+                await DisplayAlert("Hata", "Bir sorun oluştu, tekrar deneyin.", "Tamam");
             }
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Hata", "Fotoğraf düzenlenirken bir hata oluştu: " + ex.Message, "Tamam");
-        }        
+            await DisplayAlert("Hata", "Fotoğraf yükleme işlemi sırasında hata: " + ex.Message, "Tamam");
+        }
     }
 
     // --- HİZMET SEÇİMİ METOTLARI ---

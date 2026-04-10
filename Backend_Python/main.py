@@ -2012,3 +2012,22 @@ async def fotograf_yukle(talep_id: int, db: Session = Depends(get_db), file: Upl
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Fotoğraf işlenirken veya kaydedilirken sunucu hatası oluştu: {str(e)}")
+    
+# --- FOTOĞRAFLARI KOMPLE TEMİZLEME (ÜZERİNE YAZMA MANTIĞI İÇİN) ---
+@app.delete("/servis-talepleri/{talep_id}/fotograflari-temizle")
+def fotograflari_temizle(talep_id: int, db: Session = Depends(get_db)):
+    fotolar = db.query(models.ServisTalebiFotograf).filter(models.ServisTalebiFotograf.talep_id == talep_id).all()
+    
+    for foto in fotolar:
+        try:
+            # Fiziksel dosyayı sunucudan sil
+            if os.path.exists(foto.dosya_yolu):
+                os.remove(foto.dosya_yolu)
+        except:
+            pass # Dosya bulunamazsa takılma, devam et
+        
+        # Veritabanından sil
+        db.delete(foto)
+        
+    db.commit()
+    return {"mesaj": "Eski fotoğraflar başarıyla temizlendi."}
