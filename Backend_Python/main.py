@@ -1969,3 +1969,41 @@ def log_client_error(error: ClientErrorLog, db: Session = Depends(get_db)):
 #################################################################
 ##################### HASARLI RESİM EKLEME ######################
 #################################################################
+MaksimumFotoSayisi = 5
+@app.post("/servis-talepleri/{talep_id}/fotograf")
+async def fotograf_yukle(talep_id: int, db: Session = Depends(get_db), file: UploadFile = File(...)):
+    talep = db.query(models.ServisTalebi).filter(models.ServisTalebi.id == talep_id).first()
+    if not talep:
+        raise HTTPException(status_code=404, detail="Talep bulunamadı.")
+
+    mevcut_sayi = db.query(models.ServisTalebiFotograf).filter(models.ServisTalebiFotograf.talep_id == talep_id).count()
+    if mevcut_sayi >= MaksimumFotoSayisi:
+        raise HTTPException(status_code=400, detail=f"Bu talep için maksimum fotoğraf sınırına ({MaksimumFotoSayisi}) ulaşıldı.")
+
+    try:
+        # 1. Dosyayı belleğe al ve Pillow ile aç
+        contents = await file.read()
+        image = Image.open(io.BytesIO(contents))
+        
+        # 2. Şeffaflık (PNG) varsa arka planı beyaza çevirip JPEG'e hazırla
+        if image.mode in ("RGBA", "P"):
+            image = image.convert("RGB")
+
+        # 3. Boyutu küçült (Optimizasyon - max 1024x1024)
+        image.thumbnail((1024, 1024))
+        
+        # 4. Benzersiz isimle kaydet
+        dosya_adi = f"{uuid.uuid4().hex}.jpg"
+        dosya_yolu = os.path.join("HasarImg", dosya_adi)
+        image.save(dosya_yolu, "JPEG", quality=75) # Kalite %75 ile sıkıştırma
+
+        # 5. DB'ye yaz
+        yeni_foto = models.ServisTalebiFotograf(talep_id=talep_id, dosya_yolu=dosya_yolu)
+        db.add(yeni_foto)
+        db.commit()
+
+        return {"mesaj": "Fotoğraf başarıyla yüklendi", "dosya_yolu": dosya_yolu}
+    
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Fotoğraf işlenirken veya kaydedilirken sunucu hatası oluştu: {str(e)}")

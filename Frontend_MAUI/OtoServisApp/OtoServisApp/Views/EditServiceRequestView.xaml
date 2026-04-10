@@ -99,7 +99,7 @@
                     <Label Text="Yeni Hasar Fotoğrafı Ekle (Maks 3)" TextColor="#666666" FontSize="13" FontAttributes="Bold" VerticalOptions="Center"/>
                 </HorizontalStackLayout>
 
-                <Button Text="+ Fotoğraf Seç" Clicked="OnAddPhotoClicked" BackgroundColor="#E0F2F1" TextColor="#00796B" CornerRadius="8" HeightRequest="40" Margin="0,0,0,5"/>
+                <Button Text="+ Fotoğrafları Seç (Toplu)" Clicked="OnAddPhotoClicked" BackgroundColor="#E0F2F1" TextColor="#00796B" CornerRadius="8" HeightRequest="40" Margin="0,0,0,5"/>
 
                 <FlexLayout x:Name="PhotosContainer" BindableLayout.ItemsSource="{Binding SecilenFotograflar}" Wrap="Wrap" JustifyContent="Start">
                     <BindableLayout.ItemTemplate>
@@ -111,7 +111,7 @@
                         </DataTemplate>
                     </BindableLayout.ItemTemplate>
                 </FlexLayout>
-            </VerticalStackLayout>
+            </VerticalStackLayout> 
 
             <VerticalStackLayout x:Name="DuzeltmeTalebiFormu" Spacing="15" IsVisible="False">
                 <Label Text="Yöneticiye Düzeltme İletin" FontSize="16" FontAttributes="Bold" TextColor="#F57C00"/>

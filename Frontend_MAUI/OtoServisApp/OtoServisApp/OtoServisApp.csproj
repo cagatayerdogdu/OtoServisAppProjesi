@@ -85,7 +85,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="HasarImg\" />
     <Folder Include="Resources\AppIcon\" />
     <Folder Include="Resources\Splash\" />
   </ItemGroup>

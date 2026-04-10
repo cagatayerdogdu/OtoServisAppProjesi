@@ -701,34 +701,43 @@ namespace OtoServisApp.Services
             return null;
         }
         // Madde 72-Servis talebi ekranında aracın hasar fotolarını yükleyebilmesi gerekiyor.
-        public async Task<string> UploadHasarFotografAsync(int talepId, string filePath)
+        public async Task<string> UploadHasarFotografAsync(int talepId, Stream fileStream, string fileName)
         {
             try
             {
                 using var multipartFormContent = new MultipartFormDataContent();
-                var fileStreamContent = new StreamContent(File.OpenRead(filePath));
+
+                // YENİ REVİZE: Dosya yolu yerine Stream (Akış) kullanıyoruz, Android erişim engeli kalkıyor!
+                var fileStreamContent = new StreamContent(fileStream);
                 fileStreamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/jpeg");
-                multipartFormContent.Add(fileStreamContent, name: "file", fileName: Path.GetFileName(filePath));
+                multipartFormContent.Add(fileStreamContent, name: "file", fileName: fileName);
 
                 var response = await _httpClient.PostAsync($"/servis-talepleri/{talepId}/fotograf", multipartFormContent).ConfigureAwait(false);
 
                 if (response.IsSuccessStatusCode) return "OK";
 
-                // Hata mesajını ayrıştır (Daha önceki temizleme mantığımız)
+                // Hata mesajını ayrıştır (Dizi [array] olarak gelen 422 hatalarını da yakalar)
                 string rawError = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                string temizMesaj = "Sunucu fotoğrafı kabul etmedi.";
                 try
                 {
                     using var jsonDoc = JsonDocument.Parse(rawError);
                     var root = jsonDoc.RootElement;
                     if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("detail", out var detailElement))
-                        return detailElement.GetString();
+                    {
+                        if (detailElement.ValueKind == JsonValueKind.String)
+                            temizMesaj = detailElement.GetString();
+                        else if (detailElement.ValueKind == JsonValueKind.Array && detailElement.GetArrayLength() > 0)
+                            temizMesaj = detailElement[0].TryGetProperty("msg", out var msgProp) ? msgProp.GetString() : detailElement.ToString();
+                    }
                 }
                 catch { }
-                return "Sunucu fotoğrafı kabul etmedi.";
+
+                return temizMesaj;
             }
             catch (Exception ex)
             {
-                return $"Bağlantı Hatası: Fotoğraf yüklenirken internetiniz koptu veya sunucuya ulaşılamadı. ({ex.Message})";
+                return $"Bağlantı Hatası: Fotoğraf yüklenemedi. ({ex.Message})";
             }
         }
 

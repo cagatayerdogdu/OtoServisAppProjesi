@@ -13,7 +13,7 @@ public partial class CreateServiceRequestView : ContentPage
     private dynamic _secilenArac;
 
     // Hasar Resimleri için Parametrik değişkenimiz
-    private int MaksimumFotoSayisi = 3;
+    private int MaksimumFotoSayisi = 5;
     public System.Collections.ObjectModel.ObservableCollection<FileResult> SecilenFotograflar { get; set; } = new();
 
     public CreateServiceRequestView(Kullanici kullanici)
@@ -186,7 +186,18 @@ public partial class CreateServiceRequestView : ContentPage
 
             foreach (var foto in SecilenFotograflar)
             {
-                string uploadSonuc = await _apiService.UploadHasarFotografAsync(olusturulanTalepId, foto.FullPath);
+                using var stream = await foto.OpenReadAsync();
+
+                // --- YENİ REVİZE: Dosya İsimlendirme (Madde 2) ---
+                // Ad soyaddaki boşlukları kaldırıp temiz bir isim oluşturuyoruz
+                string temizAdSoyad = _aktifKullanici.ad_soyad.Replace(" ", "");
+                string uzanti = Path.GetExtension(foto.FileName);
+                // Format: KullanıcıAdSoyad-Talep_ID-Datetime.Now()
+                string ozelDosyaAdi = $"{temizAdSoyad}-{olusturulanTalepId}-{DateTime.Now.ToString("yyyyMMddHHmmss")}{uzanti}";
+
+                // Kendi oluşturduğumuz ismi API'ye gönderiyoruz
+                string uploadSonuc = await _apiService.UploadHasarFotografAsync(olusturulanTalepId, stream, ozelDosyaAdi);
+
                 if (uploadSonuc != "OK")
                 {
                     yuklenemeyen++;
@@ -249,6 +260,7 @@ public partial class CreateServiceRequestView : ContentPage
     }
 
     // Hasarlı Araç Resimleri Ekleme Fonksiyonu
+    // YENİ REVİZE: Toplu Seçim İşlemi (Madde 1)
     private async void OnAddPhotoClicked(object sender, EventArgs e)
     {
         if (SecilenFotograflar.Count >= MaksimumFotoSayisi)
@@ -259,15 +271,35 @@ public partial class CreateServiceRequestView : ContentPage
 
         try
         {
-            var photo = await MediaPicker.Default.PickPhotoAsync();
-            if (photo != null)
+            // MAUI'de toplu fotoğraf seçimi için FilePicker sınıfını sadece resimlere filtreleyerek yapılandırıyoruz
+            var options = new PickOptions
             {
-                SecilenFotograflar.Add(photo);
+                PickerTitle = "Hasar Fotoğraflarını Seçin",
+                FileTypes = FilePickerFileType.Images
+            };
+
+            // MediaPicker yerine FilePicker'ın çoklu seçim metodunu kullanıyoruz
+            var photos = await FilePicker.Default.PickMultipleAsync(options);
+
+            if (photos != null)
+            {
+                foreach (var photo in photos)
+                {
+                    if (SecilenFotograflar.Count < MaksimumFotoSayisi)
+                    {
+                        SecilenFotograflar.Add(photo);
+                    }
+                    else
+                    {
+                        await DisplayAlert("Bilgi", $"Maksimum {MaksimumFotoSayisi} fotoğraf sınırına ulaşıldı. Diğerleri eklenemedi.", "Tamam");
+                        break;
+                    }
+                }
             }
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Hata", "Fotoğraf seçilirken bir hata oluştu: " + ex.Message, "Tamam");
+            await DisplayAlert("Hata", "Fotoğraflar seçilirken bir hata oluştu: " + ex.Message, "Tamam");
         }
     }
 
