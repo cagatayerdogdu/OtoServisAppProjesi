@@ -166,35 +166,20 @@ public partial class EditServiceRequestView : ContentPage
 
     private async void OnKaydetClicked(object sender, EventArgs e)
     {
-        bool basarili = false;
-
+        // --- 1. KONTROLLER (Hızlıca dönmesi gerekenler burada kalır) ---
         if (_talep.durum == "Bekliyor")
         {
-            // Eski Kod: var secilenHizmet = HizmetPicker.SelectedItem as Hizmet;
-            // YENİ KOD:
             if (_secilenHizmet == null)
             {
                 await DisplayAlert("Hata", "Lütfen bir hizmet seçin.", "Tamam");
                 return;
             }
 
-            // YENİ: Picker yerine yeni değişkenden kontrol
             if (_secilenArac == null)
             {
                 await DisplayAlert("Hata", "Lütfen Araç seçimini yapın.", "Tamam");
                 return;
             }
-
-            basarili = await _apiService.ServisTalebiGuncelleAsync(
-                _talep.id,
-                _secilenHizmet.id,
-                _secilenArac.Id, // Dynamic objeden Id'yi alıyoruz
-                TarihPicker.Date.ToString("yyyy-MM-dd"),
-                AdresEditor.Text,
-                NotlarEditor.Text,
-                false,
-                ""
-            );
         }
         else if (_talep.durum == "Onaylandı" || _talep.durum == "İşlemde")
         {
@@ -203,61 +188,69 @@ public partial class EditServiceRequestView : ContentPage
                 await DisplayAlert("Hata", "Lütfen düzeltmek istediğiniz alanları yazın.", "Tamam");
                 return;
             }
-
-            basarili = await _apiService.ServisTalebiGuncelleAsync(
-                _talep.id, null, null, "", "", "",
-                true,
-                DuzeltmeNotuEditor.Text
-            );
         }
+
+        // --- 2. İŞLEM BAŞLADI: EKRANI KİLİTLE VE YÜKLEMEYİ GÖSTER ---
+        LoadingOverlay.IsVisible = true;
+        bool basarili = false;
+
         try
         {
+            // 3. ÖNCE VERİTABANI GÜNCELLEMESİ YAPILIR
+            if (_talep.durum == "Bekliyor")
+            {
+                basarili = await _apiService.ServisTalebiGuncelleAsync(
+                    _talep.id,
+                    _secilenHizmet.id,
+                    _secilenArac.Id,
+                    TarihPicker.Date.ToString("yyyy-MM-dd"),
+                    AdresEditor.Text,
+                    NotlarEditor.Text,
+                    false,
+                    ""
+                );
+            }
+            else if (_talep.durum == "Onaylandı" || _talep.durum == "İşlemde")
+            {
+                basarili = await _apiService.ServisTalebiGuncelleAsync(
+                    _talep.id, null, null, "", "", "",
+                    true,
+                    DuzeltmeNotuEditor.Text
+                );
+            }
+
+            // 4. SONRA FOTOĞRAF YÜKLEME İŞLEMİ YAPILIR
             if (basarili)
             {
                 int yuklenemeyen = 0;
                 string hataMesajlari = "";
 
-                // YENİ: Liste boş değilse yükleme işlemine başla
                 if (SecilenFotograflar != null && SecilenFotograflar.Count > 0)
                 {
-                    // YENİ MANTIK: Önce eski fotoğrafları sunucudan tamamen temizle
+                    // Eski fotoları temizle
                     await _apiService.EskiFotograflariTemizleAsync(_talep.id);
 
                     foreach (var foto in SecilenFotograflar)
                     {
                         using var stream = await foto.OpenReadAsync();
 
-                        // 1. ÇÖKME ÖNLEMİ: Kullanıcı objesi null gelme ihtimaline karşı
                         string temizAdSoyad = "Kullanici";
-                        if (_aktifKullanici != null &&
-                            !string.IsNullOrWhiteSpace(_aktifKullanici.ad_soyad))
+                        if (_aktifKullanici != null && !string.IsNullOrWhiteSpace(_aktifKullanici.ad_soyad))
                         {
                             temizAdSoyad = _aktifKullanici.ad_soyad.Replace(" ", "");
                         }
 
-                        // 2. ÇÖKME ÖNLEMİ: Telefondan dosya adı boş (null) gelebilir
-                        string uzanti = ".jpg"; // Varsayılan uzantı
+                        string uzanti = ".jpg";
                         if (foto != null && !string.IsNullOrWhiteSpace(foto.FileName))
                         {
                             uzanti = Path.GetExtension(foto.FileName);
                         }
+                        if (string.IsNullOrEmpty(uzanti)) uzanti = ".jpg";
 
-                        // Eğer telefondan uzantı okunamadıysa yine .jpg yap
-                        if (string.IsNullOrEmpty(uzanti))
-                        {
-                            uzanti = ".jpg";
-                        }
-
-                        // 3. Milisaniye (fff) ekleyerek aynı saniyedeki dosyaları ayır
                         string zaman = DateTime.Now.ToString("yyyyMMddHHmmssfff");
-                        string ozelDosyaAdi =
-                            $"{temizAdSoyad}-{_talep.id}-{zaman}{uzanti}";
+                        string ozelDosyaAdi = $"{temizAdSoyad}-{_talep.id}-{zaman}{uzanti}";
 
-                        // API'ye gönderim yapıyoruz
-                        string uploadSonuc = await _apiService.UploadHasarFotografAsync(
-                            _talep.id,
-                            stream,
-                            ozelDosyaAdi);
+                        string uploadSonuc = await _apiService.UploadHasarFotografAsync(_talep.id, stream, ozelDosyaAdi);
 
                         if (uploadSonuc != "OK")
                         {
@@ -271,19 +264,13 @@ public partial class EditServiceRequestView : ContentPage
                 // --- SONUÇ MESAJLARI ---
                 if (yuklenemeyen > 0)
                 {
-                    await DisplayAlert("Kısmi Başarılı",
-                        $"Talebiniz güncellendi ancak bazı fotoğraflar yüklenemedi:\n" +
-                        $"{hataMesajlari}",
-                        "Anladım");
+                    await DisplayAlert("Kısmi Başarılı", $"Talebiniz güncellendi ancak bazı fotoğraflar yüklenemedi:\n{hataMesajlari}", "Anladım");
                 }
                 else
                 {
-                    await DisplayAlert("Başarılı",
-                        "Talep bilgileriniz ve fotoğraflarınız başarıyla güncellendi.",
-                        "Tamam");
+                    await DisplayAlert("Başarılı", "Talep bilgileriniz ve fotoğraflarınız başarıyla güncellendi.", "Tamam");
                 }
 
-                // Anasayfaya dönüş
                 await Navigation.PopAsync();
             }
             else
@@ -293,7 +280,12 @@ public partial class EditServiceRequestView : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Hata", "Fotoğraf yükleme işlemi sırasında hata: " + ex.Message, "Tamam");
+            await DisplayAlert("Hata", "İşlem sırasında hata: " + ex.Message, "Tamam");
+        }
+        finally
+        {
+            // 5. İŞLEM BİTTİ: EKRAN KİLİDİNİ AÇ (Hata olsa da olmasa da çalışır)
+            LoadingOverlay.IsVisible = false;
         }
     }
 
