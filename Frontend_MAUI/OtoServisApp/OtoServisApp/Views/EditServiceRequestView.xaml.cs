@@ -222,24 +222,36 @@ public partial class EditServiceRequestView : ContentPage
                 string hataMesajlari = "";
 
                 // Eğer listeye fotoğraf eklendiyse, bunları sunucuya gönder
-                if (SecilenFotograflar.Any())
+                foreach (var foto in SecilenFotograflar)
                 {
-                    foreach (var foto in SecilenFotograflar)
+                    using var stream = await foto.OpenReadAsync();
+
+                    // --- YENİ REVİZE: Çökmeyi Engelleyen (Bulletproof) İsimlendirme ---
+
+                    // 1. Güvenlik: Kullanıcının Ad Soyad bilgisi veritabanında boş olabilir. Boşsa "Kullanici" yaz, doluysa boşlukları sil.
+                    string temizAdSoyad = string.IsNullOrWhiteSpace(_aktifKullanici?.ad_soyad)
+                                          ? "Kullanici"
+                                          : _aktifKullanici.ad_soyad.Replace(" ", "");
+
+                    // 2. Güvenlik: Dosya uzantısı telefondan okunamayabilir. Okunamazsa varsayılan olarak .jpg yap.
+                    string uzanti = Path.GetExtension(foto.FileName);
+                    if (string.IsNullOrEmpty(uzanti))
                     {
-                        using var stream = await foto.OpenReadAsync();
+                        uzanti = ".jpg";
+                    }
 
-                        // --- YENİ REVİZE: Dosya İsimlendirme (Madde 2) ---
-                        string temizAdSoyad = _aktifKullanici.ad_soyad.Replace(" ", "");
-                        string uzanti = Path.GetExtension(foto.FileName);
-                        string ozelDosyaAdi = $"{temizAdSoyad}-{_talep.id}-{DateTime.Now.ToString("yyyyMMddHHmmss")}{uzanti}";
+                    // 3. Güvenlik: Toplu seçimde 5 fotoğraf aynı saniyede yüklenir. 
+                    // Birbirlerini ezmemeleri için sonuna "fff" (Milisaniye) ekliyoruz.
+                    // Not: _talep.id kısmını Create sayfasında "olusturulanTalepId" olarak değiştirmeyi unutma!
+                    string ozelDosyaAdi = $"{temizAdSoyad}-{_talep.id}-{DateTime.Now.ToString("yyyyMMddHHmmssfff")}{uzanti}";
 
-                        string uploadSonuc = await _apiService.UploadHasarFotografAsync(_talep.id, stream, ozelDosyaAdi);
+                    // Servise kendi hazırladığımız özel ismi (ozelDosyaAdi) gönderiyoruz
+                    string uploadSonuc = await _apiService.UploadHasarFotografAsync(_talep.id, stream, ozelDosyaAdi);
 
-                        if (uploadSonuc != "OK")
-                        {
-                            yuklenemeyen++;
-                            hataMesajlari += $"- {foto.FileName}: {uploadSonuc}\n";
-                        }
+                    if (uploadSonuc != "OK")
+                    {
+                        yuklenemeyen++;
+                        hataMesajlari += $"- {foto.FileName}: {uploadSonuc}\n";
                     }
                 }
 

@@ -1993,7 +1993,12 @@ async def fotograf_yukle(talep_id: int, db: Session = Depends(get_db), file: Upl
         image.thumbnail((1024, 1024))
         
         # 4. Benzersiz isimle kaydet
-        dosya_adi = f"{uuid.uuid4().hex}.jpg"
+        # dosya_adi = f"{uuid.uuid4().hex}.jpg"
+        # YENİ REVİZE: C# tarafından gönderilen özel ismi kullanıyoruz
+        dosya_adi = file.filename        
+        # Güvenlik: Eğer uzantı yoksa otomatik .jpg ekle
+        if not dosya_adi.lower().endswith(('.png', '.jpg', '.jpeg')):
+            dosya_adi += ".jpg"
         dosya_yolu = os.path.join("HasarImg", dosya_adi)
         image.save(dosya_yolu, "JPEG", quality=75) # Kalite %75 ile sıkıştırma
 

@@ -188,14 +188,25 @@ public partial class CreateServiceRequestView : ContentPage
             {
                 using var stream = await foto.OpenReadAsync();
 
-                // --- YENİ REVİZE: Dosya İsimlendirme (Madde 2) ---
-                // Ad soyaddaki boşlukları kaldırıp temiz bir isim oluşturuyoruz
-                string temizAdSoyad = _aktifKullanici.ad_soyad.Replace(" ", "");
-                string uzanti = Path.GetExtension(foto.FileName);
-                // Format: KullanıcıAdSoyad-Talep_ID-Datetime.Now()
-                string ozelDosyaAdi = $"{temizAdSoyad}-{olusturulanTalepId}-{DateTime.Now.ToString("yyyyMMddHHmmss")}{uzanti}";
+                // --- YENİ REVİZE: Çökmeyi Engelleyen (Bulletproof) İsimlendirme ---
 
-                // Kendi oluşturduğumuz ismi API'ye gönderiyoruz
+                // 1. Güvenlik: Kullanıcının Ad Soyad bilgisi veritabanında boş olabilir. Boşsa "Kullanici" yaz, doluysa boşlukları sil.
+                string temizAdSoyad = string.IsNullOrWhiteSpace(_aktifKullanici?.ad_soyad)
+                                      ? "Kullanici"
+                                      : _aktifKullanici.ad_soyad.Replace(" ", "");
+
+                // 2. Güvenlik: Dosya uzantısı telefondan okunamayabilir. Okunamazsa varsayılan olarak .jpg yap.
+                string uzanti = Path.GetExtension(foto.FileName);
+                if (string.IsNullOrEmpty(uzanti))
+                {
+                    uzanti = ".jpg";
+                }
+
+                // 3. Güvenlik: Toplu seçimde 5 fotoğraf aynı saniyede yüklenir. 
+                // Birbirlerini ezmemeleri için sonuna "fff" (Milisaniye) ekliyoruz.
+                string ozelDosyaAdi = $"{temizAdSoyad}-{olusturulanTalepId}-{DateTime.Now.ToString("yyyyMMddHHmmssfff")}{uzanti}";
+
+                // Servise kendi hazırladığımız özel ismi (ozelDosyaAdi) gönderiyoruz
                 string uploadSonuc = await _apiService.UploadHasarFotografAsync(olusturulanTalepId, stream, ozelDosyaAdi);
 
                 if (uploadSonuc != "OK")
