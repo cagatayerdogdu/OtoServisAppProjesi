@@ -103,7 +103,7 @@
                         <Button BackgroundColor="Transparent" Clicked="OnAdminPanelClicked" />
                     </Grid>
 
-                    <Button x:Name="ChangePasswordButton" Text="Şifremi Değiştir" BackgroundColor="Transparent" TextColor="#2C3E50" BorderColor="#2C3E50" BorderWidth="1.5" CornerRadius="8" Margin="0,5,0,0" HeightRequest="50" FontAttributes="Bold" Clicked="OnChangePasswordClicked" />
+                    <Button x:Name="ChangePasswordButton" Text="Şifremi Değiştir" BackgroundColor="Transparent" TextColor="#00BCD4" BorderColor="#00BCD4" BorderWidth="1.5" CornerRadius="8" Margin="0,5,0,0" HeightRequest="50" FontAttributes="Bold" Clicked="OnChangePasswordClicked" />
 
                     <Button x:Name="DeleteAccountButton" Text="Hesabımı Sil" BackgroundColor="Transparent" TextColor="#D32F2F" BorderColor="#D32F2F" BorderWidth="1.5" CornerRadius="8" Margin="0,5,0,0" HeightRequest="50" FontAttributes="Bold" Clicked="OnHesapSilClicked" />
 
