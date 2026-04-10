@@ -22,6 +22,16 @@ public partial class RegisterView : ContentPage
         string sifre = PasswordEntry.Text?.Trim();
         string sifreTekrar = SifreTekrarEntry.Text?.Trim(); // YENİ: Tekrar alanı okundu
 
+        // --- YENİ REVİZE BAŞLANGICI: Şifre Uzunluk Kontrolü (Madde 71) ---
+        if (!string.IsNullOrEmpty(sifre) && sifre.Length < 6)
+        {
+            await DisplayAlert("Uyarı", "Güvenliğiniz için şifreniz en az 6 karakterden oluşmalıdır.", "Tamam");
+            PasswordEntry.Text = string.Empty;
+            SifreTekrarEntry.Text = string.Empty;
+            PasswordEntry.Focus();
+            return;
+        }
+
         // --- YENİ REVİZE BAŞLANGICI: Email Doğrulama (Madde 51) ---
         try
         {

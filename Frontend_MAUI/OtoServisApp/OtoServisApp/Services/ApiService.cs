@@ -29,7 +29,7 @@ namespace OtoServisApp.Services
             // Artık tünele gerek yok, doğrudan sunucuya bağlanıyoruz.
             _httpClient.BaseAddress = new Uri(ApiConfig.BaseUrl);
         }
-
+        /*
         public async Task<Kullanici> GirisYapAsync(string eposta, string sifre)
         {
             try
@@ -49,6 +49,58 @@ namespace OtoServisApp.Services
                 return null;
             }
         }
+        */
+        public async Task<Kullanici> GirisYapAsync(string eposta, string sifre)
+        {
+            try
+            {
+                // Senin orijinal yapın: JSON olarak veri gönderimi
+                var loginData = new { eposta = eposta, sifre = sifre };
+                var response = await _httpClient.PostAsJsonAsync("/giris/", loginData).ConfigureAwait(false);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    return JsonSerializer.Deserialize<Kullanici>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                }
+                else
+                {
+                    // --- YENİ REVİZE: Hata detayını ayrıştırıp fırlatma (Madde 73) ---
+                    string rawError = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    string temizMesaj = "Sunucu ile iletişim kurulamadı.";
+
+                    try
+                    {
+                        using var jsonDoc = JsonDocument.Parse(rawError);
+                        var root = jsonDoc.RootElement;
+
+                        if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("detail", out var detailElement))
+                        {
+                            temizMesaj = detailElement.ValueKind == JsonValueKind.String
+                                ? detailElement.GetString()
+                                : detailElement.ToString();
+                        }
+                    }
+                    catch
+                    {
+                        temizMesaj = rawError; // JSON okunamıyorsa düz metni ver
+                    }
+
+                    throw new Exception(temizMesaj);
+                }
+            }
+            catch (HttpRequestException)
+            {
+                throw new Exception("Sunucuya ulaşılamıyor. Lütfen internet bağlantınızı kontrol edin.");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Giriş hatası: {ex.Message}");
+                throw; // UI (LoginView) tarafında catch bloğuna düşmesi için hatayı fırlatıyoruz
+            }
+        }
+
+
 
         public async Task<Kullanici> KullaniciGuncelleAsync(int id, KullaniciUpdate guncelVeri)
         {

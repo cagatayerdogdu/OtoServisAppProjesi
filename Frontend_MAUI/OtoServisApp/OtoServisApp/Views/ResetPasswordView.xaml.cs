@@ -20,6 +20,17 @@ public partial class ResetPasswordView : ContentPage
         string sifre1 = NewPasswordEntry.Text?.Trim();
         string sifre2 = ConfirmPasswordEntry.Text?.Trim();
 
+        // --- YENİ REVİZE BAŞLANGICI: Şifre Uzunluk Kontrolü (Madde 71) ---
+        if (!string.IsNullOrEmpty(sifre1) && sifre1.Length < 6)
+        {
+            await DisplayAlert("Uyarı", "Güvenliğiniz için yeni şifreniz en az 6 karakterden oluşmalıdır.", "Tamam");
+            NewPasswordEntry.Text = string.Empty;
+            ConfirmPasswordEntry.Text = string.Empty;
+            NewPasswordEntry.Focus();
+            return;
+        }
+        // --- YENİ REVİZE BİTİŞİ ---
+
         if (string.IsNullOrEmpty(sifre1) || string.IsNullOrEmpty(sifre2))
         {
             await DisplayAlert("Hata", "Lütfen şifre alanlarını doldurun.", "Tamam");
