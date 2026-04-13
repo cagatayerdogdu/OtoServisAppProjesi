@@ -11,18 +11,24 @@
                       IndicatorView="indicatorView">
             <CarouselView.ItemTemplate>
                 <DataTemplate>
-                    <!-- Grid yerine ContentView kullanıyoruz (ClipToBounds destekler) -->
-                    <ContentView ClipToBounds="True">
-                        <Image Source="{Binding TamUrl}" 
+                    <!-- 1. AbsoluteLayout IsClippedToBounds'u DESTEKLER -->
+                    <AbsoluteLayout x:Name="PhotoContainer" 
+                                    IsClippedToBounds="True"
+                                    BackgroundColor="Transparent">
+
+                        <!-- 2. Resmi AbsoluteLayout'un tamamını kaplayacak şekilde yerleştiriyoruz -->
+                        <Image x:Name="ZoomableImage"
+                               Source="{Binding TamUrl}" 
                                Aspect="AspectFit" 
-                               HorizontalOptions="Fill" 
-                               VerticalOptions="Fill">
+                               AbsoluteLayout.LayoutBounds="0, 0, 1, 1"
+                               AbsoluteLayout.LayoutFlags="All">
                             <Image.GestureRecognizers>
                                 <PinchGestureRecognizer PinchUpdated="OnPinchUpdated" />
                                 <PanGestureRecognizer PanUpdated="OnPanUpdated" />
                             </Image.GestureRecognizers>
                         </Image>
-                    </ContentView>
+
+                    </AbsoluteLayout>
                 </DataTemplate>
             </CarouselView.ItemTemplate>
         </CarouselView>

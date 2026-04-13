@@ -18,7 +18,6 @@ public partial class FullScreenPhotoView : ContentPage
         FotoCarousel.Position = baslangicIndeksi;
     }
 
-    // --- ZOOM MANTIĞI (İYİLEŞTİRİLDİ) ---
     private void OnPinchUpdated(object sender, PinchGestureUpdatedEventArgs e)
     {
         var resim = sender as Image;
@@ -28,18 +27,14 @@ public partial class FullScreenPhotoView : ContentPage
         {
             isPinching = true;
             FotoCarousel.IsSwipeEnabled = false;
-
             startScale = resim.Scale;
         }
         else if (e.Status == GestureStatus.Running)
         {
-            // Matematiksel stabilite için çarpma kullanıyoruz
             double targetScale = startScale * e.Scale;
-            currentScale = Math.Clamp(targetScale, 1.0, 4.0); // .NET 6+ için Math.Clamp
+            currentScale = Math.Clamp(targetScale, 1.0, 4.0);
 
             resim.Scale = currentScale;
-
-            // Zoom yapılırken pan offset'lerini sıfırla ki resim ekranda merkezde dursun
             resim.TranslationX = 0;
             resim.TranslationY = 0;
             xOffset = 0;
@@ -49,7 +44,6 @@ public partial class FullScreenPhotoView : ContentPage
         {
             if (currentScale <= 1.05)
             {
-                // Orijinal boyuta dön
                 currentScale = 1;
                 resim.ScaleTo(1, 250, Easing.CubicInOut);
                 resim.TranslateTo(0, 0, 250, Easing.CubicInOut);
@@ -59,16 +53,13 @@ public partial class FullScreenPhotoView : ContentPage
             }
             else
             {
-                // Zoom bittiğinde mevcut konumu hafızaya al
                 xOffset = resim.TranslationX;
                 yOffset = resim.TranslationY;
             }
-
             isPinching = false;
         }
     }
 
-    // --- PAN MANTIĞI (SINIRLANDIRMA EKLENDİ) ---
     private void OnPanUpdated(object sender, PanUpdatedEventArgs e)
     {
         var resim = sender as Image;
@@ -76,17 +67,14 @@ public partial class FullScreenPhotoView : ContentPage
 
         if (e.StatusType == GestureStatus.Started)
         {
-            // Zıplamayı önlemek için başlangıç konumunu sakla
             xOffset = resim.TranslationX;
             yOffset = resim.TranslationY;
         }
         else if (e.StatusType == GestureStatus.Running)
         {
-            // Yeni konum hesapla
             double newX = xOffset + e.TotalX;
             double newY = yOffset + e.TotalY;
 
-            // ÇÖZÜM 2: Resmin sınırlarını hesaplayıp taşmayı engelle
             (double minX, double maxX, double minY, double maxY) = HesaplaSinirlar(resim);
 
             newX = Math.Clamp(newX, minX, maxX);
@@ -102,24 +90,19 @@ public partial class FullScreenPhotoView : ContentPage
         }
     }
 
-    // --- SINIR HESAPLAMA METODU ---
     private (double minX, double maxX, double minY, double maxY) HesaplaSinirlar(Image resim)
     {
-        // Görselin gerçek boyutları (piksel)
-        double imgWidth = resim.Width > 0 ? resim.Width : 300;  // Varsayılan değer
+        double imgWidth = resim.Width > 0 ? resim.Width : 300;
         double imgHeight = resim.Height > 0 ? resim.Height : 300;
 
-        // Scale sonrası boyutlar
         double scaledWidth = imgWidth * currentScale;
         double scaledHeight = imgHeight * currentScale;
 
-        // Parent ContentView boyutları
-        // Ekran (Grid) boyutları
-        var parentView = resim.Parent as ContentView;
-        double containerWidth = parentView?.Width ?? 300;
-        double containerHeight = parentView?.Height ?? 300;
+        // Parent artık AbsoluteLayout
+        var absoluteLayout = resim.Parent as AbsoluteLayout;
+        double containerWidth = absoluteLayout?.Width ?? 300;
+        double containerHeight = absoluteLayout?.Height ?? 300;
 
-        // Yatay sınır: Resim konteynırdan büyükse hareket alanı = (scaledWidth - containerWidth) / 2
         double maxOffsetX = Math.Max(0, (scaledWidth - containerWidth) / 2);
         double maxOffsetY = Math.Max(0, (scaledHeight - containerHeight) / 2);
 
