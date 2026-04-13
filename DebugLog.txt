@@ -1,0 +1,622 @@
+Start debugging Android application ...
+Forwarding debugger port 8871
+Detecting existing process
+> am start -a "android.intent.action.MAIN" -c "android.intent.category.LAUNCHER" -n "com.companyname.otoservisapp/crc649bb5a67142c0bd7f.MainActivity"
+> Starting: Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] cmp=com.companyname.otoservisapp/crc649bb5a67142c0bd7f.MainActivity }
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.Private.CoreLib.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/OtoServisApp.dll
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Mono.Android.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.Runtime.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Java.Interop.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.Runtime.InteropServices.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.Collections.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Mono.Android.Runtime.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.Threading.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.Threading.Thread.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.Diagnostics.StackTrace.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Microsoft.Maui.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.Memory.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.Reflection.Emit.Lightweight.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.Reflection.Emit.ILGeneration.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.Reflection.Primitives.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Microsoft.Maui.Essentials.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Xamarin.AndroidX.Core.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.ComponentModel.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Microsoft.Extensions.DependencyInjection.Abstractions.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.Console.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Microsoft.Maui.Controls.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.ObjectModel.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Microsoft.Maui.Controls.Xaml.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Microsoft.Extensions.Configuration.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Microsoft.Extensions.Configuration.Abstractions.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Microsoft.Extensions.Logging.Abstractions.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Microsoft.Extensions.Logging.Debug.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Microsoft.Maui.Graphics.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.Net.Http.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.Linq.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Xamarin.AndroidX.AppCompat.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Xamarin.Google.Android.Material.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Xamarin.AndroidX.SwipeRefreshLayout.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.ComponentModel.TypeConverter.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.Private.Uri.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.Collections.Concurrent.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Xamarin.AndroidX.Fragment.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Xamarin.AndroidX.Activity.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Xamarin.AndroidX.Lifecycle.ViewModel.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Xamarin.AndroidX.Lifecycle.Common.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Xamarin.AndroidX.SavedState.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Xamarin.AndroidX.DrawerLayout.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Xamarin.AndroidX.CustomView.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Xamarin.AndroidX.Navigation.Runtime.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.Net.Primitives.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Microsoft.Extensions.Logging.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Microsoft.Extensions.Options.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Microsoft.Extensions.DependencyInjection.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.Diagnostics.Tracing.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Plugin.Firebase.CloudMessaging.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.Diagnostics.DiagnosticSource.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.Security.Cryptography.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.Collections.NonGeneric.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.Net.Requests.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.Xml.ReaderWriter.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.Private.Xml.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.Text.Encoding.Extensions.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.Runtime.Loader.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.Numerics.Vectors.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Plugin.Firebase.Core.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Xamarin.AndroidX.RecyclerView.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Xamarin.AndroidX.CardView.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Xamarin.AndroidX.Loader.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/_Microsoft.Android.Resource.Designer.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/netstandard.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Xamarin.Firebase.Common.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Xamarin.AndroidX.CoordinatorLayout.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Xamarin.AndroidX.Lifecycle.LiveData.Core.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Xamarin.AndroidX.Navigation.Fragment.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Xamarin.AndroidX.Navigation.Common.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Xamarin.Kotlin.StdLib.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Microsoft.Extensions.Primitives.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.Linq.Expressions.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Xamarin.AndroidX.Emoji2.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Xamarin.AndroidX.Navigation.UI.dll [External]
+Thread started: <Thread Pool> #2
+Thread started: .NET TP Gate #3
+Thread started: <Thread Pool> #4
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Xamarin.AndroidX.Lifecycle.Runtime.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Xamarin.KotlinX.Coroutines.Core.Jvm.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Xamarin.Firebase.Messaging.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Xamarin.GooglePlayServices.Basement.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Xamarin.Google.Crypto.Tink.Android.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Xamarin.AndroidX.Security.SecurityCrypto.dll [External]
+Thread started:  #5
+[me.otoservisapp] Late-enabling -Xcheck:jni
+[me.otoservisapp] Using CollectorTypeCMC GC.
+[nativeloader] Load libframework-connectivity-tiramisu-jni.so using APEX ns com_android_tethering for caller /apex/com.android.tethering/javalib/framework-connectivity-t.jar: ok
+[CompatChangeReporter] Compat change id reported: 242716250; UID 10894; state: ENABLED
+[ApplicationLoaders] Returning zygote-cached class loader: /system/framework/org.apache.http.legacy.jar
+[ApplicationLoaders] Returning zygote-cached class loader: /system_ext/framework/androidx.window.extensions.jar
+[ApplicationLoaders] Returning zygote-cached class loader: /system_ext/framework/androidx.window.sidecar.jar
+[nativeloader] Configuring clns-9 for other apk /data/app/~~0nETW5IzLgL8Cg7q3MXMKg==/com.companyname.otoservisapp-xdFVWo8EhAyeZIWMV9Su_g==/base.apk. target_sdk_version=34, uses_libraries=, library_path=/data/app/~~0nETW5IzLgL8Cg7q3MXMKg==/com.companyname.otoservisapp-xdFVWo8EhAyeZIWMV9Su_g==/lib/arm64:/data/app/~~0nETW5IzLgL8Cg7q3MXMKg==/com.companyname.otoservisapp-xdFVWo8EhAyeZIWMV9Su_g==/base.apk!/lib/arm64-v8a, permitted_path=/data:/mnt/expand:/data/user/0/com.companyname.otoservisapp
+[GraphicsEnvironment] Currently set values for:
+[GraphicsEnvironment]   angle_gl_driver_selection_pkgs=[]
+[GraphicsEnvironment]   angle_gl_driver_selection_values=[]
+[GraphicsEnvironment] com.companyname.otoservisapp is not listed in per-application setting
+[GraphicsEnvironment] ANGLE allowlist from config: 
+[GraphicsEnvironment] com.companyname.otoservisapp is not listed in ANGLE allowlist or settings, returning default
+[GraphicsEnvironment] App is not on the allowlist for updatable production driver.
+[nativeloader] Load /data/app/~~0nETW5IzLgL8Cg7q3MXMKg==/com.companyname.otoservisapp-xdFVWo8EhAyeZIWMV9Su_g==/lib/arm64/libxamarin-debug-app-helper.so using class loader ns clns-9 (caller=/data/app/~~0nETW5IzLgL8Cg7q3MXMKg==/com.companyname.otoservisapp-xdFVWo8EhAyeZIWMV9Su_g==/base.apk!classes3.dex): ok
+[debug-app-helper] Checking if libmonodroid was unpacked to /data/app/~~0nETW5IzLgL8Cg7q3MXMKg==/com.companyname.otoservisapp-xdFVWo8EhAyeZIWMV9Su_g==/lib/arm64/libmonodroid.so
+[debug-app-helper] Native libs extracted to /data/app/~~0nETW5IzLgL8Cg7q3MXMKg==/com.companyname.otoservisapp-xdFVWo8EhAyeZIWMV9Su_g==/lib/arm64, assuming application/android:extractNativeLibs == true
+[debug-app-helper] Setting up for DSO lookup in app data directories
+[debug-app-helper] Added filesystem DSO lookup location: /data/app/~~0nETW5IzLgL8Cg7q3MXMKg==/com.companyname.otoservisapp-xdFVWo8EhAyeZIWMV9Su_g==/lib/arm64
+[debug-app-helper] Using runtime path: /data/app/~~0nETW5IzLgL8Cg7q3MXMKg==/com.companyname.otoservisapp-xdFVWo8EhAyeZIWMV9Su_g==/lib/arm64
+[debug-app-helper] checking directory: `/data/user/0/com.companyname.otoservisapp/files/.__override__/lib`
+[debug-app-helper] directory does not exist: `/data/user/0/com.companyname.otoservisapp/files/.__override__/lib`
+[debug-app-helper] Checking whether Mono runtime exists at: /data/user/0/com.companyname.otoservisapp/files/.__override__/libmonosgen-2.0.so
+[debug-app-helper] Checking whether Mono runtime exists at: /data/app/~~0nETW5IzLgL8Cg7q3MXMKg==/com.companyname.otoservisapp-xdFVWo8EhAyeZIWMV9Su_g==/lib/arm64/libmonosgen-2.0.so
+[debug-app-helper] Mono runtime found at: /data/app/~~0nETW5IzLgL8Cg7q3MXMKg==/com.companyname.otoservisapp-xdFVWo8EhAyeZIWMV9Su_g==/lib/arm64/libmonosgen-2.0.so
+[me.otoservisapp] Attempt to remove non-JNI local reference
+[nativeloader] Load /data/app/~~0nETW5IzLgL8Cg7q3MXMKg==/com.companyname.otoservisapp-xdFVWo8EhAyeZIWMV9Su_g==/lib/arm64/libxamarin-app.so using class loader ns clns-9 (caller=/data/app/~~0nETW5IzLgL8Cg7q3MXMKg==/com.companyname.otoservisapp-xdFVWo8EhAyeZIWMV9Su_g==/base.apk!classes3.dex): ok
+[nativeloader] Load /data/app/~~0nETW5IzLgL8Cg7q3MXMKg==/com.companyname.otoservisapp-xdFVWo8EhAyeZIWMV9Su_g==/lib/arm64/libSystem.Security.Cryptography.Native.Android.so using class loader ns clns-9 (caller=/data/app/~~0nETW5IzLgL8Cg7q3MXMKg==/com.companyname.otoservisapp-xdFVWo8EhAyeZIWMV9Su_g==/base.apk!classes3.dex): ok
+[DOTNET] JNI_OnLoad: JNI_OnLoad in pal_jni.c
+[DOTNET] GetOptionalClassGRef: optional class com/android/org/conscrypt/OpenSSLEngineImpl was not found
+[nativeloader] Load /data/app/~~0nETW5IzLgL8Cg7q3MXMKg==/com.companyname.otoservisapp-xdFVWo8EhAyeZIWMV9Su_g==/lib/arm64/libmonodroid.so using class loader ns clns-9 (caller=/data/app/~~0nETW5IzLgL8Cg7q3MXMKg==/com.companyname.otoservisapp-xdFVWo8EhAyeZIWMV9Su_g==/base.apk!classes3.dex): ok
+[monodroid] Creating public update directory: `/data/user/0/com.companyname.otoservisapp/files/.__override__`
+[me.otoservisapp] Attempt to remove non-JNI local reference
+[monodroid-debug] Trying to initialize the debugger with options: --debugger-agent=transport=dt_socket,loglevel=0,address=127.0.0.1:8871,server=y,embedding=1,timeout=1776090517
+[monodroid-assembly] open_from_bundles: failed to load assembly OtoServisApp.dll
+[monodroid-gc] GREF GC Threshold: 46080
+[monodroid-assembly] open_from_bundles: failed to load assembly Mono.Android.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly System.Runtime.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Java.Interop.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly System.Runtime.InteropServices.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly System.Collections.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Mono.Android.Runtime.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly System.Threading.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly System.Threading.Thread.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly System.Diagnostics.StackTrace.dll
+[me.otoservisapp] Attempt to remove non-JNI local reference
+[monodroid-assembly] open_from_bundles: failed to load assembly Microsoft.Maui.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly System.Memory.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly System.Reflection.Emit.Lightweight.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly System.Reflection.Emit.ILGeneration.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly System.Reflection.Primitives.dll
+[FirebaseApp] Device unlocked: initializing all Firebase APIs for app [DEFAULT]
+[FirebaseCrashlytics] Initializing Firebase Crashlytics 18.3.2 for com.companyname.otoservisapp
+[ashmem] Pinning is deprecated since Android Q. Please use trim or other methods.
+[CompatChangeReporter] Compat change id reported: 247079863; UID 10894; state: ENABLED
+[me.otoservisapp] ClassLoaderContext classpath size mismatch. expected=1, found=0 (DLC[];PCL[base.apk*3532740154]{PCL[/system/framework/org.apache.http.legacy.jar*2001478317]#PCL[/system/system_ext/framework/org.carconnectivity.android.digitalkey.rangingintent.jar*560278203]#PCL[/system/system_ext/framework/org.carconnectivity.android.digitalkey.secureelement.jar*3277496667]#PCL[/system_ext/framework/org.carconnectivity.android.digitalkey.timesync.jar*1887653037]#PCL[/system/framework/com.android.location.provider.jar*1570284764]#PCL[/system/framework/com.android.media.remotedisplay.jar*487574312]#PCL[/system_ext/framework/com.android.extensions.appfunctions.jar*2880224042]#PCL[/system_ext/framework/androidx.window.extensions.jar*3210150721]#PCL[/system_ext/framework/androidx.window.sidecar.jar*3925677193]} | DLC[];PCL[])
+[DynamiteModule] Considering local module com.google.android.gms.measurement.dynamite:92 and remote module com.google.android.gms.measurement.dynamite:182
+[DynamiteModule] Selected remote version of com.google.android.gms.measurement.dynamite, version >= 182
+[DynamiteModule] Dynamite loader version >= 2, using loadModule2NoCrashUtils
+[FirebaseInitProvider] FirebaseApp initialization successful
+[monodroid-assembly] open_from_bundles: failed to load assembly Microsoft.Maui.Essentials.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Xamarin.AndroidX.Core.dll
+[System] ClassLoader referenced unknown path: 
+[nativeloader] Configuring clns-10 for other apk . target_sdk_version=37, uses_libraries=, library_path=/data/app/~~oSh_wsxL3X1AHEf9wCSpGA==/com.google.android.gms-iOfj_jkpwlw1Qkio5VSbcQ==/lib/arm64:/data/app/~~oSh_wsxL3X1AHEf9wCSpGA==/com.google.android.gms-iOfj_jkpwlw1Qkio5VSbcQ==/base.apk!/lib/arm64-v8a, permitted_path=/data:/mnt/expand:/data/user/0/com.google.android.gms
+[me.otoservisapp] ClassLoaderContext classpath element checksum mismatch. expected=3532740154, found=1985763187 (DLC[];PCL[base.apk*3532740154]{PCL[/system/framework/org.apache.http.legacy.jar*2001478317]#PCL[/system/system_ext/framework/org.carconnectivity.android.digitalkey.rangingintent.jar*560278203]#PCL[/system/system_ext/framework/org.carconnectivity.android.digitalkey.secureelement.jar*3277496667]#PCL[/system_ext/framework/org.carconnectivity.android.digitalkey.timesync.jar*1887653037]#PCL[/system/framework/com.android.location.provider.jar*1570284764]#PCL[/system/framework/com.android.media.remotedisplay.jar*487574312]#PCL[/system_ext/framework/com.android.extensions.appfunctions.jar*2880224042]#PCL[/system_ext/framework/androidx.window.extensions.jar*3210150721]#PCL[/system_ext/framework/androidx.window.sidecar.jar*3925677193]} | DLC[];PCL[/data/app/~~0nETW5IzLgL8Cg7q3MXMKg==/com.companyname.otoservisapp-xdFVWo8EhAyeZIWMV9Su_g==/base.apk*1985763187]{PCL[/system/framework/org.apache.http.legacy.jar*2001478317]#PCL[/system_ext/framework/androidx.window.extensions.jar*3210150721]#PCL[/system_ext/framework/androidx.window.sidecar.jar*3925677193]})
+[me.otoservisapp] hiddenapi: Accessing hidden method Ldalvik/system/VMStack;->getStackClass2()Ljava/lang/Class; (runtime_flags=0, domain=core-platform, api=unsupported) from Lm7/aoz; (domain=app, TargetSdkVersion=34) using reflection: allowed
+[me.otoservisapp] No package ID 6a found for resource ID 0x6a0b0013.
+[FA] App measurement initialized, version: 158007
+[FA] To enable debug logging run: adb shell setprop log.tag.FA VERBOSE
+[FA] To enable faster debug mode event logging run:
+[FA]   adb shell setprop debug.firebase.analytics.app com.companyname.otoservisapp
+[FA] Tag Manager is not found and thus will not be used
+[monodroid-assembly] open_from_bundles: failed to load assembly System.ComponentModel.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Microsoft.Extensions.DependencyInjection.Abstractions.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly System.Console.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Microsoft.Maui.Controls.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly System.ObjectModel.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Microsoft.Maui.Controls.Xaml.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Microsoft.Extensions.Configuration.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Microsoft.Extensions.Configuration.Abstractions.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Microsoft.Extensions.Logging.Abstractions.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Microsoft.Extensions.Logging.Debug.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Microsoft.Maui.Graphics.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly System.Net.Http.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly System.Linq.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Xamarin.AndroidX.AppCompat.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Xamarin.Google.Android.Material.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Xamarin.AndroidX.SwipeRefreshLayout.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly System.ComponentModel.TypeConverter.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly System.Private.Uri.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly System.Collections.Concurrent.dll
+[me.otoservisapp] userfaultfd: MOVE ioctl seems unsupported: Connection timed out
+[monodroid-assembly] open_from_bundles: failed to load assembly Xamarin.AndroidX.Fragment.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Xamarin.AndroidX.Activity.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Xamarin.AndroidX.Lifecycle.ViewModel.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Xamarin.AndroidX.Lifecycle.Common.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Xamarin.AndroidX.SavedState.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Xamarin.AndroidX.DrawerLayout.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Xamarin.AndroidX.CustomView.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Xamarin.AndroidX.Navigation.Runtime.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly System.Net.Primitives.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Microsoft.Extensions.Logging.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Microsoft.Extensions.Options.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Microsoft.Extensions.DependencyInjection.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly System.Diagnostics.Tracing.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Plugin.Firebase.CloudMessaging.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly System.Diagnostics.DiagnosticSource.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly System.Security.Cryptography.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly System.Collections.NonGeneric.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly System.Net.Requests.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly System.Xml.ReaderWriter.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly System.Private.Xml.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly System.Text.Encoding.Extensions.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly tr-TR/System.Private.CoreLib.resources.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly tr-TR/System.Private.CoreLib.resources.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly tr/System.Private.CoreLib.resources.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly tr/System.Private.CoreLib.resources.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly System.Runtime.Loader.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly System.Numerics.Vectors.dll
+[me.otoservisapp] Explicit concurrent mark compact GC freed 252KB AllocSpace bytes, 0(0B) LOS objects, 88% free, 3044KB/26MB, paused 150us,1.380ms total 11.662ms
+[monodroid-assembly] open_from_bundles: failed to load assembly Plugin.Firebase.Core.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Xamarin.AndroidX.RecyclerView.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Xamarin.AndroidX.CardView.dll
+[Choreographer] Skipped 852 frames!  The application may be doing too much work on its main thread.
+[HWUI] HWUI - treat SMPTE_170M as sRGB
+[DisplayManager] Choreographer implicitly registered for the refresh rate.
+[HWUI] CacheManager constructor. deviceInfo=(1080, 1920)
+[AdrenoGLES-0] QUALCOMM build                   : 0c393b63cf, I94e2bd5684
+[AdrenoGLES-0] Build Date                       : 05/02/25
+[AdrenoGLES-0] OpenGL ES Shader Compiler Version: EV031.36.08.33
+[AdrenoGLES-0] Local Branch                     : 
+[AdrenoGLES-0] Remote Branch                    : refs/tags/AU_LINUX_ANDROID_LA.VENDOR.1.0.R1.11.00.00.816.269
+[AdrenoGLES-0] Remote Branch                    : NONE
+[AdrenoGLES-0] Reconstruct Branch               : NOTHING
+[AdrenoGLES-0] Build Config                     : S P 12.1.1 AArch64
+[AdrenoGLES-0] Driver Path                      : /vendor/lib64/egl/libGLESv2_adreno.so
+[AdrenoGLES-0] Driver Version                   : 0615.98
+[AdrenoGLES-0] PFP: 0x01730181, ME: 0x00000000
+[Adreno-AppProfiles] Could not find QSPM HAL service. Skipping adreno profile processing.
+[monodroid-assembly] open_from_bundles: failed to load assembly Xamarin.AndroidX.Loader.dll
+[AppCompatDelegate] Checking for metadata for AppLocalesMetadataHolderService : Service not found
+[monodroid-assembly] open_from_bundles: failed to load assembly _Microsoft.Android.Resource.Designer.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly netstandard.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Xamarin.Firebase.Common.dll
+[libc] Requested dump for pid 11519 (me.otoservisapp)
+[DesktopModeFlags] Toggle override initialized to: OVERRIDE_UNSET
+[monodroid-assembly] open_from_bundles: failed to load assembly Xamarin.AndroidX.CoordinatorLayout.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Xamarin.AndroidX.Lifecycle.LiveData.Core.dll
+[DecorView] setWindowBackground: isPopOver=false color=ff121212 d=android.graphics.drawable.ColorDrawable@187aef9
+[me.otoservisapp] hiddenapi: Accessing hidden method Landroid/view/View;->computeFitSystemWindows(Landroid/graphics/Rect;Landroid/graphics/Rect;)Z (runtime_flags=0, domain=platform, api=unsupported) from Landroidx/appcompat/widget/ViewUtils; (domain=app, TargetSdkVersion=34) using reflection: allowed
+[me.otoservisapp] hiddenapi: Accessing hidden method Landroid/view/ViewGroup;->makeOptionalFitsSystemWindows()V (runtime_flags=0, domain=platform, api=unsupported) from Landroidx/appcompat/widget/ViewUtils; (domain=app, TargetSdkVersion=34) using reflection: allowed
+[monodroid-assembly] open_from_bundles: failed to load assembly Xamarin.AndroidX.Navigation.Fragment.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Xamarin.AndroidX.Navigation.Common.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Xamarin.Kotlin.StdLib.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Microsoft.Extensions.Primitives.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly System.Linq.Expressions.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Xamarin.AndroidX.Emoji2.dll
+[ResourcesCompat] Failed to inflate ColorStateList, leaving it to the framework
+[ResourcesCompat] java.lang.UnsupportedOperationException: Failed to resolve attribute at index 0: TypedValue{t=0x2/d=0x7f030111 a=-1}, theme={InheritanceMap=[id=0x7f110137com.companyname.otoservisapp:style/Maui.MainTheme.NoActionBar, id=0x7f110136com.companyname.otoservisapp:style/Maui.MainTheme, id=0x7f110249com.companyname.otoservisapp:style/Theme.MaterialComponents.DayNight, id=0x7f110245com.companyname.otoservisapp:style/Theme.MaterialComponents, id=0x7f110062com.companyname.otoservisapp:style/Base.Theme.MaterialComponents, id=0x7f1100a2com.companyname.otoservisapp:style/Base.V21.Theme.MaterialComponents, id=0x7f11008ecom.companyname.otoservisapp:style/Base.V14.Theme.MaterialComponents, id=0x7f11008fcom.companyname.otoservisapp:style/Base.V14.Theme.MaterialComponents.Bridge, id=0x7f11013ecom.companyname.otoservisapp:style/Platform.MaterialComponents, id=0x7f11020ecom.companyname.otoservisapp:style/Theme.AppCompat, id=0x7f11004ccom.companyname.otoservisapp:style/Base.Theme.AppCompat, id=0x7f1100b5com.companyname.otoservisapp:style/Base.V28.Theme.AppCompat, id=0x7f1100b2com.companyname.otoservisapp:style/Base.V26.Theme.AppCompat, id=0x7f1100accom.companyname.otoservisapp:style/Base.V23.Theme.AppCompat, id=0x7f1100aacom.companyname.otoservisapp:style/Base.V22.Theme.AppCompat, id=0x7f11009ecom.companyname.otoservisapp:style/Base.V21.Theme.AppCompat, id=0x7f1100b7com.companyname.otoservisapp:style/Base.V7.Theme.AppCompat, id=0x7f11013ccom.companyname.otoservisapp:style/Platform.AppCompat, id=0x7f110147com.companyname.otoservisapp:style/Platform.V25.AppCompat, id=0x103022eandroid:style/Theme.Material.NoActionBar, id=0x1030224android:style/Theme.Material, id=0x1030005android:style/Theme], Themes=[com.companyname.otoservisapp:style/Maui.MainTheme.NoActionBar, forced, com.companyname.otoservisapp:style/Maui.SplashTheme, forced, com.companyname.otoservisapp:style/Theme.AppCompat.Empty, forced, android:style/Theme.DeviceDefault.Light.DarkActionBar, forced]}
+[ResourcesCompat] 	at android.content.res.TypedArray.getColor(TypedArray.java:536)
+[ResourcesCompat] 	at androidx.core.content.res.ColorStateListInflaterCompat.inflate(ColorStateListInflaterCompat.java:159)
+[ResourcesCompat] 	at androidx.core.content.res.ColorStateListInflaterCompat.createFromXmlInner(ColorStateListInflaterCompat.java:124)
+[ResourcesCompat] 	at androidx.core.content.res.ColorStateListInflaterCompat.createFromXml(ColorStateListInflaterCompat.java:103)
+[ResourcesCompat] 	at androidx.core.content.res.ResourcesCompat.inflateColorStateList(ResourcesCompat.java:264)
+[ResourcesCompat] 	at androidx.core.content.res.ResourcesCompat.getColorStateList(ResourcesCompat.java:238)
+[ResourcesCompat] 	at androidx.core.content.ContextCompat.getColorStateList(ContextCompat.java:508)
+[ResourcesCompat] 	at androidx.appcompat.content.res.AppCompatResources.getColorStateList(AppCompatResources.java:48)
+[ResourcesCompat] 	at androidx.appcompat.widget.TintTypedArray.getColorStateList(TintTypedArray.java:179)
+[ResourcesCompat] 	at androidx.appcompat.widget.AppCompatCompoundButtonHelper.loadFromAttributes(AppCompatCompoundButtonHelper.java:81)
+[ResourcesCompat] 	at androidx.appcompat.widget.AppCompatCheckBox.<init>(AppCompatCheckBox.java:84)
+[ResourcesCompat] 	at com.google.android.material.checkbox.MaterialCheckBox.<init>(MaterialCheckBox.java:231)
+[ResourcesCompat] 	at com.google.android.material.checkbox.MaterialCheckBox.<init>(MaterialCheckBox.java:227)
+[ResourcesCompat] 	at com.google.android.material.checkbox.MaterialCheckBox.<init>(MaterialCheckBox.java:223)
+[ResourcesCompat] 	at crc6452ffdc5b34af3a0f.NavigationViewFragment.n_onCreateView(Native Method)
+[ResourcesCompat] 	at crc6452ffdc5b34af3a0f.NavigationViewFragment.onCreateView(NavigationViewFragment.java:42)
+[ResourcesCompat] 	at androidx.fragment.app.Fragment.performCreateView(Fragment.java:3115)
+[ResourcesCompat] 	at androidx.fragment.app.FragmentStateManager.createView(FragmentStateManager.java:569)
+[ResourcesCompat] 	at androidx.fragment.app.FragmentStateManager.moveToExpectedState(FragmentStateManager.java:278)
+[ResourcesCompat] 	at androidx.fragment.app.FragmentManager.executeOpsTogether(FragmentManager.java:2103)
+[ResourcesCompat] 	at androidx.fragment.app.FragmentManager.removeRedundantOperationsAndExecute(FragmentManager.java:2004)
+[ResourcesCompat] 	at androidx.fragment.app.FragmentManager.execPendingActions(FragmentManager.java:1941)
+[ResourcesCompat] 	at androidx.fragment.app.FragmentManager.dispatchStateChange(FragmentManager.java:3206)
+[ResourcesCompat] 	at androidx.fragment.app.FragmentManager.dispatchViewCreated(FragmentManager.java:3109)
+[ResourcesCompat] 	at androidx.fragment.app.Fragment.performViewCreated(Fragment.java:3149)
+[ResourcesCompat] 	at androidx.fragment.app.FragmentStateManager.createView(FragmentStateManager.java:600)
+[ResourcesCompat] 	at androidx.fragment.app.FragmentStateManager.moveToExpectedState(FragmentStateManager.java:278)
+[ResourcesCompat] 	at androidx.fragment.app.FragmentStore.moveToExpectedState(FragmentStore.java:114)
+[ResourcesCompat] 	at androidx.fragment.app.FragmentManager.moveToState(FragmentManager.java:1614)
+[ResourcesCompat] 	at androidx.fragment.app.FragmentManager.dispatchStateChange(FragmentManager.java:3198)
+[ResourcesCompat] 	at androidx.fragment.app.FragmentManager.dispatchViewCreated(FragmentManager.java:3109)
+[ResourcesCompat] 	at androidx.fragment.app.Fragment.performViewCreated(Fragment.java:3149)
+[ResourcesCompat] 	at androidx.fragment.app.FragmentStateManager.createView(FragmentStateManager.java:600)
+[ResourcesCompat] 	at androidx.fragment.app.FragmentStateManager.moveToExpectedState(FragmentStateManager.java:278)
+[ResourcesCompat] 	at androidx.fragment.app.FragmentManager.executeOpsTogether(FragmentManager.java:2103)
+[ResourcesCompat] 	at androidx.fragment.app.FragmentManager.removeRedundantOperationsAndExecute(FragmentManager.java:2004)
+[ResourcesCompat] 	at androidx.fragment.app.FragmentManager.execPendingActions(FragmentManager.java:1941)
+[ResourcesCompat] 	at androidx.fragment.app.FragmentManager.dispatchStateChange(FragmentManager.java:3206)
+[ResourcesCompat] 	at androidx.fragment.app.FragmentManager.dispatchActivityCreated(FragmentManager.java:3116)
+[ResourcesCompat] 	at androidx.fragment.app.FragmentController.dispatchActivityCreated(FragmentController.java:263)
+[ResourcesCompat] 	at androidx.fragment.app.FragmentActivity.onStart(FragmentActivity.java:350)
+[ResourcesCompat] 	at androidx.appcompat.app.AppCompatActivity.onStart(AppCompatActivity.java:251)
+[ResourcesCompat] 	at android.app.Instrumentation.callActivityOnStart(Instrumentation.java:1699)
+[ResourcesCompat] 	at android.app.Activity.performStart(Activity.java:9562)
+[ResourcesCompat] 	at android.app.ActivityThread.handleStartActivity(ActivityThread.java:4744)
+[ResourcesCompat] 	at android.app.servertransaction.TransactionExecutor.performLifecycleSequence(TransactionExecutor.java:214)
+[ResourcesCompat] 	at android.app.servertransaction.TransactionExecutor.cycleToPath(TransactionExecutor.java:194)
+[ResourcesCompat] 	at android.app.servertransaction.TransactionExecutor.executeLifecycleItem(TransactionExecutor.java:166)
+[ResourcesCompat] 	at android.app.servertransaction.TransactionExecutor.executeTransactionItems(TransactionExecutor.java:101)
+[ResourcesCompat] 	at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:80)
+[ResourcesCompat] 	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:3150)
+[ResourcesCompat] 	at android.os.Handler.dispatchMessage(Handler.java:110)
+[ResourcesCompat] 	at android.os.Looper.loopOnce(Looper.java:273)
+[ResourcesCompat] 	at android.os.Looper.loop(Looper.java:363)
+[ResourcesCompat] 	at android.app.ActivityThread.main(ActivityThread.java:10060)
+[ResourcesCompat] 	at java.lang.reflect.Method.invoke(Native Method)
+[ResourcesCompat] 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:632)
+[ResourcesCompat] 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:975)
+[MaterialButton] MaterialButton manages its own background to control elevation, shape, color and states. Consider using backgroundTint, shapeAppearance and other attributes where available. A custom background will ignore these attributes and you should consider handling interaction states such as pressed, focused and disabled
+[monodroid-assembly] open_from_bundles: failed to load assembly Xamarin.AndroidX.Navigation.UI.dll
+[ViewRootImpl] desktopMode is false
+[ViewRootImpl] dVRR is disabled
+[HardwareRenderer] onDisplayChanged. displayId=0 current wxh=1080x2316 mLargest wxh=0x0
+[HWUI] setMaxSurfaceArea requested wxh=(1080,2316) requestedSurfaceArea(2501280) mMaxSurfaceArea(2073600)
+[HardwareRenderer] Set largestWidth and largestHeight as logical resolution. (1080x2316)
+[NativeCustomFrequencyManager] [NativeCFMS] BpCustomFrequencyManager::BpCustomFrequencyManager()
+[InputTransport] Input channel constructed: '58e3b4c', fd=142
+[InsetsController] onStateChanged: host=com.companyname.otoservisapp/crc649bb5a67142c0bd7f.MainActivity, from=android.view.ViewRootImpl.onInsetsStateChanged:3026, state=InsetsState: {mDisplayFrame=Rect(0, 0 - 1080, 2316), mDisplayCutout=DisplayCutout{insets=Rect(0, 75 - 0, 0) waterfall=Insets{left=0, top=0, right=0, bottom=0} boundingRect={Bounds=[Rect(0, 0 - 0, 0), Rect(512, 0 - 568, 75), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0)]} cutoutPathParserInfo={CutoutPathParserInfo{displayWidth=1080 displayHeight=2316 physicalDisplayWidth=1080 physicalDisplayHeight=2316 density={2.8125} cutoutSpec={M 0,0 H -10 V 26.66666666666667 H 10 V 0 H 0 Z @dp} rotation={0} scale={1.0} physicalPixelDisplaySizeRatio={1.0}}} sideOverrides={}}, mRoundedCorners=RoundedCorners{[RoundedCorner{position=TopLeft, radius=11, center=Point(11, 11)}, RoundedCorner{position=TopRight, radius=11, center=Point(1069, 11)}, RoundedCorner{position=BottomRight, radius=11, center=Point(1069, 2305)}, RoundedCorner{position=BottomLeft, radius=11, center=Point(11, 2305)}]}  mRoundedCornerFrame=Rect(0, 0 - 1080, 2316), mPrivacyIndicatorBounds=PrivacyIndicatorBounds {static bounds=Rect(964, 0 - 1080, 75) rotation=0}, mDisplayShape=DisplayShape{ spec=-311912193 displayWidth=1080 displayHeight=2316 physicalPixelDisplaySizeRatio=0.75 rotation=0 offsetX=0 offsetY=0 scale=1.0}, mSources= { InsetsSource: {b16e0000 mType=statusBars mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {b16e0005 mType=mandatorySystemGestures mFrame=[0,0][1080,107] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {b16e0006 mType=tappableElement mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {3 mType=ime mFrame=[0,0][0,0] mVisible=false mFlags= mSideHint=NONE mBoundingRects=null}, InsetsSource: {27 mType=displayCutout mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {7ad90001 mType=navigationBars mFrame=[0,2277][1080,2316] mVisible=true mFlags=SUPPRESS_SCRIM mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {7ad90004 mType=systemGestures mFrame=[0,0][78,2316] mVisible=true mFlags= mSideHint=LEFT mBoundingRects=null}, InsetsSource: {7ad90005 mType=mandatorySystemGestures mFrame=[0,2232][1080,2316] mVisible=true mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {7ad90006 mType=tappableElement mFrame=[0,0][0,0] mVisible=true mFlags= mSideHint=NONE mBoundingRects=null}, InsetsSource: {7ad90024 mType=systemGestures mFrame=[1002,0][1080,2316] mVisible=true mFlags= mSideHint=RIGHT mBoundingRects=null} }
+[VRI[MainActivity]@2b1801] synced displayState. AttachInfo displayState=2
+[VRI[MainActivity]@2b1801] setView = com.android.internal.policy.DecorView@667cb99 IsHRR=false mFlingFrameRateChange=0 TM=true
+[IDS_TAG] Starting IDS observe window
+[IDS_TAG] Getting Shared Preference for crc649bb5a67142c0bd7f.MainApplication@c609a36 uid = 10894
+[IDS_TAG] App crc649bb5a67142c0bd7f.MainApplication@c609a36 has not finished training
+[me.otoservisapp] hiddenapi: Accessing hidden method Landroid/os/WorkSource;->add(I)Z (runtime_flags=0, domain=platform, api=unsupported,test-api) from Lcom/google/android/gms/common/util/WorkSourceUtil; (domain=app, TargetSdkVersion=34) using reflection: allowed
+[me.otoservisapp] hiddenapi: Accessing hidden method Landroid/os/WorkSource;->add(ILjava/lang/String;)Z (runtime_flags=0, domain=platform, api=unsupported,test-api) from Lcom/google/android/gms/common/util/WorkSourceUtil; (domain=app, TargetSdkVersion=34) using reflection: allowed
+[me.otoservisapp] hiddenapi: Accessing hidden method Landroid/os/WorkSource;->get(I)I (runtime_flags=0, domain=platform, api=unsupported) from Lcom/google/android/gms/common/util/WorkSourceUtil; (domain=app, TargetSdkVersion=34) using reflection: allowed
+[me.otoservisapp] hiddenapi: Accessing hidden method Landroid/os/WorkSource;->getName(I)Ljava/lang/String; (runtime_flags=0, domain=platform, api=unsupported) from Lcom/google/android/gms/common/util/WorkSourceUtil; (domain=app, TargetSdkVersion=34) using reflection: allowed
+[HWUI] HWUI - treat SMPTE_170M as sRGB
+[IDS_TAG] Closing IDS observe window
+[IDS_TAG] Getting Shared Preference for crc649bb5a67142c0bd7f.MainApplication@c609a36 uid = 10894
+[IDS_TAG] IDS count updated to 1 for crc649bb5a67142c0bd7f.MainApplication@c609a36
+[monodroid-assembly] open_from_bundles: failed to load assembly Xamarin.AndroidX.Lifecycle.Runtime.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Xamarin.KotlinX.Coroutines.Core.Jvm.dll
+[me.otoservisapp] Compiler allocated 5066KB to compile void android.view.ViewRootImpl.performTraversals()
+[me.otoservisapp] Unable to open libpenguin.so: dlopen failed: library "libpenguin.so" not found.
+[libc] Access denied finding property "vendor.display.enable_optimal_refresh_rate"
+[BufferQueueProducer] [](id:2cff00000000,api:0,p:556294960,c:11519) setDequeueTimeout:2077252342
+[BLASTBufferQueue_Java] new BLASTBufferQueue, mName= VRI[MainActivity]@2b1801 mNativeObject= 0xb4000078512ae800 caller= android.view.ViewRootImpl.updateBlastSurfaceIfNeeded:3585 android.view.ViewRootImpl.relayoutWindow:11685 android.view.ViewRootImpl.performTraversals:4804 android.view.ViewRootImpl.doTraversal:3924 android.view.ViewRootImpl$TraversalRunnable.run:12903 android.view.Choreographer$CallbackRecord.run:1901 android.view.Choreographer$CallbackRecord.run:1910 android.view.Choreographer.doCallbacks:1367 android.view.Choreographer.doFrame:1292 android.view.Choreographer$FrameDisplayEventReceiver.run:1870 
+[BLASTBufferQueue_Java] update, w= 1080 h= 2316 mName = VRI[MainActivity]@2b1801 mNativeObject= 0xb4000078512ae800 sc.mNativeObject= 0xb400007711243350 format= -1 caller= android.view.ViewRootImpl.updateBlastSurfaceIfNeeded:3590 android.view.ViewRootImpl.relayoutWindow:11685 android.view.ViewRootImpl.performTraversals:4804 android.view.ViewRootImpl.doTraversal:3924 android.view.ViewRootImpl$TraversalRunnable.run:12903 android.view.Choreographer$CallbackRecord.run:1901 
+[libc] Access denied finding property "vendor.display.enable_optimal_refresh_rate"
+[VRI[MainActivity]@2b1801] Relayout returned: old=(0,0,1080,2316) new=(0,0,1080,2316) relayoutAsync=false req=(1080,2316)0 dur=7 res=0x3 s={true 0xb400007801293f50} ch=true seqId=0
+[VRI[MainActivity]@2b1801] performConfigurationChange setNightDimText nightDimLevel=0
+[VRI[MainActivity]@2b1801] mThreadedRenderer.initialize() mSurface={isValid=true 0xb400007801293f50} hwInitialized=true
+[VRI[MainActivity]@2b1801] reportNextDraw android.view.ViewRootImpl.performTraversals:5443 android.view.ViewRootImpl.doTraversal:3924 android.view.ViewRootImpl$TraversalRunnable.run:12903 android.view.Choreographer$CallbackRecord.run:1901 android.view.Choreographer$CallbackRecord.run:1910 
+[VRI[MainActivity]@2b1801] Setup new sync=wmsSync-VRI[MainActivity]@2b1801#0
+[VRI[MainActivity]@2b1801] Creating new active sync group VRI[MainActivity]@2b1801#1
+[VRI[MainActivity]@2b1801] registerCallbacksForSync syncBuffer=false
+[VRI[MainActivity]@2b1801] Received frameDrawingCallback syncResult=0 frameNum=1.
+[VRI[MainActivity]@2b1801] mWNT: t=0xb4000076e129fa50 mBlastBufferQueue=0xb4000078512ae800 fn= 1 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.ViewRootImpl$12.onFrameDraw:15441 android.view.ThreadedRenderer$1.onFrameDraw:718 <bottom of call stack> 
+[VRI[MainActivity]@2b1801] Setting up sync and frameCommitCallback
+[BLASTBufferQueue] [VRI[MainActivity]@2b1801#0](f:0,a:0,s:0) onFrameAvailable the first frame is available
+[SurfaceComposerClient] apply transaction with the first frame. layerId: 47957, bufferData(ID: 49473728282627, frameNumber: 1)
+[VRI[MainActivity]@2b1801] Received frameCommittedCallback lastAttemptedDrawFrameNum=1 didProduceBuffer=true
+[HWUI] CFMS:: SetUp Pid : 11519    Tid : 11993
+[VRI[MainActivity]@2b1801] reportDrawFinished seqId=0
+[monodroid-assembly] open_from_bundles: failed to load assembly Xamarin.Firebase.Messaging.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Xamarin.GooglePlayServices.Basement.dll
+[HWUI] Davey! duration=766ms; Flags=1, FrameTimelineVsyncId=35888285, IntendedVsync=149093379392184, Vsync=149093379392184, InputEventId=0, HandleInputStart=149093386409998, AnimationStart=149093386412602, PerformTraversalsStart=149093386413436, DrawStart=149093943652342, FrameDeadline=149093396058850, FrameStartTime=149093386402498, FrameInterval=16670025, WorkloadTarget=16666666, SyncQueued=149094006840675, SyncStart=149094006999529, IssueDrawCommandsStart=149094010730727, SwapBuffers=149094143164633, FrameCompleted=149094146170779, DequeueBufferDuration=17188, QueueBufferDuration=533802, GpuCompleted=149094146170779, SwapBuffersCompleted=149094144838071, DisplayPresentTime=0, CommandSubmissionCompleted=149094143164633, 
+[monodroid-assembly] open_from_bundles: failed to load assembly Xamarin.Google.Crypto.Tink.Android.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly Xamarin.AndroidX.Security.SecurityCrypto.dll
+[VRI[MainActivity]@2b1801] mThreadedRenderer.initializeIfNeeded()#2 mSurface={isValid=true 0xb400007801293f50}
+[InputMethodManagerUtils] startInputInner - Id : 0
+[InputMethodManager] startInputInner - IInputMethodManagerGlobalInvoker.startInputOrWindowGainedFocus
+[VRI[MainActivity]@2b1801] ViewPostIme pointer 0
+[InputTransport] Input channel constructed: 'ClientS', fd=156
+[VRI[MainActivity]@2b1801] call setFrameRateCategory for touch hint category=high hint, reason=touch, vri=VRI[MainActivity]@2b1801
+[VRI[MainActivity]@2b1801] ViewPostIme pointer 1
+[InputMethodManagerUtils] startInputInner - Id : 0
+[InputMethodManager] startInputInner - IInputMethodManagerGlobalInvoker.startInputOrWindowGainedFocus
+[AutofillManager] showAutofillDialog() return false due to improve fill dialog
+[InputMethodManager_LC] showSoftInput(View,I)
+[ImeTracker] com.companyname.otoservisapp:f232cacb: onRequestShow at ORIGIN_CLIENT reason SHOW_SOFT_INPUT fromUser true
+[InputMethodManager_LC] ssi(): flags=0 view=com.companyname.otoservisapp reason=SHOW_SOFT_INPUT
+[InsetsController] show(ime(), fromIme=false)
+[InsetsController] Setting requestedVisibleTypes to -1 (was -9)
+[InsetsController] setRequestedVisibleTypes: visible=true, mask=ime, host=com.companyname.otoservisapp/crc649bb5a67142c0bd7f.MainActivity, from=android.view.InsetsController.controlAnimationUnchecked:1604 android.view.InsetsController.applyAnimation:2416 android.view.InsetsController.applyAnimation:2343 android.view.InsetsController.show:1422 android.view.inputmethod.InputMethodManager.showSoftInput:2659 android.view.inputmethod.InputMethodManager.showSoftInput:2571 android.view.inputmethod.InputMethodManager.showSoftInput:2563 android.view.inputmethod.InputMethodManager.showSoftInput:2491 android.widget.TextView.onTouchEvent:14078 android.view.View.performOnTouchCallback:17234 
+[InsetsSourceConsumer] applyRequestedVisibilityToControl: visible=true, type=navigationBars, host=com.companyname.otoservisapp/crc649bb5a67142c0bd7f.MainActivity
+[InsetsSourceConsumer] applyRequestedVisibilityToControl: visible=true, type=statusBars, host=com.companyname.otoservisapp/crc649bb5a67142c0bd7f.MainActivity
+[InputTransport] Input channel constructed: 'ClientS', fd=157
+[Choreographer] Skipped 51 frames!  The application may be doing too much work on its main thread.
+[ProfileInstaller] Installing profile for com.companyname.otoservisapp
+[BLASTBufferQueue_Java] update, w= 1080 h= 2316 mName = VRI[MainActivity]@2b1801 mNativeObject= 0xb4000078512ae800 sc.mNativeObject= 0xb400007711243350 format= -1 caller= android.view.ViewRootImpl.updateBlastSurfaceIfNeeded:3574 android.view.ViewRootImpl.relayoutWindow:11685 android.view.ViewRootImpl.performTraversals:4804 android.view.ViewRootImpl.doTraversal:3924 android.view.ViewRootImpl$TraversalRunnable.run:12903 android.view.Choreographer$CallbackRecord.run:1901 
+[VRI[MainActivity]@2b1801] Relayout returned: old=(0,0,1080,2316) new=(0,0,1080,2316) relayoutAsync=true req=(1080,2316)0 dur=0 res=0x0 s={true 0xb400007801293f50} ch=false seqId=0
+[VRI[MainActivity]@2b1801] registerCallbackForPendingTransactions
+[me.otoservisapp] Explicit concurrent mark compact GC freed 3792KB AllocSpace bytes, 47(1684KB) LOS objects, 80% free, 5897KB/29MB, paused 271us,2.355ms total 27.850ms
+[InputMethodManager] handleMessage: setImeVisibility visible=false
+[InsetsController] hide(ime(), fromIme=false)
+[VRI[MainActivity]@2b1801] mWNT: t=0xb4000076e126bcd0 mBlastBufferQueue=0xb4000078512ae800 fn= 2 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.ViewRootImpl$10.onFrameDraw:6536 android.view.ViewRootImpl$4.onFrameDraw:2489 android.view.ThreadedRenderer$1.onFrameDraw:718 
+[InsetsController] Setting requestedVisibleTypes to -9 (was -1)
+[InsetsController] setRequestedVisibleTypes: visible=false, mask=ime, host=com.companyname.otoservisapp/crc649bb5a67142c0bd7f.MainActivity, from=android.view.InsetsController.controlAnimationUnchecked:1604 android.view.InsetsController.applyAnimation:2416 android.view.InsetsController.applyAnimation:2343 android.view.InsetsController.hide:1540 android.view.inputmethod.InputMethodManager$H.handleMessage:1569 android.os.Handler.dispatchMessage:110 android.os.Looper.loopOnce:273 android.os.Looper.loop:363 android.app.ActivityThread.main:10060 java.lang.reflect.Method.invoke:-2 
+[AssistStructure] Flattened final assist data: 3092 bytes, containing 1 windows, 20 views
+[VRI[MainActivity]@2b1801] handleResized, frames=ClientWindowFrames{frame=[0,0][1080,2316] display=[0,0][1080,2316] parentFrame=[0,0][0,0]} displayId=0 dragResizing=false compatScale=1.0 frameChanged=false attachedFrameChanged=false configChanged=false displayChanged=false compatScaleChanged=false dragResizingChanged=false
+[VRI[MainActivity]@2b1801] handleResized, frames=ClientWindowFrames{frame=[0,0][1080,2316] display=[0,0][1080,2316] parentFrame=[0,0][0,0]} displayId=0 dragResizing=false compatScale=1.0 frameChanged=false attachedFrameChanged=false configChanged=false displayChanged=false compatScaleChanged=false dragResizingChanged=false
+[HWUI] Davey! duration=1118ms; Flags=0, FrameTimelineVsyncId=35888792, IntendedVsync=149094813420952, Vsync=149095663628692, InputEventId=564365575, HandleInputStart=149095673825049, AnimationStart=149095673827497, PerformTraversalsStart=149095673828331, DrawStart=149095823070310, FrameDeadline=149094830087618, FrameStartTime=149095670965779, FrameInterval=16670740, WorkloadTarget=16666666, SyncQueued=149095908447654, SyncStart=149095908556351, IssueDrawCommandsStart=149095911732237, SwapBuffers=149095927847289, FrameCompleted=149095932402393, DequeueBufferDuration=21250, QueueBufferDuration=425312, GpuCompleted=149095932402393, SwapBuffersCompleted=149095930407966, DisplayPresentTime=0, CommandSubmissionCompleted=149095927847289, 
+[VRI[MainActivity]@2b1801] ViewPostIme pointer 0
+[WindowOnBackDispatcher] sendCancelIfRunning: isInProgress=false callback=android.view.ImeBackAnimationController@fee2af3
+[VRI[MainActivity]@2b1801] ViewPostIme pointer 1
+[AutofillManager] showAutofillDialog() return false due to improve fill dialog
+[InputMethodManager_LC] showSoftInput(View,I)
+[ImeTracker] com.companyname.otoservisapp:db1b26c2: onRequestShow at ORIGIN_CLIENT reason SHOW_SOFT_INPUT fromUser true
+[InputMethodManager_LC] ssi(): flags=0 view=com.companyname.otoservisapp reason=SHOW_SOFT_INPUT
+[InsetsController] show(ime(), fromIme=false)
+[InsetsController] Setting requestedVisibleTypes to -1 (was -9)
+[InsetsController] setRequestedVisibleTypes: visible=true, mask=ime, host=com.companyname.otoservisapp/crc649bb5a67142c0bd7f.MainActivity, from=android.view.InsetsController.controlAnimationUnchecked:1604 android.view.InsetsController.applyAnimation:2416 android.view.InsetsController.applyAnimation:2343 android.view.InsetsController.show:1422 android.view.inputmethod.InputMethodManager.showSoftInput:2659 android.view.inputmethod.InputMethodManager.showSoftInput:2571 android.view.inputmethod.InputMethodManager.showSoftInput:2563 android.view.inputmethod.InputMethodManager.showSoftInput:2491 android.widget.TextView.onTouchEvent:14078 android.view.View.performOnTouchCallback:17234 
+[VRI[MainActivity]@2b1801] handleResized, frames=ClientWindowFrames{frame=[0,0][1080,2316] display=[0,0][1080,2316] parentFrame=[0,0][0,0]} displayId=0 dragResizing=false compatScale=1.0 frameChanged=false attachedFrameChanged=false configChanged=false displayChanged=false compatScaleChanged=false dragResizingChanged=false
+[AssistStructure] Flattened final assist data: 3092 bytes, containing 1 windows, 20 views
+[InsetsController] onStateChanged: host=com.companyname.otoservisapp/crc649bb5a67142c0bd7f.MainActivity, from=android.view.ViewRootImpl.onInsetsStateChanged:3026, state=InsetsState: {mDisplayFrame=Rect(0, 0 - 1080, 2316), mDisplayCutout=DisplayCutout{insets=Rect(0, 75 - 0, 0) waterfall=Insets{left=0, top=0, right=0, bottom=0} boundingRect={Bounds=[Rect(0, 0 - 0, 0), Rect(512, 0 - 568, 75), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0)]} cutoutPathParserInfo={CutoutPathParserInfo{displayWidth=1080 displayHeight=2316 physicalDisplayWidth=1080 physicalDisplayHeight=2316 density={2.8125} cutoutSpec={M 0,0 H -10 V 26.66666666666667 H 10 V 0 H 0 Z @dp} rotation={0} scale={1.0} physicalPixelDisplaySizeRatio={1.0}}} sideOverrides={}}, mRoundedCorners=RoundedCorners{[RoundedCorner{position=TopLeft, radius=11, center=Point(11, 11)}, RoundedCorner{position=TopRight, radius=11, center=Point(1069, 11)}, RoundedCorner{position=BottomRight, radius=11, center=Point(1069, 2305)}, RoundedCorner{position=BottomLeft, radius=11, center=Point(11, 2305)}]}  mRoundedCornerFrame=Rect(0, 0 - 1080, 2316), mPrivacyIndicatorBounds=PrivacyIndicatorBounds {static bounds=Rect(964, 0 - 1080, 75) rotation=0}, mDisplayShape=DisplayShape{ spec=-311912193 displayWidth=1080 displayHeight=2316 physicalPixelDisplaySizeRatio=0.75 rotation=0 offsetX=0 offsetY=0 scale=1.0}, mSources= { InsetsSource: {b16e0000 mType=statusBars mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {b16e0005 mType=mandatorySystemGestures mFrame=[0,0][1080,107] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {b16e0006 mType=tappableElement mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {3 mType=ime mFrame=[0,1325][1080,2316] mVisible=true mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {27 mType=displayCutout mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {7ad90001 mType=navigationBars mFrame=[0,2277][1080,2316] mVisible=true mFlags=SUPPRESS_SCRIM mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {7ad90004 mType=systemGestures mFrame=[0,0][78,2316] mVisible=true mFlags= mSideHint=LEFT mBoundingRects=null}, InsetsSource: {7ad90005 mType=mandatorySystemGestures mFrame=[0,2232][1080,2316] mVisible=true mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {7ad90006 mType=tappableElement mFrame=[0,0][0,0] mVisible=true mFlags= mSideHint=NONE mBoundingRects=null}, InsetsSource: {7ad90024 mType=systemGestures mFrame=[1002,0][1080,2316] mVisible=true mFlags= mSideHint=RIGHT mBoundingRects=null} }
+[VRI[MainActivity]@2b1801] handleResized, frames=ClientWindowFrames{frame=[0,0][1080,2316] display=[0,0][1080,2316] parentFrame=[0,0][0,0]} displayId=0 dragResizing=false compatScale=1.0 frameChanged=false attachedFrameChanged=false configChanged=false displayChanged=false compatScaleChanged=false dragResizingChanged=false
+[InsetsController] onStateChanged: host=com.companyname.otoservisapp/crc649bb5a67142c0bd7f.MainActivity, from=android.view.ViewRootImpl.onInsetsStateChanged:3026, state=InsetsState: {mDisplayFrame=Rect(0, 0 - 1080, 2316), mDisplayCutout=DisplayCutout{insets=Rect(0, 75 - 0, 0) waterfall=Insets{left=0, top=0, right=0, bottom=0} boundingRect={Bounds=[Rect(0, 0 - 0, 0), Rect(512, 0 - 568, 75), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0)]} cutoutPathParserInfo={CutoutPathParserInfo{displayWidth=1080 displayHeight=2316 physicalDisplayWidth=1080 physicalDisplayHeight=2316 density={2.8125} cutoutSpec={M 0,0 H -10 V 26.66666666666667 H 10 V 0 H 0 Z @dp} rotation={0} scale={1.0} physicalPixelDisplaySizeRatio={1.0}}} sideOverrides={}}, mRoundedCorners=RoundedCorners{[RoundedCorner{position=TopLeft, radius=11, center=Point(11, 11)}, RoundedCorner{position=TopRight, radius=11, center=Point(1069, 11)}, RoundedCorner{position=BottomRight, radius=11, center=Point(1069, 2305)}, RoundedCorner{position=BottomLeft, radius=11, center=Point(11, 2305)}]}  mRoundedCornerFrame=Rect(0, 0 - 1080, 2316), mPrivacyIndicatorBounds=PrivacyIndicatorBounds {static bounds=Rect(964, 0 - 1080, 75) rotation=0}, mDisplayShape=DisplayShape{ spec=-311912193 displayWidth=1080 displayHeight=2316 physicalPixelDisplaySizeRatio=0.75 rotation=0 offsetX=0 offsetY=0 scale=1.0}, mSources= { InsetsSource: {b16e0000 mType=statusBars mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {b16e0005 mType=mandatorySystemGestures mFrame=[0,0][1080,107] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {b16e0006 mType=tappableElement mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {3 mType=ime mFrame=[0,1325][1080,2316] mVisible=true mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {27 mType=displayCutout mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {7ad90001 mType=navigationBars mFrame=[0,2277][1080,2316] mVisible=true mFlags=SUPPRESS_SCRIM mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {7ad90004 mType=systemGestures mFrame=[0,0][78,2316] mVisible=true mFlags= mSideHint=LEFT mBoundingRects=null}, InsetsSource: {7ad90005 mType=mandatorySystemGestures mFrame=[0,2232][1080,2316] mVisible=true mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {7ad90006 mType=tappableElement mFrame=[0,0][0,0] mVisible=true mFlags= mSideHint=NONE mBoundingRects=null}, InsetsSource: {7ad90024 mType=systemGestures mFrame=[1002,0][1080,2316] mVisible=true mFlags= mSideHint=RIGHT mBoundingRects=null} }
+[InsetsController] controlAnimationUncheckedInner: Added types=ime, animType=0, host=com.companyname.otoservisapp/crc649bb5a67142c0bd7f.MainActivity, from=android.view.InsetsController.controlAnimationUnchecked:1608 android.view.InsetsController.applyAnimation:2416 android.view.InsetsController.applyAnimation:2343 
+[BLASTBufferQueue_Java] update, w= 1080 h= 2316 mName = VRI[MainActivity]@2b1801 mNativeObject= 0xb4000078512ae800 sc.mNativeObject= 0xb400007711243350 format= -1 caller= android.view.ViewRootImpl.updateBlastSurfaceIfNeeded:3574 android.view.ViewRootImpl.relayoutWindow:11685 android.view.ViewRootImpl.performTraversals:4804 android.view.ViewRootImpl.doTraversal:3924 android.view.ViewRootImpl$TraversalRunnable.run:12903 android.view.Choreographer$CallbackRecord.run:1901 
+[VRI[MainActivity]@2b1801] Relayout returned: old=(0,0,1080,2316) new=(0,0,1080,2316) relayoutAsync=true req=(1080,2316)0 dur=0 res=0x0 s={true 0xb400007801293f50} ch=false seqId=0
+[InteractionJankMonitor] Initializing without READ_DEVICE_CONFIG permission. enabled=false, interval=1, missedFrameThreshold=3, frameTimeThreshold=64, package=com.companyname.otoservisapp
+[VRI[MainActivity]@2b1801] registerCallbackForPendingTransactions
+[VRI[MainActivity]@2b1801] mWNT: t=0xb4000076e12b3a90 mBlastBufferQueue=0xb4000078512ae800 fn= 6 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.ViewRootImpl$10.onFrameDraw:6536 android.view.ViewRootImpl$4.onFrameDraw:2489 android.view.ThreadedRenderer$1.onFrameDraw:718 
+[InsetsController] cancelAnimation: types=ime, animType=0, host=com.companyname.otoservisapp/crc649bb5a67142c0bd7f.MainActivity, from=android.view.InsetsController.notifyFinished:2006 android.view.InsetsAnimationThreadControlRunner$1.lambda$notifyFinished$0:82 android.view.InsetsAnimationThreadControlRunner$1.$r8$lambda$cDFF0h4Ncq-8EXdGszv69jrUu7c:0 
+[ImeTracker] system_server:13099ecf: onShown
+[ImeFocusController] onPreWindowFocus: skipped hasWindowFocus=false mHasImeFocus=true
+[ImeFocusController] onPostWindowFocus: skipped hasWindowFocus=false mHasImeFocus=true
+[ImeTracker] system_server:71163920: onCancelled at PHASE_CLIENT_ON_CONTROLS_CHANGED
+[WindowOnBackDispatcher] sendCancelIfRunning: isInProgress=false callback=android.view.ImeBackAnimationController@fee2af3
+[InputTransport] Input channel destroyed: 'ClientS', fd=156
+[InsetsController] onStateChanged: host=com.companyname.otoservisapp/crc649bb5a67142c0bd7f.MainActivity, from=android.view.ViewRootImpl.onInsetsStateChanged:3026, state=InsetsState: {mDisplayFrame=Rect(0, 0 - 1080, 2316), mDisplayCutout=DisplayCutout{insets=Rect(0, 75 - 0, 0) waterfall=Insets{left=0, top=0, right=0, bottom=0} boundingRect={Bounds=[Rect(0, 0 - 0, 0), Rect(512, 0 - 568, 75), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0)]} cutoutPathParserInfo={CutoutPathParserInfo{displayWidth=1080 displayHeight=2316 physicalDisplayWidth=1080 physicalDisplayHeight=2316 density={2.8125} cutoutSpec={M 0,0 H -10 V 26.66666666666667 H 10 V 0 H 0 Z @dp} rotation={0} scale={1.0} physicalPixelDisplaySizeRatio={1.0}}} sideOverrides={}}, mRoundedCorners=RoundedCorners{[RoundedCorner{position=TopLeft, radius=11, center=Point(11, 11)}, RoundedCorner{position=TopRight, radius=11, center=Point(1069, 11)}, RoundedCorner{position=BottomRight, radius=11, center=Point(1069, 2305)}, RoundedCorner{position=BottomLeft, radius=11, center=Point(11, 2305)}]}  mRoundedCornerFrame=Rect(0, 0 - 1080, 2316), mPrivacyIndicatorBounds=PrivacyIndicatorBounds {static bounds=Rect(964, 0 - 1080, 75) rotation=0}, mDisplayShape=DisplayShape{ spec=-311912193 displayWidth=1080 displayHeight=2316 physicalPixelDisplaySizeRatio=0.75 rotation=0 offsetX=0 offsetY=0 scale=1.0}, mSources= { InsetsSource: {b16e0000 mType=statusBars mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {b16e0005 mType=mandatorySystemGestures mFrame=[0,0][1080,107] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {b16e0006 mType=tappableElement mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {3 mType=ime mFrame=[0,1325][1080,2316] mVisible=false mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {27 mType=displayCutout mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {7ad90001 mType=navigationBars mFrame=[0,2277][1080,2316] mVisible=true mFlags=SUPPRESS_SCRIM mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {7ad90004 mType=systemGestures mFrame=[0,0][78,2316] mVisible=true mFlags= mSideHint=LEFT mBoundingRects=null}, InsetsSource: {7ad90005 mType=mandatorySystemGestures mFrame=[0,2232][1080,2316] mVisible=true mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {7ad90006 mType=tappableElement mFrame=[0,0][0,0] mVisible=true mFlags= mSideHint=NONE mBoundingRects=null}, InsetsSource: {7ad90024 mType=systemGestures mFrame=[1002,0][1080,2316] mVisible=true mFlags= mSideHint=RIGHT mBoundingRects=null} }
+[VRI[MainActivity]@2b1801] handleResized, frames=ClientWindowFrames{frame=[0,0][1080,2316] display=[0,0][1080,2316] parentFrame=[0,0][0,0]} displayId=0 dragResizing=false compatScale=1.0 frameChanged=false attachedFrameChanged=false configChanged=false displayChanged=false compatScaleChanged=false dragResizingChanged=false
+[InsetsController] onStateChanged: host=com.companyname.otoservisapp/crc649bb5a67142c0bd7f.MainActivity, from=android.view.ViewRootImpl.onInsetsStateChanged:3026, state=InsetsState: {mDisplayFrame=Rect(0, 0 - 1080, 2316), mDisplayCutout=DisplayCutout{insets=Rect(0, 75 - 0, 0) waterfall=Insets{left=0, top=0, right=0, bottom=0} boundingRect={Bounds=[Rect(0, 0 - 0, 0), Rect(512, 0 - 568, 75), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0)]} cutoutPathParserInfo={CutoutPathParserInfo{displayWidth=1080 displayHeight=2316 physicalDisplayWidth=1080 physicalDisplayHeight=2316 density={2.8125} cutoutSpec={M 0,0 H -10 V 26.66666666666667 H 10 V 0 H 0 Z @dp} rotation={0} scale={1.0} physicalPixelDisplaySizeRatio={1.0}}} sideOverrides={}}, mRoundedCorners=RoundedCorners{[RoundedCorner{position=TopLeft, radius=11, center=Point(11, 11)}, RoundedCorner{position=TopRight, radius=11, center=Point(1069, 11)}, RoundedCorner{position=BottomRight, radius=11, center=Point(1069, 2305)}, RoundedCorner{position=BottomLeft, radius=11, center=Point(11, 2305)}]}  mRoundedCornerFrame=Rect(0, 0 - 1080, 2316), mPrivacyIndicatorBounds=PrivacyIndicatorBounds {static bounds=Rect(964, 0 - 1080, 75) rotation=0}, mDisplayShape=DisplayShape{ spec=-311912193 displayWidth=1080 displayHeight=2316 physicalPixelDisplaySizeRatio=0.75 rotation=0 offsetX=0 offsetY=0 scale=1.0}, mSources= { InsetsSource: {b16e0000 mType=statusBars mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {b16e0005 mType=mandatorySystemGestures mFrame=[0,0][1080,107] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {b16e0006 mType=tappableElement mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {3 mType=ime mFrame=[0,1325][1080,2316] mVisible=false mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {27 mType=displayCutout mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {7ad90001 mType=navigationBars mFrame=[0,2277][1080,2316] mVisible=true mFlags=SUPPRESS_SCRIM mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {7ad90004 mType=systemGestures mFrame=[0,0][78,2316] mVisible=true mFlags= mSideHint=LEFT mBoundingRects=null}, InsetsSource: {7ad90005 mType=mandatorySystemGestures mFrame=[0,2232][1080,2316] mVisible=true mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {7ad90006 mType=tappableElement mFrame=[0,0][0,0] mVisible=true mFlags= mSideHint=NONE mBoundingRects=null}, InsetsSource: {7ad90024 mType=systemGestures mFrame=[1002,0][1080,2316] mVisible=true mFlags= mSideHint=RIGHT mBoundingRects=null} }
+[InsetsController] onStateChanged: host=com.companyname.otoservisapp/crc649bb5a67142c0bd7f.MainActivity, from=android.view.ViewRootImpl.onInsetsStateChanged:3026, state=InsetsState: {mDisplayFrame=Rect(0, 0 - 1080, 2316), mDisplayCutout=DisplayCutout{insets=Rect(0, 75 - 0, 0) waterfall=Insets{left=0, top=0, right=0, bottom=0} boundingRect={Bounds=[Rect(0, 0 - 0, 0), Rect(512, 0 - 568, 75), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0)]} cutoutPathParserInfo={CutoutPathParserInfo{displayWidth=1080 displayHeight=2316 physicalDisplayWidth=1080 physicalDisplayHeight=2316 density={2.8125} cutoutSpec={M 0,0 H -10 V 26.66666666666667 H 10 V 0 H 0 Z @dp} rotation={0} scale={1.0} physicalPixelDisplaySizeRatio={1.0}}} sideOverrides={}}, mRoundedCorners=RoundedCorners{[RoundedCorner{position=TopLeft, radius=11, center=Point(11, 11)}, RoundedCorner{position=TopRight, radius=11, center=Point(1069, 11)}, RoundedCorner{position=BottomRight, radius=11, center=Point(1069, 2305)}, RoundedCorner{position=BottomLeft, radius=11, center=Point(11, 2305)}]}  mRoundedCornerFrame=Rect(0, 0 - 1080, 2316), mPrivacyIndicatorBounds=PrivacyIndicatorBounds {static bounds=Rect(964, 0 - 1080, 75) rotation=0}, mDisplayShape=DisplayShape{ spec=-311912193 displayWidth=1080 displayHeight=2316 physicalPixelDisplaySizeRatio=0.75 rotation=0 offsetX=0 offsetY=0 scale=1.0}, mSources= { InsetsSource: {b16e0000 mType=statusBars mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {b16e0005 mType=mandatorySystemGestures mFrame=[0,0][1080,107] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {b16e0006 mType=tappableElement mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {3 mType=ime mFrame=[0,0][0,0] mVisible=false mFlags= mSideHint=NONE mBoundingRects=null}, InsetsSource: {27 mType=displayCutout mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {7ad90001 mType=navigationBars mFrame=[0,2277][1080,2316] mVisible=true mFlags=SUPPRESS_SCRIM mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {7ad90004 mType=systemGestures mFrame=[0,0][78,2316] mVisible=true mFlags= mSideHint=LEFT mBoundingRects=null}, InsetsSource: {7ad90005 mType=mandatorySystemGestures mFrame=[0,2232][1080,2316] mVisible=true mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {7ad90006 mType=tappableElement mFrame=[0,0][0,0] mVisible=true mFlags= mSideHint=NONE mBoundingRects=null}, InsetsSource: {7ad90024 mType=systemGestures mFrame=[1002,0][1080,2316] mVisible=true mFlags= mSideHint=RIGHT mBoundingRects=null} }
+[VRI[MainActivity]@2b1801] handleResized, frames=ClientWindowFrames{frame=[0,0][1080,2316] display=[0,0][1080,2316] parentFrame=[0,0][0,0]} displayId=0 dragResizing=false compatScale=1.0 frameChanged=false attachedFrameChanged=false configChanged=false displayChanged=false compatScaleChanged=false dragResizingChanged=false
+[VRI[MainActivity]@2b1801] call setFrameRateCategory for touch hint category=no preference, reason=boost timeout, vri=VRI[MainActivity]@2b1801
+[FA] Application backgrounded at: timestamp_millis: 1776090521130
+[InsetsSourceConsumer] applyRequestedVisibilityToControl: visible=true, type=navigationBars, host=com.companyname.otoservisapp/crc649bb5a67142c0bd7f.MainActivity
+[InsetsSourceConsumer] applyRequestedVisibilityToControl: visible=true, type=statusBars, host=com.companyname.otoservisapp/crc649bb5a67142c0bd7f.MainActivity
+[VRI[MainActivity]@2b1801] mThreadedRenderer.initializeIfNeeded()#2 mSurface={isValid=true 0xb400007801293f50}
+[InputMethodManagerUtils] startInputInner - Id : 0
+[InputMethodManager] startInputInner - IInputMethodManagerGlobalInvoker.startInputOrWindowGainedFocus
+[InputTransport] Input channel constructed: 'ClientS', fd=156
+[InsetsController] onStateChanged: host=com.companyname.otoservisapp/crc649bb5a67142c0bd7f.MainActivity, from=android.view.ViewRootImpl.onInsetsStateChanged:3026, state=InsetsState: {mDisplayFrame=Rect(0, 0 - 1080, 2316), mDisplayCutout=DisplayCutout{insets=Rect(0, 75 - 0, 0) waterfall=Insets{left=0, top=0, right=0, bottom=0} boundingRect={Bounds=[Rect(0, 0 - 0, 0), Rect(512, 0 - 568, 75), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0)]} cutoutPathParserInfo={CutoutPathParserInfo{displayWidth=1080 displayHeight=2316 physicalDisplayWidth=1080 physicalDisplayHeight=2316 density={2.8125} cutoutSpec={M 0,0 H -10 V 26.66666666666667 H 10 V 0 H 0 Z @dp} rotation={0} scale={1.0} physicalPixelDisplaySizeRatio={1.0}}} sideOverrides={}}, mRoundedCorners=RoundedCorners{[RoundedCorner{position=TopLeft, radius=11, center=Point(11, 11)}, RoundedCorner{position=TopRight, radius=11, center=Point(1069, 11)}, RoundedCorner{position=BottomRight, radius=11, center=Point(1069, 2305)}, RoundedCorner{position=BottomLeft, radius=11, center=Point(11, 2305)}]}  mRoundedCornerFrame=Rect(0, 0 - 1080, 2316), mPrivacyIndicatorBounds=PrivacyIndicatorBounds {static bounds=Rect(964, 0 - 1080, 75) rotation=0}, mDisplayShape=DisplayShape{ spec=-311912193 displayWidth=1080 displayHeight=2316 physicalPixelDisplaySizeRatio=0.75 rotation=0 offsetX=0 offsetY=0 scale=1.0}, mSources= { InsetsSource: {b16e0000 mType=statusBars mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {b16e0005 mType=mandatorySystemGestures mFrame=[0,0][1080,107] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {b16e0006 mType=tappableElement mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {3 mType=ime mFrame=[0,1325][1080,2316] mVisible=true mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {27 mType=displayCutout mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {7ad90001 mType=navigationBars mFrame=[0,2277][1080,2316] mVisible=true mFlags=SUPPRESS_SCRIM mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {7ad90004 mType=systemGestures mFrame=[0,0][78,2316] mVisible=true mFlags= mSideHint=LEFT mBoundingRects=null}, InsetsSource: {7ad90005 mType=mandatorySystemGestures mFrame=[0,2232][1080,2316] mVisible=true mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {7ad90006 mType=tappableElement mFrame=[0,0][0,0] mVisible=true mFlags= mSideHint=NONE mBoundingRects=null}, InsetsSource: {7ad90024 mType=systemGestures mFrame=[1002,0][1080,2316] mVisible=true mFlags= mSideHint=RIGHT mBoundingRects=null} }
+[VRI[MainActivity]@2b1801] handleResized, frames=ClientWindowFrames{frame=[0,0][1080,2316] display=[0,0][1080,2316] parentFrame=[0,0][0,0]} displayId=0 dragResizing=false compatScale=1.0 frameChanged=false attachedFrameChanged=false configChanged=false displayChanged=false compatScaleChanged=false dragResizingChanged=false
+[InsetsController] onStateChanged: host=com.companyname.otoservisapp/crc649bb5a67142c0bd7f.MainActivity, from=android.view.ViewRootImpl.onInsetsStateChanged:3026, state=InsetsState: {mDisplayFrame=Rect(0, 0 - 1080, 2316), mDisplayCutout=DisplayCutout{insets=Rect(0, 75 - 0, 0) waterfall=Insets{left=0, top=0, right=0, bottom=0} boundingRect={Bounds=[Rect(0, 0 - 0, 0), Rect(512, 0 - 568, 75), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0)]} cutoutPathParserInfo={CutoutPathParserInfo{displayWidth=1080 displayHeight=2316 physicalDisplayWidth=1080 physicalDisplayHeight=2316 density={2.8125} cutoutSpec={M 0,0 H -10 V 26.66666666666667 H 10 V 0 H 0 Z @dp} rotation={0} scale={1.0} physicalPixelDisplaySizeRatio={1.0}}} sideOverrides={}}, mRoundedCorners=RoundedCorners{[RoundedCorner{position=TopLeft, radius=11, center=Point(11, 11)}, RoundedCorner{position=TopRight, radius=11, center=Point(1069, 11)}, RoundedCorner{position=BottomRight, radius=11, center=Point(1069, 2305)}, RoundedCorner{position=BottomLeft, radius=11, center=Point(11, 2305)}]}  mRoundedCornerFrame=Rect(0, 0 - 1080, 2316), mPrivacyIndicatorBounds=PrivacyIndicatorBounds {static bounds=Rect(964, 0 - 1080, 75) rotation=0}, mDisplayShape=DisplayShape{ spec=-311912193 displayWidth=1080 displayHeight=2316 physicalPixelDisplaySizeRatio=0.75 rotation=0 offsetX=0 offsetY=0 scale=1.0}, mSources= { InsetsSource: {b16e0000 mType=statusBars mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {b16e0005 mType=mandatorySystemGestures mFrame=[0,0][1080,107] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {b16e0006 mType=tappableElement mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {3 mType=ime mFrame=[0,1325][1080,2316] mVisible=true mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {27 mType=displayCutout mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {7ad90001 mType=navigationBars mFrame=[0,2277][1080,2316] mVisible=true mFlags=SUPPRESS_SCRIM mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {7ad90004 mType=systemGestures mFrame=[0,0][78,2316] mVisible=true mFlags= mSideHint=LEFT mBoundingRects=null}, InsetsSource: {7ad90005 mType=mandatorySystemGestures mFrame=[0,2232][1080,2316] mVisible=true mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {7ad90006 mType=tappableElement mFrame=[0,0][0,0] mVisible=true mFlags= mSideHint=NONE mBoundingRects=null}, InsetsSource: {7ad90024 mType=systemGestures mFrame=[1002,0][1080,2316] mVisible=true mFlags= mSideHint=RIGHT mBoundingRects=null} }
+[InsetsController] controlAnimationUncheckedInner: Added types=ime, animType=0, host=com.companyname.otoservisapp/crc649bb5a67142c0bd7f.MainActivity, from=android.view.InsetsController.controlAnimationUnchecked:1608 android.view.InsetsController.applyAnimation:2416 android.view.InsetsController.applyAnimation:2343 
+[BLASTBufferQueue_Java] update, w= 1080 h= 2316 mName = VRI[MainActivity]@2b1801 mNativeObject= 0xb4000078512ae800 sc.mNativeObject= 0xb400007711243350 format= -1 caller= android.view.ViewRootImpl.updateBlastSurfaceIfNeeded:3574 android.view.ViewRootImpl.relayoutWindow:11685 android.view.ViewRootImpl.performTraversals:4804 android.view.ViewRootImpl.doTraversal:3924 android.view.ViewRootImpl$TraversalRunnable.run:12903 android.view.Choreographer$CallbackRecord.run:1901 
+[VRI[MainActivity]@2b1801] Relayout returned: old=(0,0,1080,2316) new=(0,0,1080,2316) relayoutAsync=true req=(1080,2316)0 dur=0 res=0x0 s={true 0xb400007801293f50} ch=false seqId=0
+[VRI[MainActivity]@2b1801] registerCallbackForPendingTransactions
+[VRI[MainActivity]@2b1801] mWNT: t=0xb4000076e128f3d0 mBlastBufferQueue=0xb4000078512ae800 fn= 13 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.ViewRootImpl$10.onFrameDraw:6536 android.view.ViewRootImpl$4.onFrameDraw:2489 android.view.ThreadedRenderer$1.onFrameDraw:718 
+[InsetsController] cancelAnimation: types=ime, animType=0, host=com.companyname.otoservisapp/crc649bb5a67142c0bd7f.MainActivity, from=android.view.InsetsController.notifyFinished:2006 android.view.InsetsAnimationThreadControlRunner$1.lambda$notifyFinished$0:82 android.view.InsetsAnimationThreadControlRunner$1.$r8$lambda$cDFF0h4Ncq-8EXdGszv69jrUu7c:0 
+[ImeTracker] system_server:88bd2271: onShown
+[ImeTracker] com.companyname.otoservisapp:8ca309eb: onRequestHide at ORIGIN_CLIENT reason HIDE_SOFT_INPUT_FROM_VIEW fromUser false
+[InputMethodManager_LC] hsifw() - flag : 0
+[InputMethodManager_LC] hsifw() - mService.hideSoftInput
+[InsetsController] hide(ime(), fromIme=false)
+[WindowOnBackDispatcher] sendCancelIfRunning: isInProgress=false callback=android.view.ImeBackAnimationController@fee2af3
+[InsetsController] Setting requestedVisibleTypes to -9 (was -1)
+[InsetsController] setRequestedVisibleTypes: visible=false, mask=ime, host=com.companyname.otoservisapp/crc649bb5a67142c0bd7f.MainActivity, from=android.view.InsetsController.controlAnimationUnchecked:1604 android.view.InsetsController.applyAnimation:2416 android.view.InsetsController.applyAnimation:2343 android.view.InsetsController.hide:1540 android.view.inputmethod.InputMethodManager.hideSoftInputFromWindow:2889 android.view.inputmethod.InputMethodManager.hideSoftInputFromView:2947 android.widget.TextView.onEditorAction:8774 com.android.internal.inputmethod.EditableInputConnection.performEditorAction:175 android.view.inputmethod.InputConnectionWrapper.performEditorAction:253 android.view.inputmethod.RemoteInputConnectionImpl.lambda$performEditorAction$22:761 
+[InsetsController] controlAnimationUncheckedInner: Added types=ime, animType=1, host=com.companyname.otoservisapp/crc649bb5a67142c0bd7f.MainActivity, from=android.view.InsetsController.controlAnimationUnchecked:1608 android.view.InsetsController.applyAnimation:2416 android.view.InsetsController.applyAnimation:2343 
+[BLASTBufferQueue_Java] update, w= 1080 h= 2316 mName = VRI[MainActivity]@2b1801 mNativeObject= 0xb4000078512ae800 sc.mNativeObject= 0xb400007711243350 format= -1 caller= android.view.ViewRootImpl.updateBlastSurfaceIfNeeded:3574 android.view.ViewRootImpl.relayoutWindow:11685 android.view.ViewRootImpl.performTraversals:4804 android.view.ViewRootImpl.doTraversal:3924 android.view.ViewRootImpl$TraversalRunnable.run:12903 android.view.Choreographer$CallbackRecord.run:1901 
+[VRI[MainActivity]@2b1801] Relayout returned: old=(0,0,1080,2316) new=(0,0,1080,2316) relayoutAsync=true req=(1080,2316)0 dur=1 res=0x0 s={true 0xb400007801293f50} ch=false seqId=0
+[InsetsController] cancelAnimation: types=ime, animType=1, host=com.companyname.otoservisapp/crc649bb5a67142c0bd7f.MainActivity, from=android.view.InsetsController.notifyFinished:2006 android.view.InsetsAnimationThreadControlRunner$1.lambda$notifyFinished$0:82 android.view.InsetsAnimationThreadControlRunner$1.$r8$lambda$cDFF0h4Ncq-8EXdGszv69jrUu7c:0 
+[InsetsController] onStateChanged: host=com.companyname.otoservisapp/crc649bb5a67142c0bd7f.MainActivity, from=android.view.ViewRootImpl.onInsetsStateChanged:3026, state=InsetsState: {mDisplayFrame=Rect(0, 0 - 1080, 2316), mDisplayCutout=DisplayCutout{insets=Rect(0, 75 - 0, 0) waterfall=Insets{left=0, top=0, right=0, bottom=0} boundingRect={Bounds=[Rect(0, 0 - 0, 0), Rect(512, 0 - 568, 75), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0)]} cutoutPathParserInfo={CutoutPathParserInfo{displayWidth=1080 displayHeight=2316 physicalDisplayWidth=1080 physicalDisplayHeight=2316 density={2.8125} cutoutSpec={M 0,0 H -10 V 26.66666666666667 H 10 V 0 H 0 Z @dp} rotation={0} scale={1.0} physicalPixelDisplaySizeRatio={1.0}}} sideOverrides={}}, mRoundedCorners=RoundedCorners{[RoundedCorner{position=TopLeft, radius=11, center=Point(11, 11)}, RoundedCorner{position=TopRight, radius=11, center=Point(1069, 11)}, RoundedCorner{position=BottomRight, radius=11, center=Point(1069, 2305)}, RoundedCorner{position=BottomLeft, radius=11, center=Point(11, 2305)}]}  mRoundedCornerFrame=Rect(0, 0 - 1080, 2316), mPrivacyIndicatorBounds=PrivacyIndicatorBounds {static bounds=Rect(964, 0 - 1080, 75) rotation=0}, mDisplayShape=DisplayShape{ spec=-311912193 displayWidth=1080 displayHeight=2316 physicalPixelDisplaySizeRatio=0.75 rotation=0 offsetX=0 offsetY=0 scale=1.0}, mSources= { InsetsSource: {b16e0000 mType=statusBars mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {b16e0005 mType=mandatorySystemGestures mFrame=[0,0][1080,107] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {b16e0006 mType=tappableElement mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {3 mType=ime mFrame=[0,1325][1080,2316] mVisible=false mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {27 mType=displayCutout mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {7ad90001 mType=navigationBars mFrame=[0,2277][1080,2316] mVisible=true mFlags=SUPPRESS_SCRIM mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {7ad90004 mType=systemGestures mFrame=[0,0][78,2316] mVisible=true mFlags= mSideHint=LEFT mBoundingRects=null}, InsetsSource: {7ad90005 mType=mandatorySystemGestures mFrame=[0,2232][1080,2316] mVisible=true mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {7ad90006 mType=tappableElement mFrame=[0,0][0,0] mVisible=true mFlags= mSideHint=NONE mBoundingRects=null}, InsetsSource: {7ad90024 mType=systemGestures mFrame=[1002,0][1080,2316] mVisible=true mFlags= mSideHint=RIGHT mBoundingRects=null} }
+[VRI[MainActivity]@2b1801] handleResized, frames=ClientWindowFrames{frame=[0,0][1080,2316] display=[0,0][1080,2316] parentFrame=[0,0][0,0]} displayId=0 dragResizing=false compatScale=1.0 frameChanged=false attachedFrameChanged=false configChanged=false displayChanged=false compatScaleChanged=false dragResizingChanged=false
+[InsetsSourceConsumer] applyRequestedVisibilityToControl: visible=true, type=navigationBars, host=com.companyname.otoservisapp/crc649bb5a67142c0bd7f.MainActivity
+[ImeTracker] system_server:d64c2ada: onCancelled at PHASE_CLIENT_ON_CONTROLS_CHANGED
+[VRI[MainActivity]@2b1801] registerCallbackForPendingTransactions
+[VRI[MainActivity]@2b1801] mWNT: t=0xb4000076e128add0 mBlastBufferQueue=0xb4000078512ae800 fn= 15 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.ViewRootImpl$10.onFrameDraw:6536 android.view.ViewRootImpl$4.onFrameDraw:2489 android.view.ThreadedRenderer$1.onFrameDraw:718 
+[VRI[MainActivity]@2b1801] ViewPostIme pointer 0
+[VRI[MainActivity]@2b1801] call setFrameRateCategory for touch hint category=high hint, reason=touch, vri=VRI[MainActivity]@2b1801
+[VRI[MainActivity]@2b1801] ViewPostIme pointer 1
+[monodroid-assembly] open_from_bundles: failed to load assembly System.Text.Json.dll
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.Text.Json.dll [External]
+[monodroid-assembly] open_from_bundles: failed to load assembly System.Net.Http.Json.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly System.Text.Encodings.Web.dll
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.Net.Http.Json.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.Text.Encodings.Web.dll [External]
+[monodroid-assembly] open_from_bundles: failed to load assembly System.Runtime.Intrinsics.dll
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.Runtime.Intrinsics.dll [External]
+Thread started: .NET Timer #6
+[InsetsController] onStateChanged: host=com.companyname.otoservisapp/crc649bb5a67142c0bd7f.MainActivity, from=android.view.ViewRootImpl.onInsetsStateChanged:3026, state=InsetsState: {mDisplayFrame=Rect(0, 0 - 1080, 2316), mDisplayCutout=DisplayCutout{insets=Rect(0, 75 - 0, 0) waterfall=Insets{left=0, top=0, right=0, bottom=0} boundingRect={Bounds=[Rect(0, 0 - 0, 0), Rect(512, 0 - 568, 75), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0)]} cutoutPathParserInfo={CutoutPathParserInfo{displayWidth=1080 displayHeight=2316 physicalDisplayWidth=1080 physicalDisplayHeight=2316 density={2.8125} cutoutSpec={M 0,0 H -10 V 26.66666666666667 H 10 V 0 H 0 Z @dp} rotation={0} scale={1.0} physicalPixelDisplaySizeRatio={1.0}}} sideOverrides={}}, mRoundedCorners=RoundedCorners{[RoundedCorner{position=TopLeft, radius=11, center=Point(11, 11)}, RoundedCorner{position=TopRight, radius=11, center=Point(1069, 11)}, RoundedCorner{position=BottomRight, radius=11, center=Point(1069, 2305)}, RoundedCorner{position=BottomLeft, radius=11, center=Point(11, 2305)}]}  mRoundedCornerFrame=Rect(0, 0 - 1080, 2316), mPrivacyIndicatorBounds=PrivacyIndicatorBounds {static bounds=Rect(964, 0 - 1080, 75) rotation=0}, mDisplayShape=DisplayShape{ spec=-311912193 displayWidth=1080 displayHeight=2316 physicalPixelDisplaySizeRatio=0.75 rotation=0 offsetX=0 offsetY=0 scale=1.0}, mSources= { InsetsSource: {b16e0000 mType=statusBars mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {b16e0005 mType=mandatorySystemGestures mFrame=[0,0][1080,107] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {b16e0006 mType=tappableElement mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {3 mType=ime mFrame=[0,0][0,0] mVisible=false mFlags= mSideHint=NONE mBoundingRects=null}, InsetsSource: {27 mType=displayCutout mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {7ad90001 mType=navigationBars mFrame=[0,2277][1080,2316] mVisible=true mFlags=SUPPRESS_SCRIM mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {7ad90004 mType=systemGestures mFrame=[0,0][78,2316] mVisible=true mFlags= mSideHint=LEFT mBoundingRects=null}, InsetsSource: {7ad90005 mType=mandatorySystemGestures mFrame=[0,2232][1080,2316] mVisible=true mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {7ad90006 mType=tappableElement mFrame=[0,0][0,0] mVisible=true mFlags= mSideHint=NONE mBoundingRects=null}, InsetsSource: {7ad90024 mType=systemGestures mFrame=[1002,0][1080,2316] mVisible=true mFlags= mSideHint=RIGHT mBoundingRects=null} }
+[VRI[MainActivity]@2b1801] handleResized, frames=ClientWindowFrames{frame=[0,0][1080,2316] display=[0,0][1080,2316] parentFrame=[0,0][0,0]} displayId=0 dragResizing=false compatScale=1.0 frameChanged=false attachedFrameChanged=false configChanged=false displayChanged=false compatScaleChanged=false dragResizingChanged=false
+Thread started: <Thread Pool> #7
+[monodroid-assembly] open_from_bundles: failed to load assembly System.IO.Compression.dll
+[monodroid-assembly] open_from_bundles: failed to load assembly System.IO.Compression.Brotli.dll
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.IO.Compression.dll [External]
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.IO.Compression.Brotli.dll [External]
+Thread started: <Thread Pool> #8
+[monodroid-assembly] open_from_bundles: failed to load assembly Xamarin.GooglePlayServices.Base.dll
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Xamarin.GooglePlayServices.Base.dll [External]
+[monodroid-assembly] open_from_bundles: failed to load assembly Xamarin.GooglePlayServices.Tasks.dll
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/Xamarin.GooglePlayServices.Tasks.dll [External]
+[me.otoservisapp] Explicit concurrent mark compact GC freed 2097KB AllocSpace bytes, 18(1552KB) LOS objects, 81% free, 5749KB/29MB, paused 235us,2.329ms total 25.295ms
+[InputTransport] Input channel destroyed: 'ClientS', fd=157
+[Dialog] mIsDeviceDefault = false, mIsSamsungBasicInteraction = false, isMetaDataInActivity = false
+[DecorView] setWindowBackground: isPopOver=false color=ff010102 d=android.graphics.drawable.InsetDrawable@1c6cade
+[ScrollView] initGoToTop
+[WindowManager] WindowManagerGlobal#addView, ty=2, view=com.android.internal.policy.DecorView{3f29ed5 V.E...... R.....I. 0,0-0,0}[Giriş Başarısız], caller=android.view.WindowManagerImpl.addView:158 android.app.Dialog.show:540 mono.java.lang.RunnableImplementor.n_run:-2 
+[ViewRootImpl] desktopMode is false
+[ViewRootImpl] dVRR is disabled
+[NativeCustomFrequencyManager] [NativeCFMS] BpCustomFrequencyManager::BpCustomFrequencyManager()
+[InputTransport] Input channel constructed: '606bd3a', fd=154
+[InsetsController] onStateChanged: host=Giriş Başarısız, from=android.view.ViewRootImpl.onInsetsStateChanged:3026, state=InsetsState: {mDisplayFrame=Rect(0, 0 - 1080, 2316), mDisplayCutout=DisplayCutout{insets=Rect(0, 75 - 0, 0) waterfall=Insets{left=0, top=0, right=0, bottom=0} boundingRect={Bounds=[Rect(0, 0 - 0, 0), Rect(512, 0 - 568, 75), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0)]} cutoutPathParserInfo={CutoutPathParserInfo{displayWidth=1080 displayHeight=2316 physicalDisplayWidth=1080 physicalDisplayHeight=2316 density={2.8125} cutoutSpec={M 0,0 H -10 V 26.66666666666667 H 10 V 0 H 0 Z @dp} rotation={0} scale={1.0} physicalPixelDisplaySizeRatio={1.0}}} sideOverrides={}}, mRoundedCorners=RoundedCorners{[RoundedCorner{position=TopLeft, radius=11, center=Point(11, 11)}, RoundedCorner{position=TopRight, radius=11, center=Point(1069, 11)}, RoundedCorner{position=BottomRight, radius=11, center=Point(1069, 2305)}, RoundedCorner{position=BottomLeft, radius=11, center=Point(11, 2305)}]}  mRoundedCornerFrame=Rect(0, 0 - 1080, 2316), mPrivacyIndicatorBounds=PrivacyIndicatorBounds {static bounds=Rect(964, 0 - 1080, 75) rotation=0}, mDisplayShape=DisplayShape{ spec=-311912193 displayWidth=1080 displayHeight=2316 physicalPixelDisplaySizeRatio=0.75 rotation=0 offsetX=0 offsetY=0 scale=1.0}, mSources= { InsetsSource: {b16e0000 mType=statusBars mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {b16e0005 mType=mandatorySystemGestures mFrame=[0,0][1080,107] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {b16e0006 mType=tappableElement mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {27 mType=displayCutout mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {7ad90001 mType=navigationBars mFrame=[0,2277][1080,2316] mVisible=true mFlags=SUPPRESS_SCRIM mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {7ad90004 mType=systemGestures mFrame=[0,0][78,2316] mVisible=true mFlags= mSideHint=LEFT mBoundingRects=null}, InsetsSource: {7ad90005 mType=mandatorySystemGestures mFrame=[0,2232][1080,2316] mVisible=true mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {7ad90006 mType=tappableElement mFrame=[0,0][0,0] mVisible=true mFlags= mSideHint=NONE mBoundingRects=null}, InsetsSource: {7ad90024 mType=systemGestures mFrame=[1002,0][1080,2316] mVisible=true mFlags= mSideHint=RIGHT mBoundingRects=null} }
+[VRI[Giriş Başarısız]@71c2bb5] synced displayState. AttachInfo displayState=2
+[VRI[Giriş Başarısız]@71c2bb5] setView = com.android.internal.policy.DecorView@3f29ed5 IsHRR=false mFlingFrameRateChange=0 TM=true
+[VRI[MainActivity]@2b1801] call setFrameRateCategory for touch hint category=no preference, reason=boost timeout, vri=VRI[MainActivity]@2b1801
+[HWUI] HWUI - treat SMPTE_170M as sRGB
+[libc] Access denied finding property "vendor.display.enable_optimal_refresh_rate"
+[BufferQueueProducer] [](id:2cff00000001,api:0,p:556439440,c:11519) setDequeueTimeout:2077252342
+[BLASTBufferQueue_Java] new BLASTBufferQueue, mName= VRI[Giriş Başarısız]@71c2bb5 mNativeObject= 0xb400007851391620 caller= android.view.ViewRootImpl.updateBlastSurfaceIfNeeded:3585 android.view.ViewRootImpl.relayoutWindow:11685 android.view.ViewRootImpl.performTraversals:4804 android.view.ViewRootImpl.doTraversal:3924 android.view.ViewRootImpl$TraversalRunnable.run:12903 android.view.Choreographer$CallbackRecord.run:1901 android.view.Choreographer$CallbackRecord.run:1910 android.view.Choreographer.doCallbacks:1367 android.view.Choreographer.doFrame:1292 android.view.Choreographer$FrameDisplayEventReceiver.run:1870 
+[BLASTBufferQueue_Java] update, w= 1192 h= 628 mName = VRI[Giriş Başarısız]@71c2bb5 mNativeObject= 0xb400007851391620 sc.mNativeObject= 0xb40000771124eed0 format= -3 caller= android.view.ViewRootImpl.updateBlastSurfaceIfNeeded:3590 android.view.ViewRootImpl.relayoutWindow:11685 android.view.ViewRootImpl.performTraversals:4804 android.view.ViewRootImpl.doTraversal:3924 android.view.ViewRootImpl$TraversalRunnable.run:12903 android.view.Choreographer$CallbackRecord.run:1901 
+[libc] Access denied finding property "vendor.display.enable_optimal_refresh_rate"
+[VRI[Giriş Başarısız]@71c2bb5] Relayout returned: old=(0,75,1080,2277) new=(28,946,1052,1406) relayoutAsync=false req=(1024,460)0 dur=12 res=0x3 s={true 0xb4000078012c5720} ch=true seqId=0
+[VRI[Giriş Başarısız]@71c2bb5] performConfigurationChange setNightDimText nightDimLevel=0
+[VRI[Giriş Başarısız]@71c2bb5] mThreadedRenderer.initialize() mSurface={isValid=true 0xb4000078012c5720} hwInitialized=true
+[ScrollView]  onsize change changed 
+[VRI[Giriş Başarısız]@71c2bb5] reportNextDraw android.view.ViewRootImpl.performTraversals:5443 android.view.ViewRootImpl.doTraversal:3924 android.view.ViewRootImpl$TraversalRunnable.run:12903 android.view.Choreographer$CallbackRecord.run:1901 android.view.Choreographer$CallbackRecord.run:1910 
+[VRI[Giriş Başarısız]@71c2bb5] Setup new sync=wmsSync-VRI[Giriş Başarısız]@71c2bb5#2
+[VRI[Giriş Başarısız]@71c2bb5] Creating new active sync group VRI[Giriş Başarısız]@71c2bb5#3
+[VRI[Giriş Başarısız]@71c2bb5] registerCallbacksForSync syncBuffer=false
+[VRI[Giriş Başarısız]@71c2bb5] Received frameDrawingCallback syncResult=0 frameNum=1.
+[VRI[Giriş Başarısız]@71c2bb5] mWNT: t=0xb4000076e128a890 mBlastBufferQueue=0xb400007851391620 fn= 1 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.ViewRootImpl$12.onFrameDraw:15441 android.view.ThreadedRenderer$1.onFrameDraw:718 <bottom of call stack> 
+[VRI[Giriş Başarısız]@71c2bb5] Setting up sync and frameCommitCallback
+[BLASTBufferQueue] [VRI[Giriş Başarısız]@71c2bb5#1](f:0,a:0,s:0) onFrameAvailable the first frame is available
+[SurfaceComposerClient] apply transaction with the first frame. layerId: 48019, bufferData(ID: 49473728282631, frameNumber: 1)
+[VRI[Giriş Başarısız]@71c2bb5] Received frameCommittedCallback lastAttemptedDrawFrameNum=1 didProduceBuffer=true
+[HWUI] CFMS:: SetUp Pid : 11519    Tid : 11993
+[VRI[Giriş Başarısız]@71c2bb5] reportDrawFinished seqId=0
+[InsetsSourceConsumer] applyRequestedVisibilityToControl: visible=true, type=navigationBars, host=Giriş Başarısız
+[InsetsSourceConsumer] applyRequestedVisibilityToControl: visible=true, type=statusBars, host=Giriş Başarısız
+[ImeFocusController] onPreWindowFocus: skipped hasWindowFocus=false mHasImeFocus=true
+[ImeFocusController] onPostWindowFocus: skipped hasWindowFocus=false mHasImeFocus=true
+[VRI[Giriş Başarısız]@71c2bb5] mThreadedRenderer.initializeIfNeeded()#2 mSurface={isValid=true 0xb4000078012c5720}
+[ImeFocusController] onPreWindowFocus: skipped hasWindowFocus=true mHasImeFocus=false
+[ImeFocusController] onPostWindowFocus: skipped hasWindowFocus=true mHasImeFocus=false
+Thread finished: <Thread Pool> #4
+The thread 4 has exited with code 0 (0x0).
+The thread 2 has exited with code 0 (0x0).
+Thread finished: <Thread Pool> #2
+Thread finished: <Thread Pool> #7
+Thread finished: <Thread Pool> #8
+The thread 7 has exited with code 0 (0x0).
+The thread 8 has exited with code 0 (0x0).
+Thread finished:  #5
+The thread 5 has exited with code 0 (0x0).
+Thread started: <Thread Pool> #9
+Thread started: <Thread Pool> #10
+[VRI[Giriş Başarısız]@71c2bb5] ViewPostIme pointer 0
+[VRI[Giriş Başarısız]@71c2bb5] call setFrameRateCategory for touch hint category=high hint, reason=touch, vri=VRI[Giriş Başarısız]@71c2bb5
+[VRI[Giriş Başarısız]@71c2bb5] ViewPostIme pointer 1
+[WindowManager] WindowManagerGlobal#removeView, ty=2, view=com.android.internal.policy.DecorView{3f29ed5 V.E...... R......D 0,0-1024,460}[Giriş Başarısız], caller=android.view.WindowManagerGlobal.removeView:654 android.view.WindowManagerImpl.removeViewImmediate:216 android.app.Dialog.dismissDialog:850 
+[WindowOnBackDispatcher] sendCancelIfRunning: isInProgress=false callback=android.view.ViewRootImpl$$ExternalSyntheticLambda16@7deec84
+[HWUI] endAllActiveAnimators on 0xb4000078012c4a40 (RippleDrawable) with handle 0xb400007731c0faf0
+[VRI[Giriş Başarısız]@71c2bb5] dispatchDetachedFromWindow
+[InputTransport] Input channel destroyed: '606bd3a', fd=154
+[InsetsSourceConsumer] applyRequestedVisibilityToControl: visible=true, type=navigationBars, host=com.companyname.otoservisapp/crc649bb5a67142c0bd7f.MainActivity
+[InsetsSourceConsumer] applyRequestedVisibilityToControl: visible=true, type=statusBars, host=com.companyname.otoservisapp/crc649bb5a67142c0bd7f.MainActivity
+[VRI[MainActivity]@2b1801] mThreadedRenderer.initializeIfNeeded()#2 mSurface={isValid=true 0xb400007801293f50}
+[InputMethodManager] startInputAsyncOnWindowFocusGain - IInputMethodManagerGlobalInvoker.startInputOrWindowGainedFocus
+[VRI[MainActivity]@2b1801] ViewPostIme pointer 0
+[VRI[MainActivity]@2b1801] call setFrameRateCategory for touch hint category=high hint, reason=touch, vri=VRI[MainActivity]@2b1801
+[VRI[MainActivity]@2b1801] ViewPostIme pointer 1
+Thread started: <Thread Pool> #11
+Thread started: <Thread Pool> #12
+[me.otoservisapp] Explicit concurrent mark compact GC freed 1178KB AllocSpace bytes, 9(868KB) LOS objects, 80% free, 6078KB/29MB, paused 124us,1.431ms total 17.274ms
+[me.otoservisapp] Explicit concurrent mark compact GC freed 220KB AllocSpace bytes, 4(368KB) LOS objects, 80% free, 5882KB/29MB, paused 129us,1.434ms total 18.682ms
+[Dialog] mIsDeviceDefault = false, mIsSamsungBasicInteraction = false, isMetaDataInActivity = false
+[DecorView] setWindowBackground: isPopOver=false color=ff010102 d=android.graphics.drawable.InsetDrawable@7374f95
+[ScrollView] initGoToTop
+[WindowManager] WindowManagerGlobal#addView, ty=2, view=com.android.internal.policy.DecorView{b51d838 V.E...... R.....I. 0,0-0,0}[Giriş Başarısız], caller=android.view.WindowManagerImpl.addView:158 android.app.Dialog.show:540 mono.java.lang.RunnableImplementor.n_run:-2 
+[ViewRootImpl] desktopMode is false
+[ViewRootImpl] dVRR is disabled
+[NativeCustomFrequencyManager] [NativeCFMS] BpCustomFrequencyManager::BpCustomFrequencyManager()
+[InputTransport] Input channel constructed: 'e24555f', fd=159
+[InsetsController] onStateChanged: host=Giriş Başarısız, from=android.view.ViewRootImpl.onInsetsStateChanged:3026, state=InsetsState: {mDisplayFrame=Rect(0, 0 - 1080, 2316), mDisplayCutout=DisplayCutout{insets=Rect(0, 75 - 0, 0) waterfall=Insets{left=0, top=0, right=0, bottom=0} boundingRect={Bounds=[Rect(0, 0 - 0, 0), Rect(512, 0 - 568, 75), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0)]} cutoutPathParserInfo={CutoutPathParserInfo{displayWidth=1080 displayHeight=2316 physicalDisplayWidth=1080 physicalDisplayHeight=2316 density={2.8125} cutoutSpec={M 0,0 H -10 V 26.66666666666667 H 10 V 0 H 0 Z @dp} rotation={0} scale={1.0} physicalPixelDisplaySizeRatio={1.0}}} sideOverrides={}}, mRoundedCorners=RoundedCorners{[RoundedCorner{position=TopLeft, radius=11, center=Point(11, 11)}, RoundedCorner{position=TopRight, radius=11, center=Point(1069, 11)}, RoundedCorner{position=BottomRight, radius=11, center=Point(1069, 2305)}, RoundedCorner{position=BottomLeft, radius=11, center=Point(11, 2305)}]}  mRoundedCornerFrame=Rect(0, 0 - 1080, 2316), mPrivacyIndicatorBounds=PrivacyIndicatorBounds {static bounds=Rect(964, 0 - 1080, 75) rotation=0}, mDisplayShape=DisplayShape{ spec=-311912193 displayWidth=1080 displayHeight=2316 physicalPixelDisplaySizeRatio=0.75 rotation=0 offsetX=0 offsetY=0 scale=1.0}, mSources= { InsetsSource: {b16e0000 mType=statusBars mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {b16e0005 mType=mandatorySystemGestures mFrame=[0,0][1080,107] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {b16e0006 mType=tappableElement mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {27 mType=displayCutout mFrame=[0,0][1080,75] mVisible=true mFlags= mSideHint=TOP mBoundingRects=null}, InsetsSource: {7ad90001 mType=navigationBars mFrame=[0,2277][1080,2316] mVisible=true mFlags=SUPPRESS_SCRIM mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {7ad90004 mType=systemGestures mFrame=[0,0][78,2316] mVisible=true mFlags= mSideHint=LEFT mBoundingRects=null}, InsetsSource: {7ad90005 mType=mandatorySystemGestures mFrame=[0,2232][1080,2316] mVisible=true mFlags= mSideHint=BOTTOM mBoundingRects=null}, InsetsSource: {7ad90006 mType=tappableElement mFrame=[0,0][0,0] mVisible=true mFlags= mSideHint=NONE mBoundingRects=null}, InsetsSource: {7ad90024 mType=systemGestures mFrame=[1002,0][1080,2316] mVisible=true mFlags= mSideHint=RIGHT mBoundingRects=null} }
+[VRI[Giriş Başarısız]@f5dd298] synced displayState. AttachInfo displayState=2
+[VRI[Giriş Başarısız]@f5dd298] setView = com.android.internal.policy.DecorView@b51d838 IsHRR=false mFlingFrameRateChange=0 TM=true
+[VRI[MainActivity]@2b1801] call setFrameRateCategory for touch hint category=no preference, reason=boost timeout, vri=VRI[MainActivity]@2b1801
+[HWUI] HWUI - treat SMPTE_170M as sRGB
+[libc] Access denied finding property "vendor.display.enable_optimal_refresh_rate"
+[BufferQueueProducer] [](id:2cff00000002,api:0,p:556379824,c:11519) setDequeueTimeout:2077252342
+[BLASTBufferQueue_Java] new BLASTBufferQueue, mName= VRI[Giriş Başarısız]@f5dd298 mNativeObject= 0xb4000078513ba8b0 caller= android.view.ViewRootImpl.updateBlastSurfaceIfNeeded:3585 android.view.ViewRootImpl.relayoutWindow:11685 android.view.ViewRootImpl.performTraversals:4804 android.view.ViewRootImpl.doTraversal:3924 android.view.ViewRootImpl$TraversalRunnable.run:12903 android.view.Choreographer$CallbackRecord.run:1901 android.view.Choreographer$CallbackRecord.run:1910 android.view.Choreographer.doCallbacks:1367 android.view.Choreographer.doFrame:1292 android.view.Choreographer$FrameDisplayEventReceiver.run:1870 
+[BLASTBufferQueue_Java] update, w= 1192 h= 628 mName = VRI[Giriş Başarısız]@f5dd298 mNativeObject= 0xb4000078513ba8b0 sc.mNativeObject= 0xb400007711233a50 format= -3 caller= android.view.ViewRootImpl.updateBlastSurfaceIfNeeded:3590 android.view.ViewRootImpl.relayoutWindow:11685 android.view.ViewRootImpl.performTraversals:4804 android.view.ViewRootImpl.doTraversal:3924 android.view.ViewRootImpl$TraversalRunnable.run:12903 android.view.Choreographer$CallbackRecord.run:1901 
+[libc] Access denied finding property "vendor.display.enable_optimal_refresh_rate"
+[VRI[Giriş Başarısız]@f5dd298] Relayout returned: old=(0,75,1080,2277) new=(28,946,1052,1406) relayoutAsync=false req=(1024,460)0 dur=9 res=0x3 s={true 0xb4000078012d3870} ch=true seqId=0
+[VRI[Giriş Başarısız]@f5dd298] performConfigurationChange setNightDimText nightDimLevel=0
+[VRI[Giriş Başarısız]@f5dd298] mThreadedRenderer.initialize() mSurface={isValid=true 0xb4000078012d3870} hwInitialized=true
+[ScrollView]  onsize change changed 
+[VRI[Giriş Başarısız]@f5dd298] reportNextDraw android.view.ViewRootImpl.performTraversals:5443 android.view.ViewRootImpl.doTraversal:3924 android.view.ViewRootImpl$TraversalRunnable.run:12903 android.view.Choreographer$CallbackRecord.run:1901 android.view.Choreographer$CallbackRecord.run:1910 
+[VRI[Giriş Başarısız]@f5dd298] Setup new sync=wmsSync-VRI[Giriş Başarısız]@f5dd298#4
+[VRI[Giriş Başarısız]@f5dd298] Creating new active sync group VRI[Giriş Başarısız]@f5dd298#5
+[VRI[Giriş Başarısız]@f5dd298] registerCallbacksForSync syncBuffer=false
+[VRI[Giriş Başarısız]@f5dd298] Received frameDrawingCallback syncResult=0 frameNum=1.
+[VRI[Giriş Başarısız]@f5dd298] mWNT: t=0xb4000076e1287950 mBlastBufferQueue=0xb4000078513ba8b0 fn= 1 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.ViewRootImpl$12.onFrameDraw:15441 android.view.ThreadedRenderer$1.onFrameDraw:718 <bottom of call stack> 
+[VRI[Giriş Başarısız]@f5dd298] Setting up sync and frameCommitCallback
+[BLASTBufferQueue] [VRI[Giriş Başarısız]@f5dd298#2](f:0,a:0,s:0) onFrameAvailable the first frame is available
+[SurfaceComposerClient] apply transaction with the first frame. layerId: 48028, bufferData(ID: 49473728282635, frameNumber: 1)
+[VRI[Giriş Başarısız]@f5dd298] Received frameCommittedCallback lastAttemptedDrawFrameNum=1 didProduceBuffer=true
+[HWUI] CFMS:: SetUp Pid : 11519    Tid : 11993
+[VRI[Giriş Başarısız]@f5dd298] reportDrawFinished seqId=0
+[InsetsSourceConsumer] applyRequestedVisibilityToControl: visible=true, type=navigationBars, host=Giriş Başarısız
+[InsetsSourceConsumer] applyRequestedVisibilityToControl: visible=true, type=statusBars, host=Giriş Başarısız
+[ImeFocusController] onPreWindowFocus: skipped hasWindowFocus=false mHasImeFocus=true
+[ImeFocusController] onPostWindowFocus: skipped hasWindowFocus=false mHasImeFocus=true
+[VRI[Giriş Başarısız]@f5dd298] mThreadedRenderer.initializeIfNeeded()#2 mSurface={isValid=true 0xb4000078012d3870}
+[ImeFocusController] onPreWindowFocus: skipped hasWindowFocus=true mHasImeFocus=false
+[ImeFocusController] onPostWindowFocus: skipped hasWindowFocus=true mHasImeFocus=false
+[VRI[Giriş Başarısız]@f5dd298] ViewPostIme pointer 0
+[VRI[Giriş Başarısız]@f5dd298] call setFrameRateCategory for touch hint category=high hint, reason=touch, vri=VRI[Giriş Başarısız]@f5dd298
+[VRI[Giriş Başarısız]@f5dd298] ViewPostIme pointer 1
+[WindowManager] WindowManagerGlobal#removeView, ty=2, view=com.android.internal.policy.DecorView{b51d838 V.E...... R....... 0,0-1024,460}[Giriş Başarısız], caller=android.view.WindowManagerGlobal.removeView:654 android.view.WindowManagerImpl.removeViewImmediate:216 android.app.Dialog.dismissDialog:850 
+[WindowOnBackDispatcher] sendCancelIfRunning: isInProgress=false callback=android.view.ViewRootImpl$$ExternalSyntheticLambda16@9929a62
+[HWUI] endAllActiveAnimators on 0xb4000078012a6de0 (RippleDrawable) with handle 0xb400007731b3ec60
+[VRI[Giriş Başarısız]@f5dd298] dispatchDetachedFromWindow
+[InputTransport] Input channel destroyed: 'e24555f', fd=159
+[InsetsSourceConsumer] applyRequestedVisibilityToControl: visible=true, type=navigationBars, host=com.companyname.otoservisapp/crc649bb5a67142c0bd7f.MainActivity
+[InsetsSourceConsumer] applyRequestedVisibilityToControl: visible=true, type=statusBars, host=com.companyname.otoservisapp/crc649bb5a67142c0bd7f.MainActivity
+[VRI[MainActivity]@2b1801] mThreadedRenderer.initializeIfNeeded()#2 mSurface={isValid=true 0xb400007801293f50}
+[InputMethodManager] startInputAsyncOnWindowFocusGain - IInputMethodManagerGlobalInvoker.startInputOrWindowGainedFocus
+Thread finished: <Thread Pool> #9
+Thread finished: <Thread Pool> #10
+The thread 9 has exited with code 0 (0x0).
+The thread 10 has exited with code 0 (0x0).
+Thread finished: <Thread Pool> #12
+Thread finished: <Thread Pool> #11
+The thread 12 has exited with code 0 (0x0).
+The thread 11 has exited with code 0 (0x0).

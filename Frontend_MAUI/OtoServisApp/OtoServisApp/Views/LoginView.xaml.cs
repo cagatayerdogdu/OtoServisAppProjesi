@@ -43,11 +43,9 @@ public partial class LoginView : ContentPage
 
             if (kullanici != null)
             {
-                // Giriş başarılı, kasaya kilitliyoruz
                 await SecureStorage.Default.SetAsync("kullanici_id_gizli", kullanici.id.ToString());
                 await _apiService.FcmTokenGuncelle(kullanici.id);
 
-                // Beni Hatırla seçiliyse kaydet, değilse sil
                 if (BeniHatirlaCheckBox.IsChecked)
                 {
                     await SecureStorage.Default.SetAsync("kayitli_eposta", email);
@@ -59,18 +57,23 @@ public partial class LoginView : ContentPage
                     SecureStorage.Default.Remove("kayitli_sifre");
                 }
 
-                var tabbedPage = new MainTabbedPage(kullanici);
-                Application.Current.MainPage = tabbedPage;
+                // KİLİT ÇÖZÜM 1: UI Yönlendirmesini zorla Ana Thread'e alıyoruz
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    var tabbedPage = new MainTabbedPage(kullanici);
+                    Application.Current.MainPage = tabbedPage;
+                });
             }
         }
         catch (Exception ex)
         {
-            // YENİ REVİZE: Backend'den gelen hata mesajında "pasif" kelimesi geçiyorsa!
-            if (ex.Message.ToLower().Contains("pasif"))
+            // KİLİT ÇÖZÜM 2: Asıl hatayı gizleyen "Invocation" kılıfını soyuyoruz
+            string gercekHata = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+
+            if (gercekHata.ToLower().Contains("pasif"))
             {
                 try
                 {
-                    // Pasif olan kullanıcının datalarını çekiyoruz (Yorumdan kurtarılan hayat kurtarıcı kod)
                     var pasifKullanici = await _apiService.PasifKullaniciSorgulaAsync(email);
 
                     if (pasifKullanici != null)
@@ -78,31 +81,33 @@ public partial class LoginView : ContentPage
                         bool aktifEt = await DisplayAlert("Hesap Pasif", "Hesabınız pasif durumdadır. Yeni şifre belirleyerek tekrar aktif etmek istiyor musunuz?", "Evet", "Hayır");
                         if (aktifEt)
                         {
-                            // Kullanıcıyı aktivasyon moduyla Profil sayfasına şutluyoruz
-                            await Navigation.PushAsync(new ProfileView(pasifKullanici, isActivationMode: true));
+                            // UI İşlemi olduğu için Ana Thread'e alıyoruz
+                            MainThread.BeginInvokeOnMainThread(async () =>
+                            {
+                                await Navigation.PushAsync(new ProfileView(pasifKullanici, isActivationMode: true));
+                            });
                         }
                     }
                 }
                 catch (Exception pEx)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Pasif kullanıcı bilgisi çekilirken hata: {pEx.Message}");
-                    await DisplayAlert("Giriş Başarısız", ex.Message, "Tamam");
+                    string pasifHata = pEx.InnerException != null ? pEx.InnerException.Message : pEx.Message;
+                    System.Diagnostics.Debug.WriteLine($"Pasif kullanıcı bilgisi çekilirken hata: {pasifHata}");
+                    await DisplayAlert("Giriş Başarısız", gercekHata, "Tamam");
                 }
             }
             else
             {
-                // Pasif değilse, standart hatalar (Şifre yanlış, email yok vb.)
-                await DisplayAlert("Giriş Başarısız", ex.Message, "Tamam");
+                // Artık "Invocation" yerine buraya gerçek hata mesajı düşecek
+                await DisplayAlert("Giriş Başarısız", gercekHata, "Tamam");
 
-                // Şifre hatalıysa kolaylık olsun diye sadece şifre kutusunu temizleyip odakla
-                if (ex.Message.ToLower().Contains("şifre"))
+                if (gercekHata.ToLower().Contains("şifre"))
                 {
                     PasswordEntry.Text = string.Empty;
                     PasswordEntry.Focus();
                 }
             }
 
-            // Güvenlik: Yanlış giriş yapıldıysa kasadaki verileri temizle
             SecureStorage.Default.Remove("kayitli_eposta");
             SecureStorage.Default.Remove("kayitli_sifre");
 
