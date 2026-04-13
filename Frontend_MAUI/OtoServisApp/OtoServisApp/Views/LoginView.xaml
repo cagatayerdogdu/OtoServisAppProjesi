@@ -38,7 +38,7 @@
 
                         <Grid ColumnDefinitions="*, Auto" Margin="0,5,0,10">
                             <HorizontalStackLayout Grid.Column="0" Spacing="5" VerticalOptions="Center">
-                                <CheckBox x:Name="BeniHatirlaCheckBox" Color="#0EA5E9" Scale="0.8"/>
+                                <CheckBox x:Name="BeniHatirlaCheckBox" IsChecked="True" Color="#0EA5E9" Scale="0.8"/>
                                 <Label Text="Beni Hatırla" VerticalOptions="Center" FontSize="13" TextColor="#64748B"/>
                             </HorizontalStackLayout>
 

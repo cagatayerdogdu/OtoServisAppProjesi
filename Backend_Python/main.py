@@ -494,7 +494,7 @@ def giris_yap(giris_bilgileri: schemas.KullaniciGiris, db: Session = Depends(get
         
     # YENİ REVİZE: kayit_durumu iptal olduğu için "soft_delete" ve "askıya alma" burada birleşti.
     if not kullanici.aktif_mi:
-        raise HTTPException(status_code=403, detail="Hesabiniz askiya alinmistir")
+        raise HTTPException(status_code=403, detail=f"Hesabınız pasif durumdadır.\nLütfen profil ekranından aktif ederek tekrar giriş yapmayı deneyiniz.")
         
     # YENİ: Son giriş tarihini güncelliyoruz
     kullanici.son_giris_tarihi = datetime.now()

@@ -17,15 +17,14 @@ public partial class LoginView : ContentPage
 
     private async void OnLoginClicked(object sender, EventArgs e)
     {
-        string email = EmailEntry.Text?.Trim().ToLower(); // Senin değişken isimlerin
+        string email = EmailEntry.Text?.Trim().ToLower();
         string password = PasswordEntry.Text?.Trim();
 
-
-        // Sadece Android ve iOS (Mobil) tarafında internet kontrolü yapıyoruz
 #if ANDROID || IOS
         if (Microsoft.Maui.Networking.Connectivity.Current.NetworkAccess != Microsoft.Maui.Networking.NetworkAccess.Internet)
         {
             await DisplayAlert("Bağlantı Hatası", "Lütfen internet bağlantınızı kontrol edin.", "Tamam");
+            return;
         }
 #endif
 
@@ -38,86 +37,27 @@ public partial class LoginView : ContentPage
         LoginButton.IsEnabled = false;
         LoginButton.Text = "GİRİŞ YAPILIYOR...";
 
-        /*
-        var kullanici = await _apiService.GirisYapAsync(email, password);
-        if (kullanici != null)
-        {
-            // --- BURAYI EKLE: Kullanıcı ID'sini kasaya kilitliyoruz ---
-            await SecureStorage.Default.SetAsync("kullanici_id_gizli", kullanici.id.ToString());
-
-            // YENİ EKLENEN KOD: Giriş başarılıysa Firebase Token'ı güncelle
-            await _apiService.FcmTokenGuncelle(kullanici.id);
-
-            // --- MADDE 25: BENİ HATIRLA ---
-            if (BeniHatirlaCheckBox.IsChecked)
-            {
-                await SecureStorage.Default.SetAsync("kayitli_eposta", email);
-                await SecureStorage.Default.SetAsync("kayitli_sifre", password);
-            }
-            else
-            {
-                // Tik kaldırılmışsa kasadan sil
-                SecureStorage.Default.Remove("kayitli_eposta");
-                SecureStorage.Default.Remove("kayitli_sifre");
-            }
-            // Herkes (Admin dahil) önce ana merkeze (Dashboard) gider!
-            // ESKİ KOD: Rengi siyah bırakan varsayılan sayfa yönlendirmesi
-            //Application.Current.MainPage = new NavigationPage(new DashboardView(kullanici)); 
-            // YENİ EKLENEN REVİZE: Yeni sayfayı oluştururken üst barı turkuaz (#00BCD4) olarak yapılandırıyoruz
-            //var dashNavPage = new NavigationPage(new DashboardView(kullanici));
-            //dashNavPage.BarBackgroundColor = Color.FromArgb("#00BCD4");
-            //dashNavPage.BarTextColor = Colors.White;
-            //Application.Current.MainPage = dashNavPage;
-
-            var tabbedPage = new MainTabbedPage(kullanici);
-            Application.Current.MainPage = tabbedPage;
-
-        }
-        else
-        {
-            // YENİ EKLENEN: Kullanıcı giriş yapamadı, peki hesap pasif olduğu için mi?
-            try
-            {
-                var pasifKullanici = await _apiService.PasifKullaniciSorgulaAsync(email);
-
-                if (pasifKullanici != null)
-                {
-                    bool aktifEt = await DisplayAlert("Hesap Pasif", "Hesabınız pasif durumdadır. Tekrar aktif etmek istiyor musunuz?", "Evet", "Hayır");
-                    if (aktifEt)
-                    {
-                        await Navigation.PushAsync(new ProfileView(pasifKullanici, isActivationMode: true));
-                    }
-                    LoginButton.IsEnabled = true;
-                    LoginButton.Text = "GİRİŞ YAP";
-                    return; // BURASI ÖNEMLİ: Pasif kullanıcı işlemi yapıldıysa aşağıdaki hata mesajını göstermeden metottan çıkıyoruz.
-                }
-            }
-            catch (Exception ex)
-            {
-                // API'ye ulaşılamaması veya sunucu kaynaklı JSON hatalarında uygulamanın çökmesini engelliyoruz
-                System.Diagnostics.Debug.WriteLine($"Pasif kullanıcı kontrolü sırasında ağ veya sunucu hatası: {ex.Message}");
-            }
-
-            // BURASI ÖNEMLİ: Eğer pasif kullanıcı bulunamadıysa (gerçekten şifre/email yanlışsa) sadece bir kere bu hatayı veriyoruz.
-            await DisplayAlert("Hata", "E-posta veya şifre hatalı. Lütfen tekrar deneyin.", "Tamam");
-
-            LoginButton.IsEnabled = true;
-            LoginButton.Text = "GİRİŞ YAP";
-        }
-        */
-
         try
         {
             var kullanici = await _apiService.GirisYapAsync(email, password);
 
             if (kullanici != null)
             {
-                // Başarılı girişte bilgileri otomatik kaydediyoruz
-                await SecureStorage.Default.SetAsync("kayitli_eposta", email);
-                await SecureStorage.Default.SetAsync("kayitli_sifre", password);
-
+                // Giriş başarılı, kasaya kilitliyoruz
                 await SecureStorage.Default.SetAsync("kullanici_id_gizli", kullanici.id.ToString());
                 await _apiService.FcmTokenGuncelle(kullanici.id);
+
+                // Beni Hatırla seçiliyse kaydet, değilse sil
+                if (BeniHatirlaCheckBox.IsChecked)
+                {
+                    await SecureStorage.Default.SetAsync("kayitli_eposta", email);
+                    await SecureStorage.Default.SetAsync("kayitli_sifre", password);
+                }
+                else
+                {
+                    SecureStorage.Default.Remove("kayitli_eposta");
+                    SecureStorage.Default.Remove("kayitli_sifre");
+                }
 
                 var tabbedPage = new MainTabbedPage(kullanici);
                 Application.Current.MainPage = tabbedPage;
@@ -125,24 +65,50 @@ public partial class LoginView : ContentPage
         }
         catch (Exception ex)
         {
-            // API'den gelen spesifik hatayı (E-posta yok, Şifre hatalı, İnternet yok vb.) ekrana basıyoruz
-            await DisplayAlert("Giriş Başarısız", ex.Message, "Tamam");
+            // YENİ REVİZE: Backend'den gelen hata mesajında "pasif" kelimesi geçiyorsa!
+            if (ex.Message.ToLower().Contains("pasif"))
+            {
+                try
+                {
+                    // Pasif olan kullanıcının datalarını çekiyoruz (Yorumdan kurtarılan hayat kurtarıcı kod)
+                    var pasifKullanici = await _apiService.PasifKullaniciSorgulaAsync(email);
 
-            // Yanlış giriş yapıldığı için eski kayıtlı verileri temizliyoruz (Güvenlik)
+                    if (pasifKullanici != null)
+                    {
+                        bool aktifEt = await DisplayAlert("Hesap Pasif", "Hesabınız pasif durumdadır. Yeni şifre belirleyerek tekrar aktif etmek istiyor musunuz?", "Evet", "Hayır");
+                        if (aktifEt)
+                        {
+                            // Kullanıcıyı aktivasyon moduyla Profil sayfasına şutluyoruz
+                            await Navigation.PushAsync(new ProfileView(pasifKullanici, isActivationMode: true));
+                        }
+                    }
+                }
+                catch (Exception pEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Pasif kullanıcı bilgisi çekilirken hata: {pEx.Message}");
+                    await DisplayAlert("Giriş Başarısız", ex.Message, "Tamam");
+                }
+            }
+            else
+            {
+                // Pasif değilse, standart hatalar (Şifre yanlış, email yok vb.)
+                await DisplayAlert("Giriş Başarısız", ex.Message, "Tamam");
+
+                // Şifre hatalıysa kolaylık olsun diye sadece şifre kutusunu temizleyip odakla
+                if (ex.Message.ToLower().Contains("şifre"))
+                {
+                    PasswordEntry.Text = string.Empty;
+                    PasswordEntry.Focus();
+                }
+            }
+
+            // Güvenlik: Yanlış giriş yapıldıysa kasadaki verileri temizle
             SecureStorage.Default.Remove("kayitli_eposta");
             SecureStorage.Default.Remove("kayitli_sifre");
-
-            // Eğer sorun şifreyse kullanıcıya kolaylık olması için şifre kutusunu temizle ve odaklan
-            if (ex.Message.ToLower().Contains("şifre"))
-            {
-                PasswordEntry.Text = string.Empty;
-                PasswordEntry.Focus();
-            }
 
             LoginButton.IsEnabled = true;
             LoginButton.Text = "Giriş Yap";
         }
-        // --- YENİ REVİZE BİTİŞİ ---
     }
 
     private async void OnRegisterTapped(object sender, EventArgs e)
