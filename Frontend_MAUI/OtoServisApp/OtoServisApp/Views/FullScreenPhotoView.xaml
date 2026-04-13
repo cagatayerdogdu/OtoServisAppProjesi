@@ -1,44 +1,38 @@
-<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:OtoServisApp.Controls"
              x:Class="OtoServisApp.Views.FullScreenPhotoView"
-             BackgroundColor="Black"
-             NavigationPage.HasNavigationBar="False">
+             BackgroundColor="Black">
 
     <Grid>
-        <CarouselView x:Name="FotoCarousel" 
-                      Loop="True" 
-                      IndicatorView="indicatorView">
+
+        <CarouselView x:Name="FotoCarousel"
+                      IsBounceEnabled="False">
+
             <CarouselView.ItemTemplate>
                 <DataTemplate>
-                    <!-- Hiçbir clipping özelliği gerekmez, Container kendisi halleder -->
-                    <controls:PinchToZoomContainer>
-                        <Image Source="{Binding TamUrl}" 
+
+                    <controls:PinchToZoomContainer
+                        ZoomStateChanged="OnZoomStateChanged">
+
+                        <Image Source="{Binding FotografUrl}"
                                Aspect="AspectFit" />
+
                     </controls:PinchToZoomContainer>
+
                 </DataTemplate>
             </CarouselView.ItemTemplate>
+
         </CarouselView>
 
-        <IndicatorView x:Name="indicatorView"
-                       IndicatorColor="Grey"
-                       SelectedIndicatorColor="White"
-                       HorizontalOptions="Center"
-                       VerticalOptions="End"
-                       Margin="0,0,0,40" />
+        <!-- Kapat Butonu -->
+        <Button Text="X"
+                Clicked="OnKapatClicked"
+                BackgroundColor="#80000000"
+                TextColor="White"
+                HorizontalOptions="End"
+                VerticalOptions="Start"
+                Margin="20" />
 
-        <Button Text="X Kapat" 
-                Clicked="OnKapatClicked" 
-                BackgroundColor="#222222" 
-                TextColor="White" 
-                Opacity="0.8" 
-                HorizontalOptions="End" 
-                VerticalOptions="Start" 
-                Margin="20,40,20,0" 
-                CornerRadius="15"
-                HeightRequest="40"
-                Padding="15,0"
-                FontAttributes="Bold"/>
     </Grid>
 </ContentPage>

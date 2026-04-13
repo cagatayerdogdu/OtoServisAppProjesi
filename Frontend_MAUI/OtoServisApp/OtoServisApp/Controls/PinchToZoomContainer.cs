@@ -1,156 +1,198 @@
 ﻿using Microsoft.Maui.Controls;
-using Microsoft.Maui.Controls.Shapes;
 using Microsoft.Maui.Graphics;
 using System;
+using System.Threading.Tasks;
 
 namespace OtoServisApp.Controls
 {
     public class PinchToZoomContainer : ContentView
     {
-        private double _currentScale = 1;
-        private double _startScale = 1;
-        private double _xOffset = 0;
-        private double _yOffset = 0;
+        public event Action<bool> ZoomStateChanged;
+
+        double _currentScale = 1;
+        double _startScale = 1;
+
+        double _xOffset = 0;
+        double _yOffset = 0;
+
+        double _velocityX = 0;
+        double _velocityY = 0;
+
+        bool _isPanning = false;
 
         public PinchToZoomContainer()
         {
-            // Container boyutu değiştiğinde Clip'i güncelle
-            this.SizeChanged += OnSizeChanged;
-            UpdateClip();
+            var pinch = new PinchGestureRecognizer();
+            pinch.PinchUpdated += OnPinchUpdated;
 
-            var pinchGesture = new PinchGestureRecognizer();
-            pinchGesture.PinchUpdated += OnPinchUpdated;
-            GestureRecognizers.Add(pinchGesture);
+            var pan = new PanGestureRecognizer();
+            pan.PanUpdated += OnPanUpdated;
 
-            var panGesture = new PanGestureRecognizer();
-            panGesture.PanUpdated += OnPanUpdated;
-            GestureRecognizers.Add(panGesture);
+            var tap = new TapGestureRecognizer { NumberOfTapsRequired = 2 };
+            tap.Tapped += OnDoubleTapped;
 
-            var tapGesture = new TapGestureRecognizer { NumberOfTapsRequired = 2 };
-            tapGesture.Tapped += OnDoubleTapped;
-            GestureRecognizers.Add(tapGesture);
+            GestureRecognizers.Add(pinch);
+            GestureRecognizers.Add(pan);
+            GestureRecognizers.Add(tap);
         }
 
-        private void OnSizeChanged(object sender, EventArgs e)
-        {
-            UpdateClip();
-        }
-
-        private void UpdateClip()
-        {
-            if (Width > 0 && Height > 0)
-            {
-                this.Clip = new RectangleGeometry
-                {
-                    Rect = new Rect(0, 0, Width, Height)
-                };
-            }
-            else
-            {
-                this.Clip = null;
-            }
-        }
-
+        // ---------------- PINCH ----------------
         private void OnPinchUpdated(object sender, PinchGestureUpdatedEventArgs e)
         {
             if (Content == null) return;
 
             if (e.Status == GestureStatus.Started)
             {
-                _startScale = Content.Scale;
+                _startScale = _currentScale;
             }
             else if (e.Status == GestureStatus.Running)
             {
-                _currentScale = Math.Clamp(_startScale * e.Scale, 1.0, 4.0);
-                Content.Scale = _currentScale;
+                double newScale = Math.Clamp(_startScale * e.Scale, 1, 4);
 
-                // Zoom sırasında resmi ortala
-                Content.TranslationX = 0;
-                Content.TranslationY = 0;
-                _xOffset = 0;
-                _yOffset = 0;
+                double scaleFactor = newScale / _currentScale;
+                _currentScale = newScale;
+
+                double originX = (e.ScaleOrigin.X - 0.5) * Content.Width;
+                double originY = (e.ScaleOrigin.Y - 0.5) * Content.Height;
+
+                double targetX = Content.TranslationX - originX * (scaleFactor - 1);
+                double targetY = Content.TranslationY - originY * (scaleFactor - 1);
+
+                var bounds = CalculateBounds();
+
+                Content.Scale = _currentScale;
+                Content.TranslationX = Clamp(targetX, bounds.minX, bounds.maxX);
+                Content.TranslationY = Clamp(targetY, bounds.minY, bounds.maxY);
+
+                ZoomStateChanged?.Invoke(_currentScale > 1.01);
             }
-            else if (e.Status == GestureStatus.Completed || e.Status == GestureStatus.Canceled)
+            else if (e.Status == GestureStatus.Completed)
             {
-                if (_currentScale <= 1.05)
-                {
-                    _currentScale = 1;
-                    Content.ScaleTo(1, 250, Easing.CubicInOut);
-                    Content.TranslateTo(0, 0, 250, Easing.CubicInOut);
-                    _xOffset = 0;
-                    _yOffset = 0;
-                }
-                else
-                {
-                    _xOffset = Content.TranslationX;
-                    _yOffset = Content.TranslationY;
-                }
+                if (_currentScale < 1.05)
+                    Reset();
             }
         }
 
+        // ---------------- PAN ----------------
         private void OnPanUpdated(object sender, PanUpdatedEventArgs e)
         {
-            if (Content == null || _currentScale <= 1.05) return;
+            if (Content == null || _currentScale <= 1) return;
 
             if (e.StatusType == GestureStatus.Started)
             {
-                _xOffset = Content.TranslationX;
-                _yOffset = Content.TranslationY;
+                _isPanning = true;
+                _velocityX = 0;
+                _velocityY = 0;
+
+                ZoomStateChanged?.Invoke(true);
             }
             else if (e.StatusType == GestureStatus.Running)
             {
                 double newX = _xOffset + e.TotalX;
                 double newY = _yOffset + e.TotalY;
 
-                (double minX, double maxX, double minY, double maxY) = CalculateBounds();
+                var bounds = CalculateBounds();
 
-                Content.TranslationX = Math.Clamp(newX, minX, maxX);
-                Content.TranslationY = Math.Clamp(newY, minY, maxY);
+                Content.TranslationX = Clamp(newX, bounds.minX, bounds.maxX);
+                Content.TranslationY = Clamp(newY, bounds.minY, bounds.maxY);
+
+                _velocityX = e.TotalX;
+                _velocityY = e.TotalY;
             }
-            else if (e.StatusType == GestureStatus.Completed || e.StatusType == GestureStatus.Canceled)
+            else if (e.StatusType == GestureStatus.Completed)
             {
                 _xOffset = Content.TranslationX;
                 _yOffset = Content.TranslationY;
+
+                _isPanning = false;
+
+                StartInertia();
             }
         }
 
+        // ---------------- DOUBLE TAP ----------------
         private async void OnDoubleTapped(object sender, TappedEventArgs e)
         {
             if (Content == null) return;
 
+            var tapPoint = e.GetPosition(Content);
+
             if (_currentScale > 1)
             {
-                await Content.ScaleTo(1, 250, Easing.CubicInOut);
-                await Content.TranslateTo(0, 0, 250, Easing.CubicInOut);
-                _currentScale = 1;
-                _xOffset = 0;
-                _yOffset = 0;
+                Reset();
             }
             else
             {
-                _currentScale = 2;
-                await Content.ScaleTo(2, 250, Easing.CubicInOut);
-                _xOffset = 0;
-                _yOffset = 0;
+                double newScale = 2;
+
+                double originX = (tapPoint.Value.X / Content.Width - 0.5) * Content.Width;
+                double originY = (tapPoint.Value.Y / Content.Height - 0.5) * Content.Height;
+
+                _currentScale = newScale;
+
+                await Content.ScaleTo(newScale, 200);
+
+                Content.TranslationX = -originX;
+                Content.TranslationY = -originY;
+
+                _xOffset = Content.TranslationX;
+                _yOffset = Content.TranslationY;
+
+                ZoomStateChanged?.Invoke(true);
             }
         }
 
+        // ---------------- INERTIA ----------------
+        private async void StartInertia()
+        {
+            while (Math.Abs(_velocityX) > 0.1 || Math.Abs(_velocityY) > 0.1)
+            {
+                _velocityX *= 0.9;
+                _velocityY *= 0.9;
+
+                double newX = Content.TranslationX + _velocityX;
+                double newY = Content.TranslationY + _velocityY;
+
+                var bounds = CalculateBounds();
+
+                Content.TranslationX = Clamp(newX, bounds.minX, bounds.maxX);
+                Content.TranslationY = Clamp(newY, bounds.minY, bounds.maxY);
+
+                await Task.Delay(16);
+            }
+        }
+
+        // ---------------- RESET ----------------
+        private async void Reset()
+        {
+            await Content.ScaleTo(1, 200);
+            await Content.TranslateTo(0, 0, 200);
+
+            _currentScale = 1;
+            _xOffset = 0;
+            _yOffset = 0;
+
+            ZoomStateChanged?.Invoke(false);
+        }
+
+        // ---------------- HELPERS ----------------
         private (double minX, double maxX, double minY, double maxY) CalculateBounds()
         {
-            if (Content == null) return (0, 0, 0, 0);
+            double contentWidth = Content.Width;
+            double contentHeight = Content.Height;
 
-            double contentWidth = Content.Width > 0 ? Content.Width : 300;
-            double contentHeight = Content.Height > 0 ? Content.Height : 300;
             double scaledWidth = contentWidth * _currentScale;
             double scaledHeight = contentHeight * _currentScale;
 
-            double containerWidth = this.Width > 0 ? this.Width : 400;
-            double containerHeight = this.Height > 0 ? this.Height : 800;
+            double maxX = Math.Max(0, (scaledWidth - Width) / 2);
+            double maxY = Math.Max(0, (scaledHeight - Height) / 2);
 
-            double maxOffsetX = Math.Max(0, (scaledWidth - containerWidth) / 2);
-            double maxOffsetY = Math.Max(0, (scaledHeight - containerHeight) / 2);
+            return (-maxX, maxX, -maxY, maxY);
+        }
 
-            return (-maxOffsetX, maxOffsetX, -maxOffsetY, maxOffsetY);
+        private double Clamp(double value, double min, double max)
+        {
+            return Math.Max(min, Math.Min(max, value));
         }
     }
 }
