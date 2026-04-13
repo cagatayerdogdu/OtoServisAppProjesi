@@ -4,8 +4,34 @@
              x:Class="OtoServisApp.Views.FullScreenPhotoView"
              BackgroundColor="Black"
              NavigationPage.HasNavigationBar="False">
+
     <Grid>
-        <Image x:Name="TamEkranResim" Aspect="AspectFit" HorizontalOptions="Fill" VerticalOptions="Fill"/>
+        <CarouselView x:Name="FotoCarousel" 
+                      Loop="True" 
+                      IndicatorView="indicatorView">
+            <CarouselView.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Image Source="{Binding TamUrl}" 
+                               Aspect="AspectFit" 
+                               HorizontalOptions="Fill" 
+                               VerticalOptions="Fill">
+                            <Image.GestureRecognizers>
+                                <PinchGestureRecognizer PinchUpdated="OnPinchUpdated" />
+                                <PanGestureRecognizer PanUpdated="OnPanUpdated" />
+                            </Image.GestureRecognizers>
+                        </Image>
+                    </Grid>
+                </DataTemplate>
+            </CarouselView.ItemTemplate>
+        </CarouselView>
+
+        <IndicatorView x:Name="indicatorView"
+                       IndicatorColor="Grey"
+                       SelectedIndicatorColor="White"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Bottom"
+                       Margin="0,0,0,40" />
 
         <Button Text="X Kapat" 
                 Clicked="OnKapatClicked" 
@@ -14,7 +40,7 @@
                 Opacity="0.8" 
                 HorizontalOptions="End" 
                 VerticalOptions="Start" 
-                Margin="20,40,20,20" 
+                Margin="20,40,20,0" 
                 CornerRadius="15"
                 HeightRequest="40"
                 Padding="15,0"

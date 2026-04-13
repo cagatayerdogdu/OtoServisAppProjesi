@@ -40,14 +40,19 @@ public partial class ViewPhotosView : ContentPage
     // YENİ REVİZE: Parametreyi TappedEventArgs üzerinden yakalıyoruz. Görselleri büyütebilmek için.
     private async void OnPhotoTapped(object sender, TappedEventArgs e)
     {
-        // XAML tarafındaki CommandParameter="{Binding TamUrl}" verisini buradan alıyoruz
-        string tamUrl = e.Parameter as string;
+        // 1. Tüm fotoğraf listesini alıyoruz
+        var fotolar = (List<ServisTalebiFotograf>)BindableLayout.GetItemsSource(PhotosLayout);
 
-        if (!string.IsNullOrEmpty(tamUrl))
+        // 2. Tıklanan fotoğrafın URL'sini alıyoruz
+        string tiklananUrl = e.Parameter as string;
+
+        if (fotolar != null && !string.IsNullOrEmpty(tiklananUrl))
         {
-            // Resmi telefonun tarayıcısında (dışarıda) açmak yerine,
-            // bizim yeni yaptığımız şık siyah ekranı (Modal olarak) üstüne açıyoruz
-            await Navigation.PushModalAsync(new FullScreenPhotoView(tamUrl));
+            // 3. Tıklanan resmin listedeki kaçıncı sırada olduğunu buluyoruz
+            int indeks = fotolar.FindIndex(f => f.TamUrl == tiklananUrl);
+
+            // 4. Yeni gelişmiş tam ekran sayfamızı açıyoruz
+            await Navigation.PushModalAsync(new FullScreenPhotoView(fotolar, indeks));
         }
     }
 
