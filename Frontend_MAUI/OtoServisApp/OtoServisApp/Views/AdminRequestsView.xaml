@@ -125,8 +125,26 @@
                                     <Button Grid.Column="1" Text="Fotoğrafları Gör" BackgroundColor="#FF9800" TextColor="White" CornerRadius="6" HeightRequest="35" FontSize="12" FontAttributes="Bold" Padding="15,0" CommandParameter="{Binding .}" Clicked="OnViewPhotosClicked" VerticalOptions="Center"/>
                                 </Grid>
                             </Border>
-                            
+
                             <BoxView HeightRequest="1" Color="#EEEEEE" Margin="0,5"/>
+
+                            <HorizontalStackLayout HorizontalOptions="End" Spacing="8" Margin="0,0,0,10" VerticalOptions="Center">
+                                <Label Text="Talebe ait fotoğraf eklemek için:" 
+                                       FontSize="11" 
+                                       TextColor="#888888" 
+                                       VerticalOptions="Center" />
+
+                                <Button Text="Fotoğraf Ekle" 
+                                        CommandParameter="{Binding .}" 
+                                        Clicked="OnAddPhotoClicked" 
+                                        BackgroundColor="#FF9800" 
+                                        TextColor="White" 
+                                        CornerRadius="8" 
+                                        FontAttributes="Bold" 
+                                        FontSize="11" 
+                                        HeightRequest="30" 
+                                        Padding="15,0" />
+                            </HorizontalStackLayout>
 
                             <Grid ColumnDefinitions="*, *, Auto">
 
@@ -167,7 +185,7 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <Grid x:Name="LoadingOverlay" BackgroundColor="#CCFFFFFF" IsVisible="False" InputTransparent="False">
+        <Grid x:Name="LoadingOverlay" BackgroundColor="#CCFFFFFF" IsVisible="False" InputTransparent="False" Grid.RowSpan="2">
             <Border BackgroundColor="White" Stroke="#E0E0E0" StrokeShape="RoundRectangle 15" Padding="30" HorizontalOptions="Center" VerticalOptions="Center">
                 <VerticalStackLayout Spacing="15" HorizontalOptions="Center">
                     <ActivityIndicator IsRunning="{Binding Source={x:Reference LoadingOverlay}, Path=IsVisible}" Color="#00BCD4" WidthRequest="50" HeightRequest="50" HorizontalOptions="Center"/>
@@ -176,24 +194,6 @@
                 </VerticalStackLayout>
             </Border>
         </Grid>
-
-        <Grid ColumnDefinitions="*, *, Auto" Margin="0,5,0,0">
-            <Button Grid.Column="2" 
-            Text="Fotoğraf Ekle" 
-            CommandParameter="{Binding .}" 
-            Clicked="OnAddPhotoClicked" 
-            BackgroundColor="#FF9800" 
-            TextColor="White" 
-            CornerRadius="15" 
-            FontAttributes="Bold" 
-            FontSize="11" 
-            VerticalOptions="End" 
-            HeightRequest="35" 
-            Padding="10,0"
-            Margin="0,0,5,0"/>
-
-        </Grid>
-
 
     </Grid>
 </ContentPage>
