@@ -16,7 +16,8 @@
                         ZoomStateChanged="OnZoomStateChanged">
 
                         <Image Source="{Binding TamUrl}"
-                               Aspect="AspectFit" />
+                               Aspect="AspectFit"
+                               InputTransparent="True" />
 
                     </controls:PinchToZoomContainer>
 
