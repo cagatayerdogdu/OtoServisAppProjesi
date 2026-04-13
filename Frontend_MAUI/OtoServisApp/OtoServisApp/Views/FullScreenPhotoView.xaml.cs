@@ -29,37 +29,33 @@ public partial class FullScreenPhotoView : ContentPage
         if (e.Status == GestureStatus.Started)
         {
             startScale = resim.Scale;
-            resim.AnchorX = 0.5;
-            resim.AnchorY = 0.5;
+
+            // KİLİT REVİZE 1: Yakınlaşma merkezini (Çapa noktasını) parmaklarının ortası olarak belirliyoruz.
+            // Böylece resmin neresini çimdiklersen orası büyür.
+            resim.AnchorX = e.ScaleOrigin.X;
+            resim.AnchorY = e.ScaleOrigin.Y;
         }
         else if (e.Status == GestureStatus.Running)
         {
+            // Büyüme oranını hesapla ve sınırları 1 ile 5 arasında tut
             currentScale += (e.Scale - 1) * startScale;
-            // Ölçeği 1 ile 5 arasında zorla sınırla (daha da küçülememesini sağlar)
             currentScale = Math.Max(1, Math.Min(currentScale, 5));
 
             resim.Scale = currentScale;
 
-            // KİLİT ÇÖZÜM: Kullanıcı resmi 1x boyutuna (veya çok yakınına) kadar küçülttüyse, 
-            // kayma eksenlerini (X ve Y) anında sıfırla ki resim köşelere kaçmasın!
-            if (currentScale <= 1.05)
-            {
-                resim.TranslationX = 0;
-                resim.TranslationY = 0;
-                xOffset = 0;
-                yOffset = 0;
-            }
-
-            FotoCarousel.IsSwipeEnabled = currentScale <= 1.05;
+            // Resim orijinal boyutta değilse Carousel'in (sağa sola kaydırma) hareketini kilitle
+            FotoCarousel.IsSwipeEnabled = currentScale == 1;
         }
         else if (e.Status == GestureStatus.Completed || e.Status == GestureStatus.Canceled)
         {
-            // Kullanıcı parmaklarını çektiğinde resim biraz küçülmüşse tam merkeze ve orijinal boyuta oturt
+            // KİLİT REVİZE 2: Parmaklarını ekrandan çektiğin anda resim 1x'e yakınsa,
+            // titreme yapmadan, yumuşak bir yaylanma efektiyle (SpringOut) eski yerine oturt.
             if (currentScale <= 1.05)
             {
                 currentScale = 1;
-                resim.ScaleTo(1, 200, Easing.CubicOut);
-                resim.TranslateTo(0, 0, 200, Easing.CubicOut);
+                // Easing.SpringOut efekti ile yerine çok tatlı bir şekilde oturur
+                resim.ScaleTo(1, 300, Easing.SpringOut);
+                resim.TranslateTo(0, 0, 300, Easing.SpringOut);
                 xOffset = 0;
                 yOffset = 0;
                 FotoCarousel.IsSwipeEnabled = true;
@@ -72,18 +68,20 @@ public partial class FullScreenPhotoView : ContentPage
     {
         var resim = sender as Image;
 
-        // KİLİT ÇÖZÜM 2: Resim orijinal boyutundayken kaydırma (Pan) komutlarını tamamen yok say!
+        // Resim 1.05'ten küçükse (orijinal boyuttaysa) kaydırmayı tamamen iptal et
         if (resim == null || currentScale <= 1.05) return;
 
         switch (e.StatusType)
         {
             case GestureStatus.Running:
+                // Parmakla resmi sürükleme
                 resim.TranslationX = xOffset + e.TotalX;
                 resim.TranslationY = yOffset + e.TotalY;
                 break;
 
             case GestureStatus.Completed:
             case GestureStatus.Canceled:
+                // Sürükleme bitince son konumu hafızaya al
                 xOffset = resim.TranslationX;
                 yOffset = resim.TranslationY;
                 break;

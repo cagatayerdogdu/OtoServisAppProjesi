@@ -208,7 +208,7 @@ public partial class CreateServiceRequestView : ContentPage
                     string uzanti = Path.GetExtension(foto.FileName);
                     if (string.IsNullOrEmpty(uzanti)) uzanti = ".jpg";
 
-                    string ozelDosyaAdi = $"{temizAdSoyad}-{olusturulanTalepId}-{DateTime.Now.ToString("yyyyMMddHHmmssfff")}{uzanti}";
+                    string ozelDosyaAdi = $"{temizAdSoyad}-{olusturulanTalepId}-{DateTime.Now.ToString("yyyy_MM_dd_HHmm_ssfff")}{uzanti}";
 
                     string uploadSonuc = await _apiService.UploadHasarFotografAsync(olusturulanTalepId, stream, ozelDosyaAdi);
 

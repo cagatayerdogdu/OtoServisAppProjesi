@@ -259,7 +259,7 @@ public partial class EditServiceRequestView : ContentPage
                         }
                         if (string.IsNullOrEmpty(uzanti)) uzanti = ".jpg";
 
-                        string zaman = DateTime.Now.ToString("yyyyMMddHHmmssfff");
+                        string zaman = DateTime.Now.ToString("yyyy_MM_dd_HHmm_ssfff");
                         string ozelDosyaAdi = $"{temizAdSoyad}-{_talep.id}-{zaman}{uzanti}";
 
                         string uploadSonuc = await _apiService.UploadHasarFotografAsync(_talep.id, stream, ozelDosyaAdi);
