@@ -1969,7 +1969,7 @@ def log_client_error(error: ClientErrorLog, db: Session = Depends(get_db)):
 #################################################################
 ##################### HASARLI RESİM EKLEME ######################
 #################################################################
-MaksimumFotoSayisi = 3
+MaksimumFotoSayisi = 4
 @app.post("/servis-talepleri/{talep_id}/fotograf")
 async def fotograf_yukle(talep_id: int, db: Session = Depends(get_db), file: UploadFile = File(...)):
     talep = db.query(models.ServisTalebi).filter(models.ServisTalebi.id == talep_id).first()

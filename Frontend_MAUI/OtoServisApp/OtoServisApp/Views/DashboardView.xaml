@@ -97,7 +97,7 @@
                     </Border.GestureRecognizers>
                     <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
                         <Label Text="{x:Static helpers:IconFont.CalendarAlt}" FontFamily="FASolid" FontSize="30" TextColor="#00BCD4" HorizontalOptions="Center"/>
-                        <Label Text="Durum Takibi" FontSize="13" FontAttributes="Bold" TextColor="#334155" HorizontalOptions="Center"/>
+                        <Label Text="Taleplerim" FontSize="13" FontAttributes="Bold" TextColor="#334155" HorizontalOptions="Center"/>
                     </VerticalStackLayout>
                 </Border>
 

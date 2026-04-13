@@ -37,15 +37,17 @@ public partial class ViewPhotosView : ContentPage
     }
 
     // Fotoğrafın üzerine tıklandığında geçici bir tam ekran görüntüleyici açar
-    private async void OnPhotoTapped(object sender, EventArgs e)
+    // YENİ REVİZE: Parametreyi TappedEventArgs üzerinden yakalıyoruz. Görselleri büyütebilmek için.
+    private async void OnPhotoTapped(object sender, TappedEventArgs e)
     {
-        var gesture = sender as TapGestureRecognizer;
-        string tamUrl = gesture?.CommandParameter as string;
+        // XAML tarafındaki CommandParameter="{Binding TamUrl}" verisini buradan alıyoruz
+        string tamUrl = e.Parameter as string;
 
         if (!string.IsNullOrEmpty(tamUrl))
         {
-            // İsteğe bağlı: Telefondaki varsayılan tarayıcı/fotoğraf görüntüleyicide açtırır
-            await Launcher.OpenAsync(tamUrl);
+            // Resmi telefonun tarayıcısında (dışarıda) açmak yerine,
+            // bizim yeni yaptığımız şık siyah ekranı (Modal olarak) üstüne açıyoruz
+            await Navigation.PushModalAsync(new FullScreenPhotoView(tamUrl));
         }
     }
 
