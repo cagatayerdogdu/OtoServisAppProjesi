@@ -15,7 +15,7 @@
                     <controls:PinchToZoomContainer
                         ZoomStateChanged="OnZoomStateChanged">
 
-                        <Image Source="{Binding FotografUrl}"
+                        <Image Source="{Binding TamUrl}"
                                Aspect="AspectFit" />
 
                     </controls:PinchToZoomContainer>
