@@ -1,4 +1,5 @@
 ﻿using Microsoft.Maui.Controls;
+using Microsoft.Maui.Controls.Shapes;
 using Microsoft.Maui.Graphics;
 using System;
 
@@ -13,8 +14,9 @@ namespace OtoServisApp.Controls
 
         public PinchToZoomContainer()
         {
-            // Taşmayı engellemek için kritik ayar
-            this.IsClippedToBounds = true;
+            // Container boyutu değiştiğinde Clip'i güncelle
+            this.SizeChanged += OnSizeChanged;
+            UpdateClip();
 
             var pinchGesture = new PinchGestureRecognizer();
             pinchGesture.PinchUpdated += OnPinchUpdated;
@@ -29,6 +31,26 @@ namespace OtoServisApp.Controls
             GestureRecognizers.Add(tapGesture);
         }
 
+        private void OnSizeChanged(object sender, EventArgs e)
+        {
+            UpdateClip();
+        }
+
+        private void UpdateClip()
+        {
+            if (Width > 0 && Height > 0)
+            {
+                this.Clip = new RectangleGeometry
+                {
+                    Rect = new Rect(0, 0, Width, Height)
+                };
+            }
+            else
+            {
+                this.Clip = null;
+            }
+        }
+
         private void OnPinchUpdated(object sender, PinchGestureUpdatedEventArgs e)
         {
             if (Content == null) return;
@@ -39,11 +61,10 @@ namespace OtoServisApp.Controls
             }
             else if (e.Status == GestureStatus.Running)
             {
-                // Yakınlaştırma oranını hesapla (1 ile 4 kat arasında sınırla)
                 _currentScale = Math.Clamp(_startScale * e.Scale, 1.0, 4.0);
                 Content.Scale = _currentScale;
 
-                // Yakınlaştırma yapılırken resmi ortala
+                // Zoom sırasında resmi ortala
                 Content.TranslationX = 0;
                 Content.TranslationY = 0;
                 _xOffset = 0;
@@ -53,24 +74,11 @@ namespace OtoServisApp.Controls
             {
                 if (_currentScale <= 1.05)
                 {
-                    // Orijinal boyuta geri dön
-                    this.AbortAnimation("Reset");
-                    var resetAnimation = new Animation();
-
-                    var scaleAnimation = new Animation(v => Content.Scale = v, Content.Scale, 1);
-                    var translateXAnimation = new Animation(v => Content.TranslationX = v, Content.TranslationX, 0);
-                    var translateYAnimation = new Animation(v => Content.TranslationY = v, Content.TranslationY, 0);
-
-                    resetAnimation.Add(0, 1, scaleAnimation);
-                    resetAnimation.Add(0, 1, translateXAnimation);
-                    resetAnimation.Add(0, 1, translateYAnimation);
-
-                    resetAnimation.Commit(this, "Reset", 16, 250, Easing.CubicInOut, (v, c) =>
-                    {
-                        _currentScale = 1;
-                        _xOffset = 0;
-                        _yOffset = 0;
-                    });
+                    _currentScale = 1;
+                    Content.ScaleTo(1, 250, Easing.CubicInOut);
+                    Content.TranslateTo(0, 0, 250, Easing.CubicInOut);
+                    _xOffset = 0;
+                    _yOffset = 0;
                 }
                 else
                 {
@@ -94,7 +102,6 @@ namespace OtoServisApp.Controls
                 double newX = _xOffset + e.TotalX;
                 double newY = _yOffset + e.TotalY;
 
-                // Görselin taşmasını engelleyen sınırları hesapla
                 (double minX, double maxX, double minY, double maxY) = CalculateBounds();
 
                 Content.TranslationX = Math.Clamp(newX, minX, maxX);
@@ -113,7 +120,6 @@ namespace OtoServisApp.Controls
 
             if (_currentScale > 1)
             {
-                // Zoom'u sıfırla
                 await Content.ScaleTo(1, 250, Easing.CubicInOut);
                 await Content.TranslateTo(0, 0, 250, Easing.CubicInOut);
                 _currentScale = 1;
@@ -122,7 +128,6 @@ namespace OtoServisApp.Controls
             }
             else
             {
-                // 2 kat yakınlaştır
                 _currentScale = 2;
                 await Content.ScaleTo(2, 250, Easing.CubicInOut);
                 _xOffset = 0;
@@ -134,19 +139,16 @@ namespace OtoServisApp.Controls
         {
             if (Content == null) return (0, 0, 0, 0);
 
-            // İçeriğin ölçeklenmiş boyutlarını hesapla
-            var contentWidth = Content.Width > 0 ? Content.Width : 300;
-            var contentHeight = Content.Height > 0 ? Content.Height : 300;
-            var scaledWidth = contentWidth * _currentScale;
-            var scaledHeight = contentHeight * _currentScale;
+            double contentWidth = Content.Width > 0 ? Content.Width : 300;
+            double contentHeight = Content.Height > 0 ? Content.Height : 300;
+            double scaledWidth = contentWidth * _currentScale;
+            double scaledHeight = contentHeight * _currentScale;
 
-            // Container'ın boyutları
-            var containerWidth = this.Width > 0 ? this.Width : 400;
-            var containerHeight = this.Height > 0 ? this.Height : 800;
+            double containerWidth = this.Width > 0 ? this.Width : 400;
+            double containerHeight = this.Height > 0 ? this.Height : 800;
 
-            // İçerik container'dan büyükse, hareket alanını hesapla
-            var maxOffsetX = Math.Max(0, (scaledWidth - containerWidth) / 2);
-            var maxOffsetY = Math.Max(0, (scaledHeight - containerHeight) / 2);
+            double maxOffsetX = Math.Max(0, (scaledWidth - containerWidth) / 2);
+            double maxOffsetY = Math.Max(0, (scaledHeight - containerHeight) / 2);
 
             return (-maxOffsetX, maxOffsetX, -maxOffsetY, maxOffsetY);
         }

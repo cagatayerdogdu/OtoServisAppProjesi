@@ -12,8 +12,8 @@
                       IndicatorView="indicatorView">
             <CarouselView.ItemTemplate>
                 <DataTemplate>
-                    <!-- IsClippedToBounds="True" taşmayı kesin engeller -->
-                    <controls:PinchToZoomContainer IsClippedToBounds="True">
+                    <!-- Hiçbir clipping özelliği gerekmez, Container kendisi halleder -->
+                    <controls:PinchToZoomContainer>
                         <Image Source="{Binding TamUrl}" 
                                Aspect="AspectFit" />
                     </controls:PinchToZoomContainer>
