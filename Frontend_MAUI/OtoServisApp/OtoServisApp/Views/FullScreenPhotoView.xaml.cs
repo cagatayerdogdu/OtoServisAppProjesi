@@ -27,36 +27,33 @@ public partial class FullScreenPhotoView : ContentPage
 
         if (e.Status == GestureStatus.Started)
         {
+            isPinching = true;
+            // 1. KAVGA BİTİRİCİ: İki parmak ekrana değdiği an Carousel'i felç et ki Android kafayı yemesin.
+            FotoCarousel.IsSwipeEnabled = false;
+
             startScale = resim.Scale;
-            // KİLİT ÇÖZÜM 1: Zıplamalara sebep olan Anchor (Çapa) değiştirme kodlarını tamamen SİLDİK.
         }
         else if (e.Status == GestureStatus.Running)
         {
-            currentScale += (e.Scale - 1) * startScale;
-            currentScale = Math.Max(1, Math.Min(currentScale, 4)); // Max 4x büyütebilsin
-            resim.Scale = currentScale;
+            // 2. MATEMATİK DÜZELTMESİ: Toplama yerine çarpma kullanıyoruz. MAUI'de en stabil zoom budur.
+            double targetScale = startScale * e.Scale;
+            currentScale = Math.Max(1, Math.Min(targetScale, 4)); // 1x ile 4x arası sınır
 
-            // KİLİT ÇÖZÜM 2: Uygulamayı çökerten IsSwipeEnabled kodunu buradan SİLDİK.
+            resim.Scale = currentScale;
         }
         else if (e.Status == GestureStatus.Completed || e.Status == GestureStatus.Canceled)
         {
             if (currentScale <= 1.05)
             {
-                // Resim küçültüldüyse güvenli bir şekilde eski merkezine oturt
                 currentScale = 1;
-                resim.ScaleTo(1, 200, Easing.CubicInOut);
-                resim.TranslateTo(0, 0, 200, Easing.CubicInOut);
+                resim.ScaleTo(1, 250, Easing.CubicInOut);
+                resim.TranslateTo(0, 0, 250, Easing.CubicInOut);
                 xOffset = 0;
                 yOffset = 0;
+                FotoCarousel.IsSwipeEnabled = true; // Sadece orijinal boyuttayken sağa sola geçiş serbest
+            }
 
-                // İşlem bittiği için artık fotoğraflar arası kaydırmaya izin ver
-                FotoCarousel.IsSwipeEnabled = true;
-            }
-            else
-            {
-                // Resim hala büyükse (zoomluysa), parmakla gezinirken diğer fotoğrafa geçmemesi için Carousel'i kilitle
-                FotoCarousel.IsSwipeEnabled = false;
-            }
+            isPinching = false;
         }
     }
 
@@ -65,18 +62,25 @@ public partial class FullScreenPhotoView : ContentPage
     {
         var resim = sender as Image;
 
-        // Resim orijinal boyuttaysa gezinme kodlarını iptal et
-        if (resim == null || currentScale <= 1.05) return;
+        // Eğer iki parmak ekrandaysa (zoom yapılıyorsa) veya resim küçükse SÜZGEÇTEN GEÇEMEZ.
+        if (resim == null || isPinching || currentScale <= 1.05) return;
 
-        if (e.StatusType == GestureStatus.Running)
+        if (e.StatusType == GestureStatus.Started)
         {
-            // Sadece resim büyümüşse içinde sağa sola gezinmeye izin ver
+            // 3. ZIPLAMA (TELEPORT) ÇÖZÜMÜ: Parmağını ekrana her dokundurduğunda, 
+            // resmin O ANKİ konumunu başlangıç noktası kabul et. (Bunu eklemediğimiz için zıplıyordu).
+            xOffset = resim.TranslationX;
+            yOffset = resim.TranslationY;
+        }
+        else if (e.StatusType == GestureStatus.Running)
+        {
+            // Parmağı kaydırdıkça o anki konumun üzerine ekle
             resim.TranslationX = xOffset + e.TotalX;
             resim.TranslationY = yOffset + e.TotalY;
         }
         else if (e.StatusType == GestureStatus.Completed || e.StatusType == GestureStatus.Canceled)
         {
-            // Gezinme bittiğinde son koordinatları hafızaya al
+            // Parmağı çektiğinde son durumu hafızaya yaz
             xOffset = resim.TranslationX;
             yOffset = resim.TranslationY;
         }
