@@ -22,6 +22,19 @@ public partial class ProfileView : ContentPage
         PhoneEntry.Text = _aktifKullanici.telefon;
         AddressEditor.Text = _aktifKullanici.adres;
 
+        // ==============================================================
+        // --- YENİ EKLENEN: Switch'i Veritabanındaki Duruma Eşitleme ---
+        // ==============================================================
+        // API'ye gereksiz istek gitmesin diye kilidi kapatıyoruz
+        _isMailSwitchProgrammaticChange = true;
+
+        // Veritabanındaki güncel durumu (1 ise True, 0 ise False) UI'a yansıtıyoruz
+        MailIzniSwitch.IsToggled = _aktifKullanici.mail_istiyor_mu;
+
+        // Kullanıcı kendi eliyle değiştirirse API'ye gitsin diye kilidi geri açıyoruz
+        _isMailSwitchProgrammaticChange = false;
+        // ==============================================================
+
         // AKTİVASYON MODU KONTROLÜ
         if (_isActivationMode)
         {
