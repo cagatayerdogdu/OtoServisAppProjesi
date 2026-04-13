@@ -20,7 +20,7 @@ public partial class FullScreenPhotoView : ContentPage
         FotoCarousel.Position = baslangicIndeksi;
     }
 
-    // --- ZOOM (YAKINLAŞTIRMA) MANTIĞI ---
+    // --- ZOOM (YAKINLAŞTIRMA/UZAKLAŞTIRMA) MANTIĞI ---
     private void OnPinchUpdated(object sender, PinchGestureUpdatedEventArgs e)
     {
         var resim = sender as Image;
@@ -34,23 +34,34 @@ public partial class FullScreenPhotoView : ContentPage
         }
         else if (e.Status == GestureStatus.Running)
         {
-            // Ölçeği hesapla ve sınırla (Min: 1x, Max: 5x)
             currentScale += (e.Scale - 1) * startScale;
-            currentScale = Math.Clamp(currentScale, 1, 5);
+            // Ölçeği 1 ile 5 arasında zorla sınırla (daha da küçülememesini sağlar)
+            currentScale = Math.Max(1, Math.Min(currentScale, 5));
 
             resim.Scale = currentScale;
 
-            // Resim büyüdüğünde kaydırmayı engellemek istersen Carousel'i kilitleyebilirsin
-            FotoCarousel.IsSwipeEnabled = currentScale <= 1.1;
-        }
-        else if (e.Status == GestureStatus.Completed)
-        {
-            // Resim çok küçülürse orijinal boyuta döndür
-            if (currentScale < 1.1)
+            // KİLİT ÇÖZÜM: Kullanıcı resmi 1x boyutuna (veya çok yakınına) kadar küçülttüyse, 
+            // kayma eksenlerini (X ve Y) anında sıfırla ki resim köşelere kaçmasın!
+            if (currentScale <= 1.05)
             {
-                resim.ScaleTo(1, 250, Easing.CubicOut);
-                resim.TranslateTo(0, 0, 250, Easing.CubicOut);
+                resim.TranslationX = 0;
+                resim.TranslationY = 0;
+                xOffset = 0;
+                yOffset = 0;
+            }
+
+            FotoCarousel.IsSwipeEnabled = currentScale <= 1.05;
+        }
+        else if (e.Status == GestureStatus.Completed || e.Status == GestureStatus.Canceled)
+        {
+            // Kullanıcı parmaklarını çektiğinde resim biraz küçülmüşse tam merkeze ve orijinal boyuta oturt
+            if (currentScale <= 1.05)
+            {
                 currentScale = 1;
+                resim.ScaleTo(1, 200, Easing.CubicOut);
+                resim.TranslateTo(0, 0, 200, Easing.CubicOut);
+                xOffset = 0;
+                yOffset = 0;
                 FotoCarousel.IsSwipeEnabled = true;
             }
         }
@@ -60,17 +71,19 @@ public partial class FullScreenPhotoView : ContentPage
     private void OnPanUpdated(object sender, PanUpdatedEventArgs e)
     {
         var resim = sender as Image;
-        if (resim == null || currentScale <= 1.1) return;
+
+        // KİLİT ÇÖZÜM 2: Resim orijinal boyutundayken kaydırma (Pan) komutlarını tamamen yok say!
+        if (resim == null || currentScale <= 1.05) return;
 
         switch (e.StatusType)
         {
             case GestureStatus.Running:
-                // Sadece yakınlaşmışken resim içinde sağa sola gitmeye izin ver
                 resim.TranslationX = xOffset + e.TotalX;
                 resim.TranslationY = yOffset + e.TotalY;
                 break;
 
             case GestureStatus.Completed:
+            case GestureStatus.Canceled:
                 xOffset = resim.TranslationX;
                 yOffset = resim.TranslationY;
                 break;
