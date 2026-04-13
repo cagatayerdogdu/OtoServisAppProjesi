@@ -9,106 +9,120 @@
     <ScrollView>
         <VerticalStackLayout Spacing="20" Padding="20,30">
 
-            <Grid ColumnDefinitions="*, Auto" Margin="0,0,0,10">
-                <Label Grid.Column="0" Text="Profil Bilgileri" FontSize="24" FontAttributes="Bold" TextColor="#2C3E50" VerticalOptions="Center"/>
+            <VerticalStackLayout Spacing="10" HorizontalOptions="Center" Margin="0,0,0,10">
+                <Border BackgroundColor="#00BCD4" WidthRequest="80" HeightRequest="80" Stroke="White" StrokeThickness="3" StrokeShape="RoundRectangle 40" HorizontalOptions="Center">
+                    <Label Text="{x:Static helpers:IconFont.User}" FontFamily="FASolid" FontSize="35" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center"/>
+                </Border>
+                <Label Text="Profilim" FontSize="22" FontAttributes="Bold" TextColor="#2C3E50" HorizontalOptions="Center"/>
+            </VerticalStackLayout>
 
-                <HorizontalStackLayout Grid.Column="1" Spacing="5" VerticalOptions="Center">
-                    <HorizontalStackLayout.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnLogoutClicked" />
-                    </HorizontalStackLayout.GestureRecognizers>
-                    <Label Text="{x:Static helpers:IconFont.SignOut}" FontFamily="FASolid" FontSize="20" TextColor="#00BCD4" VerticalOptions="Center"/>
-                    <Label Text="Çıkış" FontSize="14" FontAttributes="Bold" TextColor="#00BCD4" VerticalOptions="Center"/>
-                </HorizontalStackLayout>
-            </Grid>
+            <Label x:Name="ActivationAlertLabel" 
+                   Text="Kullanıcı hesabınız pasif durumda! Lütfen yeni şifre belirleyerek hesabınızı aktif edin." 
+                   TextColor="#D32F2F" 
+                   BackgroundColor="#FFEBEE" 
+                   Padding="12" 
+                   Margin="0,0,0,5" 
+                   IsVisible="False" 
+                   FontAttributes="Bold" 
+                   HorizontalTextAlignment="Center" />
 
-            <Border BackgroundColor="#FAFAFA" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="15" Margin="0,10,0,20">
-                <Grid ColumnDefinitions="*, Auto">
-                    <HorizontalStackLayout Grid.Column="0" Spacing="10" VerticalOptions="Center">
-                        <Label Text="{x:Static helpers:IconFont.Moon}" FontFamily="FASolid" FontSize="18" TextColor="#333333" VerticalOptions="Center"/>
-                        <Label Text="Karanlık Mod" FontSize="16" TextColor="#333333" VerticalOptions="Center" FontAttributes="Bold"/>
-                    </HorizontalStackLayout>
-                    <Switch x:Name="ThemeSwitch" Grid.Column="1" Toggled="OnThemeSwitchToggled" OnColor="#00BCD4" VerticalOptions="Center" HorizontalOptions="End" />
-                </Grid>
-            </Border>
+            <Entry x:Name="YeniSifreEntry" 
+                   Placeholder="Yeni Şifrenizi Giriniz" 
+                   IsPassword="True" 
+                   IsVisible="False" 
+                   TextColor="#2C3E50" 
+                   FontAttributes="Bold" 
+                   BackgroundColor="White" />
 
-            <Label Text="Bildirim Ayarları" FontSize="16" FontAttributes="Bold" TextColor="#1E293B" Margin="5,15,0,5"/>
-
-            <Frame BackgroundColor="White" BorderColor="#E2E8F0" CornerRadius="12" Padding="15" HasShadow="False">
-                <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
-                    <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="2">
-                        <Label Text="E-posta Bildirimleri" FontSize="15" FontAttributes="Bold" TextColor="#334155"/>
-                        <Label Text="Hatırlatma ve kampanya e-postaları almak istiyorum." FontSize="12" TextColor="#64748B"/>
-                    </VerticalStackLayout>
-                    <Switch x:Name="MailIzniSwitch" Grid.Column="1" VerticalOptions="Center" OnColor="#3498DB" Scale="0.9" Toggled="OnMailIzniToggled">
-                        <Switch.Triggers>
-                            <DataTrigger TargetType="Switch" Binding="{Binding Source={x:Reference MailIzniSwitch}, Path=IsToggled}" Value="True">
-                                <Setter Property="ThumbColor" Value="#25D366" />
-                            </DataTrigger>
-                            <DataTrigger TargetType="Switch" Binding="{Binding Source={x:Reference MailIzniSwitch}, Path=IsToggled}" Value="False">
-                                <Setter Property="ThumbColor" Value="#666666" />
-                            </DataTrigger>
-                        </Switch.Triggers>
-                    </Switch>
-                </Grid>
-            </Frame>
-
-            <Border BackgroundColor="#FAFAFA" StrokeShape="RoundRectangle 15" Padding="25" Stroke="Transparent">
-                <Border.Shadow>
-                    <Shadow Brush="Black" Offset="0,5" Radius="10" Opacity="0.05" />
-                </Border.Shadow>
-
+            <Border BackgroundColor="White" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 15" Padding="20">
                 <VerticalStackLayout Spacing="15">
 
-                    <Label x:Name="ActivationAlertLabel" 
-                           Text="Kullanıcı hesabınız pasif durumda! Lütfen yeni şifre belirleyerek hesabınızı aktif edin." 
-                           TextColor="#D32F2F" 
-                           BackgroundColor="#FFEBEE" 
-                           Padding="10" 
-                           Margin="0,0,0,10" 
-                           IsVisible="False" 
-                           FontAttributes="Bold" 
-                           HorizontalTextAlignment="Center" />
+                    <Label Text="Hesap Bilgileri" FontSize="16" FontAttributes="Bold" TextColor="#111111" Margin="0,0,0,5"/>
 
-                    <Label Text="Ad Soyad" TextColor="#888888" FontSize="13" Margin="0,0,0,-10"/>
-                    <Entry x:Name="NameEntry" TextColor="#2C3E50" FontAttributes="Bold"/>
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="Ad Soyad" TextColor="#888888" FontSize="12" FontAttributes="Bold"/>
+                        <Entry x:Name="NameEntry" TextColor="#2C3E50" FontAttributes="Bold" BackgroundColor="#FAFAFA" />
+                    </VerticalStackLayout>
 
-                    <Label Text="E-Posta (Değiştirilemez)" TextColor="#888888" FontSize="13" Margin="0,0,0,-10"/>
-                    <Entry x:Name="EmailEntry" IsEnabled="False" TextColor="#AAAAAA"/>
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="E-Posta (Değiştirilemez)" TextColor="#888888" FontSize="12" FontAttributes="Bold"/>
+                        <Entry x:Name="EmailEntry" IsEnabled="False" TextColor="#AAAAAA" BackgroundColor="#F5F5F5" />
+                    </VerticalStackLayout>
 
-                    <Entry x:Name="YeniSifreEntry" 
-                           Placeholder="Yeni Şifrenizi Giriniz" 
-                           IsPassword="True" 
-                           IsVisible="False" 
-                           TextColor="#2C3E50" 
-                           FontAttributes="Bold" />
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="Telefon Numarası" TextColor="#888888" FontSize="12" FontAttributes="Bold"/>
+                        <Entry x:Name="PhoneEntry" Keyboard="Telephone" TextColor="#2C3E50" FontAttributes="Bold" BackgroundColor="#FAFAFA" />
+                    </VerticalStackLayout>
 
-                    <Label Text="Telefon" TextColor="#888888" FontSize="13" Margin="0,0,0,-10"/>
-                    <Entry x:Name="PhoneEntry" Keyboard="Telephone" TextColor="#2C3E50" FontAttributes="Bold"/>
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="Adres" TextColor="#888888" FontSize="12" FontAttributes="Bold"/>
+                        <Editor x:Name="AddressEditor" TextColor="#2C3E50" FontAttributes="Bold" HeightRequest="80" AutoSize="TextChanges" BackgroundColor="#FAFAFA" />
+                    </VerticalStackLayout>
 
-                    <Label Text="Adres" TextColor="#888888" FontSize="13" Margin="0,0,0,-10"/>
-                    <Editor x:Name="AddressEditor" TextColor="#2C3E50" FontAttributes="Bold" HeightRequest="80" AutoSize="TextChanges" BackgroundColor="Transparent" />
-
-                    <BoxView HeightRequest="1" Color="#EEEEEE" Margin="0,10"/>
-
-                    <Button x:Name="UpdateButton" Text="BİLGİLERİMİ GÜNCELLE" Clicked="OnUpdateClicked" BackgroundColor="#00BCD4" TextColor="#FAFAFA" CornerRadius="8" HeightRequest="50" FontSize="16" FontAttributes="Bold" Margin="0,5,0,0"/>
-
-                    <Grid x:Name="AdminPanelButton" Margin="0,15,0,0" HeightRequest="50" IsVisible="False">
-                        <Border BackgroundColor="#2C3E50" StrokeShape="RoundRectangle 8" Padding="0" Stroke="Transparent">
-                            <HorizontalStackLayout HorizontalOptions="Center" Spacing="10" VerticalOptions="Center">
-                                <Label Text="{x:Static helpers:IconFont.Crown}" FontFamily="FASolid" FontSize="18" TextColor="#FAFAFA" VerticalOptions="Center"/>
-                                <Label Text="YÖNETİM PANELİ" FontSize="15" FontAttributes="Bold" TextColor="#FAFAFA" VerticalOptions="Center"/>
-                                <Label Text="{x:Static helpers:IconFont.Crown}" FontFamily="FASolid" FontSize="18" TextColor="#FAFAFA" VerticalOptions="Center"/>
-                            </HorizontalStackLayout>
-                        </Border>
-                        <Button BackgroundColor="Transparent" Clicked="OnAdminPanelClicked" />
-                    </Grid>
-
-                    <Button x:Name="ChangePasswordButton" Text="Şifremi Değiştir" BackgroundColor="Transparent" TextColor="#0284C7" BorderColor="#0284C7" BorderWidth="1.5" CornerRadius="8" Margin="0,5,0,0" HeightRequest="50" FontAttributes="Bold" Clicked="OnChangePasswordClicked" />
-
-                    <Button x:Name="DeleteAccountButton" Text="Hesabımı Sil" BackgroundColor="Transparent" TextColor="#D32F2F" BorderColor="#D32F2F" BorderWidth="1.5" CornerRadius="8" Margin="0,5,0,0" HeightRequest="50" FontAttributes="Bold" Clicked="OnHesapSilClicked" />
+                    <Button x:Name="UpdateButton" Text="BİLGİLERİMİ GÜNCELLE" Clicked="OnUpdateClicked" BackgroundColor="#00BCD4" TextColor="#FAFAFA" CornerRadius="12" HeightRequest="45" FontSize="14" FontAttributes="Bold" Margin="0,10,0,0"/>
 
                 </VerticalStackLayout>
             </Border>
+
+            <Border BackgroundColor="White" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 15" Padding="20">
+                <VerticalStackLayout Spacing="15">
+
+                    <Label Text="Tercihler" FontSize="16" FontAttributes="Bold" TextColor="#111111" Margin="0,0,0,5"/>
+
+                    <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                        <HorizontalStackLayout Grid.Column="0" Spacing="10" VerticalOptions="Center">
+                            <Label Text="{x:Static helpers:IconFont.Moon}" FontFamily="FASolid" FontSize="18" TextColor="#3F51B5" VerticalOptions="Center"/>
+                            <Label Text="Karanlık Mod (Yakında)" FontSize="14" FontAttributes="Bold" TextColor="#333333" VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+                        <Switch x:Name="ThemeSwitch" Grid.Column="1" Toggled="OnThemeSwitchToggled" OnColor="#00BCD4" VerticalOptions="Center" HorizontalOptions="End" />
+                    </Grid>
+
+                    <BoxView HeightRequest="1" Color="#EEEEEE" Margin="0,5"/>
+
+                    <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                        <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="2">
+                            <HorizontalStackLayout Spacing="10">
+                                <Label Text="{x:Static helpers:IconFont.Envelope}" FontFamily="FASolid" FontSize="16" TextColor="#3498DB" VerticalOptions="Center"/>
+                                <Label Text="E-posta Bildirimleri" FontSize="14" FontAttributes="Bold" TextColor="#334155"/>
+                            </HorizontalStackLayout>
+                            <Label Text="Hatırlatma ve kampanya e-postaları almak istiyorum." FontSize="11" TextColor="#64748B" Margin="26,0,0,0"/>
+                        </VerticalStackLayout>
+                        <Switch x:Name="MailIzniSwitch" Grid.Column="1" VerticalOptions="Center" HorizontalOptions="End" OnColor="#3498DB" Toggled="OnMailIzniToggled">
+                            <Switch.Triggers>
+                                <DataTrigger TargetType="Switch" Binding="{Binding Source={x:Reference MailIzniSwitch}, Path=IsToggled}" Value="True">
+                                    <Setter Property="ThumbColor" Value="#25D366" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="Switch" Binding="{Binding Source={x:Reference MailIzniSwitch}, Path=IsToggled}" Value="False">
+                                    <Setter Property="ThumbColor" Value="#666666" />
+                                </DataTrigger>
+                            </Switch.Triggers>
+                        </Switch>
+                    </Grid>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <VerticalStackLayout Spacing="12" Margin="0,10,0,20">
+
+                <Grid x:Name="AdminPanelButton" HeightRequest="50" IsVisible="False">
+                    <Border BackgroundColor="#2C3E50" StrokeShape="RoundRectangle 12" Padding="0" Stroke="Transparent">
+                        <HorizontalStackLayout HorizontalOptions="Center" Spacing="10" VerticalOptions="Center">
+                            <Label Text="{x:Static helpers:IconFont.Crown}" FontFamily="FASolid" FontSize="18" TextColor="#FAFAFA" VerticalOptions="Center"/>
+                            <Label Text="YÖNETİM PANELİ" FontSize="14" FontAttributes="Bold" TextColor="#FAFAFA" VerticalOptions="Center"/>
+                            <Label Text="{x:Static helpers:IconFont.Crown}" FontFamily="FASolid" FontSize="18" TextColor="#FAFAFA" VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+                    </Border>
+                    <Button BackgroundColor="Transparent" Clicked="OnAdminPanelClicked" />
+                </Grid>
+
+                <Button x:Name="ChangePasswordButton" Text="Şifremi Değiştir" BackgroundColor="Transparent" TextColor="#FF9800" BorderColor="#FF9800" BorderWidth="1.5" CornerRadius="12" HeightRequest="45" FontAttributes="Bold" Clicked="OnChangePasswordClicked" />
+
+                <Button x:Name="DeleteAccountButton" Text="Hesabımı Sil" BackgroundColor="Transparent" TextColor="#D32F2F" BorderColor="#D32F2F" BorderWidth="1.5" CornerRadius="12" HeightRequest="45" FontAttributes="Bold" Clicked="OnHesapSilClicked" />
+
+                <Button Text="Güvenli Çıkış Yap" BackgroundColor="#FFF0F0" TextColor="#F44336" BorderColor="#F44336" BorderWidth="1" CornerRadius="12" HeightRequest="45" FontAttributes="Bold" Clicked="OnLogoutClicked"/>
+
+            </VerticalStackLayout>
+
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>
