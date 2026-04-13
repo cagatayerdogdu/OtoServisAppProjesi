@@ -48,4 +48,29 @@ public partial class ViewPhotosView : ContentPage
             await Launcher.OpenAsync(tamUrl);
         }
     }
+
+    // YENİ REVİZE: Fotoğraf Silme İşlemi
+    private async void OnDeletePhotoClicked(object sender, EventArgs e)
+    {
+        var btn = sender as Button;
+        var foto = btn?.CommandParameter as ServisTalebiFotograf;
+
+        if (foto != null)
+        {
+            bool onay = await DisplayAlert("Onay", "Bu fotoğrafı kalıcı olarak silmek istediğinize emin misiniz?", "Evet, Sil", "Vazgeç");
+            if (onay)
+            {
+                bool silindi = await _apiService.FotografSilAsync(foto.id);
+                if (silindi)
+                {
+                    await DisplayAlert("Başarılı", "Fotoğraf başarıyla silindi.", "Tamam");
+                    await FotograflariYukle(); // Listeyi ekrandan tazele
+                }
+                else
+                {
+                    await DisplayAlert("Hata", "Fotoğraf silinirken bir sorun oluştu.", "Tamam");
+                }
+            }
+        }
+    }
 }

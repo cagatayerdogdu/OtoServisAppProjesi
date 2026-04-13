@@ -75,6 +75,10 @@ public partial class AdminRequestsView : ContentPage
                 {
                     talep.arac_adi_tam = "Sistemden Silinmiş Araç";
                 }
+
+                // YENİ REVİZE: 3. Admin tarafında talebe ait fotoğraf var mı kontrolü
+                var fotolar = await _apiService.TalepFotograflariniGetirAsync(talep.id);
+                talep.foto_var_mi = fotolar != null && fotolar.Count > 0;
             }
 
             // Veriler işlendikten sonra filtreyi uygula ve listeyi yapılandır										 
@@ -331,9 +335,6 @@ public partial class AdminRequestsView : ContentPage
         }
     }
 
-
-
-
     // =========================================================
     // MAUI'nin yerleşik panoya kopyalama özelliği
     // =========================================================    
@@ -347,6 +348,20 @@ public partial class AdminRequestsView : ContentPage
         {
             await Clipboard.Default.SetTextAsync(kopyalanacakMetin);
             await DisplayAlert("Kopyalandı", "Bilgi panoya kopyalandı.", "Tamam");
+        }
+    }
+
+    // ===============================================================================
+    // YENİ REVİZE: Admin Tarafından Fotoğrafları Gör Butonu Tıklanma Olayı
+    // ===============================================================================
+    private async void OnViewPhotosClicked(object sender, EventArgs e)
+    {
+        var buton = sender as Button;
+        var secilenTalep = buton?.CommandParameter as ServisTalebi;
+
+        if (secilenTalep != null)
+        {
+            await Navigation.PushAsync(new ViewPhotosView(secilenTalep));
         }
     }
 }

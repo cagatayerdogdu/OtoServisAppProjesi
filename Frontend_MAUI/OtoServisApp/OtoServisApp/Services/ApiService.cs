@@ -768,5 +768,19 @@ namespace OtoServisApp.Services
             }
         }
 
+        // YENİ REVİZE: Tek bir fotoğrafı silme metodu
+        public async Task<bool> FotografSilAsync(int fotoId)
+        {
+            try
+            {
+                var response = await _httpClient.DeleteAsync($"/fotograflar/{fotoId}").ConfigureAwait(false);
+                return response.IsSuccessStatusCode;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
     }
 }

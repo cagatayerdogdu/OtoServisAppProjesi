@@ -2037,3 +2037,21 @@ def fotograflari_temizle(talep_id: int, db: Session = Depends(get_db)):
 @app.get("/servis-talepleri/{talep_id}/fotograflar")
 def get_fotograflar(talep_id: int, db: Session = Depends(get_db)):
     return db.query(models.ServisTalebiFotograf).filter(models.ServisTalebiFotograf.talep_id == talep_id).all()
+
+# --- YENİ REVİZE: TEK BİR FOTOĞRAFI FİZİKSEL VE DB'DEN SİLME ---
+@app.delete("/fotograflar/{foto_id}")
+def fotograf_sil(foto_id: int, db: Session = Depends(get_db)):
+    foto = db.query(models.ServisTalebiFotograf).filter(models.ServisTalebiFotograf.id == foto_id).first()
+    if not foto:
+        raise HTTPException(status_code=404, detail="Fotoğraf bulunamadı")
+    
+    # Dosyayı sunucudan fiziksel olarak uçuruyoruz
+    try:
+        if os.path.exists(foto.dosya_yolu):
+            os.remove(foto.dosya_yolu)
+    except:
+        pass # Dosya diskte bulunamazsa bile veritabanından silmek için devam et
+        
+    db.delete(foto)
+    db.commit()
+    return {"mesaj": "Fotoğraf başarıyla silindi"}
