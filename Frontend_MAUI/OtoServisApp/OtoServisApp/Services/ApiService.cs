@@ -754,6 +754,19 @@ namespace OtoServisApp.Services
                 return false;
             }
         }
+        
+        // Python'a yazdığımız API ucuna bağlanmak için:
+        public async Task<List<ServisTalebiFotograf>> TalepFotograflariniGetirAsync(int talepId)
+        {
+            try
+            {
+                return await _httpClient.GetFromJsonAsync<List<ServisTalebiFotograf>>($"/servis-talepleri/{talepId}/fotograflar").ConfigureAwait(false) ?? new List<ServisTalebiFotograf>();
+            }
+            catch
+            {
+                return new List<ServisTalebiFotograf>();
+            }
+        }
 
     }
 }

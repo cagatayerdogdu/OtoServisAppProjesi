@@ -88,6 +88,20 @@
 
                             <BoxView HeightRequest="1" Color="#EEEEEE" Margin="0,10"/>
 
+                            <Border BackgroundColor="#FFF3E0" Stroke="#FFCC80" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10" Margin="0,10,0,10" IsVisible="{Binding foto_var_mi}">
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="2">
+                                        <HorizontalStackLayout Spacing="5">
+                                            <Label Text="{x:Static helpers:IconFont.Camera}" FontFamily="FASolid" FontSize="14" TextColor="#E65100" VerticalOptions="Center"/>
+                                            <Label Text="Görsel Eklenmiş Talep" TextColor="#E65100" FontAttributes="Bold" FontSize="13" VerticalOptions="Center"/>
+                                        </HorizontalStackLayout>
+                                        <Label Text="Bu talebe detaylı hasar fotoğrafları yüklediniz." TextColor="#F57C00" FontSize="11"/>
+                                    </VerticalStackLayout>
+
+                                    <Button Grid.Column="1" Text="Fotoğrafları Gör" BackgroundColor="#FF9800" TextColor="White" CornerRadius="6" HeightRequest="35" FontSize="12" FontAttributes="Bold" Padding="15,0" CommandParameter="{Binding .}" Clicked="OnViewPhotosClicked" VerticalOptions="Center"/>
+                                </Grid>
+                            </Border>
+                            
                             <Grid ColumnDefinitions="*, *">
                                 <Button Grid.Column="0" Text="Düzenle" BackgroundColor="#00BCD4" TextColor="White" CornerRadius="8" Margin="0,0,5,0" Clicked="OnEditClicked" CommandParameter="{Binding .}"/>
                                 <Button Grid.Column="1" Text="İptal Et" BackgroundColor="#FFEBEE" TextColor="#D32F2F" CornerRadius="8" Margin="5,0,0,0" Clicked="OnCancelClicked" CommandParameter="{Binding .}"/>

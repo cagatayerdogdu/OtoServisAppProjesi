@@ -15,7 +15,7 @@ public partial class EditServiceRequestView : ContentPage
     private dynamic _secilenArac;
 
     // --- YENİ REVİZE BAŞLANGICI: Fotoğraf Değişkenleri ---
-    private int MaksimumFotoSayisi = 5;
+    private int MaksimumFotoSayisi = 3;
     public System.Collections.ObjectModel.ObservableCollection<FileResult> SecilenFotograflar { get; set; } = new();
     // --- YENİ REVİZE BİTİŞİ ---
 

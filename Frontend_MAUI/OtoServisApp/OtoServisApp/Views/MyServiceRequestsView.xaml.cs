@@ -77,6 +77,10 @@ public partial class MyServiceRequestsView : ContentPage
                     }
                     talep.arac_adi = string.IsNullOrWhiteSpace(gosterimAd) ? $"Araç ID: {arac.id}" : gosterimAd;
                 }
+
+                // YENİ REVİZE: Talebe ait fotoğraf var mı kontrolü
+                var fotolar = await _apiService.TalepFotograflariniGetirAsync(talep.id);
+                talep.foto_var_mi = fotolar != null && fotolar.Count > 0;
             }
             FiltreleriUygula();
         }
@@ -189,6 +193,18 @@ public partial class MyServiceRequestsView : ContentPage
                     await DisplayAlert("Hata", "Talebiniz iptal edilirken bir sorun oluştu.", "Tamam");
                 }
             }
+        }
+    }
+
+    // YENİ REVİZE: Fotoğrafları Gör Butonu Tıklanma Olayı
+    private async void OnViewPhotosClicked(object sender, EventArgs e)
+    {
+        var buton = sender as Button;
+        var secilenTalep = buton?.CommandParameter as ServisTalebi;
+
+        if (secilenTalep != null)
+        {
+            await Navigation.PushAsync(new ViewPhotosView(secilenTalep));
         }
     }
 }

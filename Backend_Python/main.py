@@ -43,7 +43,7 @@ app = FastAPI(title="Oto Bakım Servisi API", version="1.0.0")
 
 # hasarlı resim ekleme kodları
 os.makedirs("HasarImg", exist_ok=True) # Klasör yoksa otomatik oluşturur
-app.mount("/HasarImg", StaticFiles(directory="HasarImg"), name="HasarImg") # Klasörü dışa açar
+app.mount("/HasarImg", StaticFiles(directory="HasarImg"), name="HasarImg") # Klasörü dışa açar # Fotoğrafları internetten (URL üzerinden) erişilebilir hale getiriyoruz
 #################
 
 # Firebase Başlatma (Eğer yoksa main.py'nin üst kısımlarına ekle)
@@ -1969,7 +1969,7 @@ def log_client_error(error: ClientErrorLog, db: Session = Depends(get_db)):
 #################################################################
 ##################### HASARLI RESİM EKLEME ######################
 #################################################################
-MaksimumFotoSayisi = 5
+MaksimumFotoSayisi = 3
 @app.post("/servis-talepleri/{talep_id}/fotograf")
 async def fotograf_yukle(talep_id: int, db: Session = Depends(get_db), file: UploadFile = File(...)):
     talep = db.query(models.ServisTalebi).filter(models.ServisTalebi.id == talep_id).first()
@@ -2031,3 +2031,9 @@ def fotograflari_temizle(talep_id: int, db: Session = Depends(get_db)):
         
     db.commit()
     return {"mesaj": "Eski fotoğraflar başarıyla temizlendi."}
+
+
+# --- TALEBE AİT FOTOĞRAFLARI GETİRME ---
+@app.get("/servis-talepleri/{talep_id}/fotograflar")
+def get_fotograflar(talep_id: int, db: Session = Depends(get_db)):
+    return db.query(models.ServisTalebiFotograf).filter(models.ServisTalebiFotograf.talep_id == talep_id).all()

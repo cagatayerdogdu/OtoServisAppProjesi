@@ -13,7 +13,7 @@ public partial class CreateServiceRequestView : ContentPage
     private dynamic _secilenArac;
 
     // Hasar Resimleri için Parametrik değişkenimiz
-    private int MaksimumFotoSayisi = 5;
+    private int MaksimumFotoSayisi = 3;
     public System.Collections.ObjectModel.ObservableCollection<FileResult> SecilenFotograflar { get; set; } = new();
 
     public CreateServiceRequestView(Kullanici kullanici)
