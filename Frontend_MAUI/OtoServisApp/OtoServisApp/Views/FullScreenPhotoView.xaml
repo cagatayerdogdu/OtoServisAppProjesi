@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:OtoServisApp.Controls"
              x:Class="OtoServisApp.Views.FullScreenPhotoView"
              BackgroundColor="Black"
              NavigationPage.HasNavigationBar="False">
@@ -11,24 +12,11 @@
                       IndicatorView="indicatorView">
             <CarouselView.ItemTemplate>
                 <DataTemplate>
-                    <!-- 1. AbsoluteLayout IsClippedToBounds'u DESTEKLER -->
-                    <AbsoluteLayout x:Name="PhotoContainer" 
-                                    IsClippedToBounds="True"
-                                    BackgroundColor="Transparent">
-
-                        <!-- 2. Resmi AbsoluteLayout'un tamamını kaplayacak şekilde yerleştiriyoruz -->
-                        <Image x:Name="ZoomableImage"
-                               Source="{Binding TamUrl}" 
-                               Aspect="AspectFit" 
-                               AbsoluteLayout.LayoutBounds="0, 0, 1, 1"
-                               AbsoluteLayout.LayoutFlags="All">
-                            <Image.GestureRecognizers>
-                                <PinchGestureRecognizer PinchUpdated="OnPinchUpdated" />
-                                <PanGestureRecognizer PanUpdated="OnPanUpdated" />
-                            </Image.GestureRecognizers>
-                        </Image>
-
-                    </AbsoluteLayout>
+                    <!-- ✅ PinchToZoomContainer tüm zoom/pan işlemlerini kusursuzca yönetir -->
+                    <controls:PinchToZoomContainer>
+                        <Image Source="{Binding TamUrl}" 
+                               Aspect="AspectFit" />
+                    </controls:PinchToZoomContainer>
                 </DataTemplate>
             </CarouselView.ItemTemplate>
         </CarouselView>
