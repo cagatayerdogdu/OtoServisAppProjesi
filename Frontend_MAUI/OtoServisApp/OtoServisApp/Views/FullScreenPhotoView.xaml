@@ -26,7 +26,7 @@
         </CarouselView>
 
         <!-- Kapat Butonu -->
-        <Button Text="X"
+        <Button Text="X Kapat"
                 Clicked="OnKapatClicked"
                 BackgroundColor="#80000000"
                 TextColor="White"
