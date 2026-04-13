@@ -1,39 +1,43 @@
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:OtoServisApp.Controls"
              x:Class="OtoServisApp.Views.FullScreenPhotoView"
-             BackgroundColor="Black">
+             BackgroundColor="Black"
+             NavigationPage.HasNavigationBar="False">
 
     <Grid>
-
-        <CarouselView x:Name="FotoCarousel"
-                      IsBounceEnabled="False">
-
+        <CarouselView x:Name="FotoCarousel" Loop="True">
             <CarouselView.ItemTemplate>
                 <DataTemplate>
-
-                    <controls:PinchToZoomContainer
-                        ZoomStateChanged="OnZoomStateChanged">
-
-                        <Image Source="{Binding TamUrl}"
+                    <controls:PinchToZoomContainer ZoomStateChanged="OnZoomStateChanged">
+                        <Image Source="{Binding TamUrl}" 
                                Aspect="AspectFit"
                                InputTransparent="True" />
-
                     </controls:PinchToZoomContainer>
-
                 </DataTemplate>
             </CarouselView.ItemTemplate>
-
         </CarouselView>
 
-        <!-- Kapat Butonu -->
-        <Button Text="X Kapat"
-                Clicked="OnKapatClicked"
-                BackgroundColor="#80000000"
-                TextColor="White"
-                HorizontalOptions="End"
-                VerticalOptions="Start"
-                Margin="20" />
+        <Label Text="Yaknlaştırmak veya uzaklaştırmak için görsele çift dokunun"
+               TextColor="White"
+               FontSize="12"
+               Opacity="0.7"
+               HorizontalOptions="Center"
+               VerticalOptions="Start"
+               Margin="0,80,0,0" />
 
+        <Button Text="X Kapat" 
+                Clicked="OnKapatClicked" 
+                BackgroundColor="#222222" 
+                TextColor="White" 
+                Opacity="0.8" 
+                HorizontalOptions="End" 
+                VerticalOptions="Start" 
+                Margin="20,40,20,0" 
+                CornerRadius="15"
+                HeightRequest="40"
+                Padding="15,0"
+                FontAttributes="Bold"/>
     </Grid>
 </ContentPage>
