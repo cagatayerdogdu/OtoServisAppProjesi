@@ -27,26 +27,33 @@ public partial class FullScreenPhotoView : ContentPage
 
         if (e.Status == GestureStatus.Started)
         {
-            // Yakınlaştırma başladı, Pan (sürükleme) hareketini YASAKLA!
             isPinching = true;
-
             startScale = resim.Scale;
-            resim.AnchorX = e.ScaleOrigin.X;
-            resim.AnchorY = e.ScaleOrigin.Y;
+
+            // DONMA ÇÖZÜMÜ: Saniyede 60 kez yerine, sadece hareket başladığında Carousel'i kilitliyoruz.
+            FotoCarousel.IsSwipeEnabled = false;
+
+            // SAÇMALAMA ÇÖZÜMÜ: Sadece resim 1x (orijinal) boyutundayken çapa noktasını değiştir!
+            // Eğer resim zaten büyümüşse ve parmak kaldırıp tekrar konduysa, çapa değişimi resmi zıplatır.
+            if (currentScale <= 1.05)
+            {
+                resim.AnchorX = e.ScaleOrigin.X;
+                resim.AnchorY = e.ScaleOrigin.Y;
+            }
         }
         else if (e.Status == GestureStatus.Running)
         {
             currentScale += (e.Scale - 1) * startScale;
-            currentScale = Math.Clamp(currentScale, 1, 5);
+            currentScale = Math.Max(1, Math.Min(currentScale, 5));
 
             resim.Scale = currentScale;
-
-            FotoCarousel.IsSwipeEnabled = currentScale == 1;
+            // DİKKAT: Burada IsSwipeEnabled = ... kodu vardı, donmayı engellemek için SİLDİK.
         }
         else if (e.Status == GestureStatus.Completed || e.Status == GestureStatus.Canceled)
         {
             if (currentScale <= 1.05)
             {
+                // Resim küçüldüyse orijinal hale döndür ve Carousel'i tekrar aktif et
                 currentScale = 1;
                 resim.ScaleTo(1, 250, Easing.SpringOut);
                 resim.TranslateTo(0, 0, 250, Easing.SpringOut);
@@ -54,8 +61,12 @@ public partial class FullScreenPhotoView : ContentPage
                 yOffset = 0;
                 FotoCarousel.IsSwipeEnabled = true;
             }
+            else
+            {
+                // Resim hala büyükse, başka fotoğrafa kaymamak için Carousel kilitli kalsın
+                FotoCarousel.IsSwipeEnabled = false;
+            }
 
-            // Yakınlaştırma işlemi tamamen bitti, sürüklemeye tekrar izin verilebilir
             isPinching = false;
         }
     }
@@ -65,20 +76,19 @@ public partial class FullScreenPhotoView : ContentPage
     {
         var resim = sender as Image;
 
-        // KİLİT ÇÖZÜM 2: Eğer zoom yapılıyorsa (isPinching) VEYA resim orijinal boyuttaysa,
-        // sürükleme hareketlerini tamamen ve anında İPTAL ET. 
         if (resim == null || isPinching || currentScale <= 1.05) return;
 
         switch (e.StatusType)
         {
             case GestureStatus.Running:
-                // Sadece resim gerçekten büyümüşse ve zoom yapılmıyorsa gezinebilir
+                // Parmak kaldırıp tekrar sürüklendiğinde bıraktığı yerden devam etmesi için xOffset kullanıyoruz
                 resim.TranslationX = xOffset + e.TotalX;
                 resim.TranslationY = yOffset + e.TotalY;
                 break;
 
             case GestureStatus.Completed:
             case GestureStatus.Canceled:
+                // Sürükleme bittiğinde son koordinatları hafızaya al
                 xOffset = resim.TranslationX;
                 yOffset = resim.TranslationY;
                 break;
