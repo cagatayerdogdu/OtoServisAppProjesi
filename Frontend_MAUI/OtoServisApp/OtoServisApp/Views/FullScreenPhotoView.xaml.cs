@@ -9,7 +9,6 @@ public partial class FullScreenPhotoView : ContentPage
     double xOffset = 0;
     double yOffset = 0;
 
-    // KİLİT ÇÖZÜM 1: Çakışmayı önleyecek kilit değişkenimiz
     bool isPinching = false;
 
     public FullScreenPhotoView(List<ServisTalebiFotograf> fotolar, int baslangicIndeksi)
@@ -19,89 +18,110 @@ public partial class FullScreenPhotoView : ContentPage
         FotoCarousel.Position = baslangicIndeksi;
     }
 
-    // --- ZOOM (YAKINLAŞTIRMA/UZAKLAŞTIRMA) MANTIĞI ---
+    // --- ZOOM MANTIĞI (İYİLEŞTİRİLDİ) ---
     private void OnPinchUpdated(object sender, PinchGestureUpdatedEventArgs e)
     {
-        // YENİ REVİZE: Anlık hesaplama hatalarının uygulamayı çökertmesini engellemek için Try-Catch bloğu eklendi.
-        try
+        var resim = sender as Image;
+        if (resim == null) return;
+
+        if (e.Status == GestureStatus.Started)
         {
-            var resim = sender as Image;
-            if (resim == null) return;
+            isPinching = true;
+            FotoCarousel.IsSwipeEnabled = false;
 
-            if (e.Status == GestureStatus.Started)
-            {
-                FotoCarousel.IsSwipeEnabled = false;
-                startScale = resim.Scale;
-
-                // YENİ REVİZE: Saçmalamayı ve zıplamayı önlemek için Çapa (Anchor) noktasını her zaman tam merkeze sabitliyoruz.
-                resim.AnchorX = 0.5;
-                resim.AnchorY = 0.5;
-            }
-            else if (e.Status == GestureStatus.Running)
-            {
-                double targetScale = startScale * e.Scale;
-                currentScale = Math.Max(1, Math.Min(targetScale, 4));
-
-                resim.Scale = currentScale;
-            }
-            else if (e.Status == GestureStatus.Completed || e.Status == GestureStatus.Canceled)
-            {
-                if (currentScale <= 1.05)
-                {
-                    currentScale = 1;
-                    resim.ScaleTo(1, 250, Easing.CubicInOut);
-                    resim.TranslateTo(0, 0, 250, Easing.CubicInOut);
-                    xOffset = 0;
-                    yOffset = 0;
-                    FotoCarousel.IsSwipeEnabled = true;
-                }
-            }
+            startScale = resim.Scale;
         }
-        catch (Exception)
+        else if (e.Status == GestureStatus.Running)
         {
-            // Olası bir gesture çakışmasında uygulamanın kapanmasını engelliyoruz
+            // Matematiksel stabilite için çarpma kullanıyoruz
+            double targetScale = startScale * e.Scale;
+            currentScale = Math.Clamp(targetScale, 1.0, 4.0); // .NET 6+ için Math.Clamp
+
+            resim.Scale = currentScale;
+
+            // Zoom yapılırken pan offset'lerini sıfırla ki resim ekranda merkezde dursun
+            resim.TranslationX = 0;
+            resim.TranslationY = 0;
+            xOffset = 0;
+            yOffset = 0;
+        }
+        else if (e.Status == GestureStatus.Completed || e.Status == GestureStatus.Canceled)
+        {
+            if (currentScale <= 1.05)
+            {
+                // Orijinal boyuta dön
+                currentScale = 1;
+                resim.ScaleTo(1, 250, Easing.CubicInOut);
+                resim.TranslateTo(0, 0, 250, Easing.CubicInOut);
+                xOffset = 0;
+                yOffset = 0;
+                FotoCarousel.IsSwipeEnabled = true;
+            }
+            else
+            {
+                // Zoom bittiğinde mevcut konumu hafızaya al
+                xOffset = resim.TranslationX;
+                yOffset = resim.TranslationY;
+            }
+
+            isPinching = false;
         }
     }
 
-    // --- PAN (YAKINLAŞINCA RESİM İÇİNDE GEZİNME) MANTIĞI ---
+    // --- PAN MANTIĞI (SINIRLANDIRMA EKLENDİ) ---
     private void OnPanUpdated(object sender, PanUpdatedEventArgs e)
     {
-        // YENİ REVİZE: Sürükleme esnasında kilitlenmeleri önlemek için Try-Catch bloğu eklendi.
-        try
+        var resim = sender as Image;
+        if (resim == null || isPinching || currentScale <= 1.05) return;
+
+        if (e.StatusType == GestureStatus.Started)
         {
-            var resim = sender as Image;
-
-            if (resim == null || currentScale <= 1.05) return;
-
-            if (e.StatusType == GestureStatus.Started)
-            {
-                // Mevcut çalışan kod korundu: Başlangıç noktası belirleniyor
-                xOffset = resim.TranslationX;
-                yOffset = resim.TranslationY;
-            }
-            else if (e.StatusType == GestureStatus.Running)
-            {
-                // YENİ REVİZE: Resmin ekran dışına sürüklenip Android motorunu çökertmesini engelleyen Sınır (Clamp) matematiği eklendi.
-                double maxTranslationX = (resim.Width * currentScale - resim.Width) / 2;
-                double maxTranslationY = (resim.Height * currentScale - resim.Height) / 2;
-
-                double yeniX = xOffset + e.TotalX;
-                double yeniY = yOffset + e.TotalY;
-
-                // Resim sadece kendi sınırları içinde kaydırılabilir, dışarı çıkamaz
-                resim.TranslationX = Math.Max(-maxTranslationX, Math.Min(yeniX, maxTranslationX));
-                resim.TranslationY = Math.Max(-maxTranslationY, Math.Min(yeniY, maxTranslationY));
-            }
-            else if (e.StatusType == GestureStatus.Completed || e.StatusType == GestureStatus.Canceled)
-            {
-                xOffset = resim.TranslationX;
-                yOffset = resim.TranslationY;
-            }
+            // Zıplamayı önlemek için başlangıç konumunu sakla
+            xOffset = resim.TranslationX;
+            yOffset = resim.TranslationY;
         }
-        catch (Exception)
+        else if (e.StatusType == GestureStatus.Running)
         {
-            // Olası bir koordinat tanımsızlığında uygulamanın çökmesini (VMDisconnected) engelliyoruz
+            // Yeni konum hesapla
+            double newX = xOffset + e.TotalX;
+            double newY = yOffset + e.TotalY;
+
+            // ÇÖZÜM 2: Resmin sınırlarını hesaplayıp taşmayı engelle
+            (double minX, double maxX, double minY, double maxY) = HesaplaSinirlar(resim);
+
+            newX = Math.Clamp(newX, minX, maxX);
+            newY = Math.Clamp(newY, minY, maxY);
+
+            resim.TranslationX = newX;
+            resim.TranslationY = newY;
         }
+        else if (e.StatusType == GestureStatus.Completed || e.StatusType == GestureStatus.Canceled)
+        {
+            xOffset = resim.TranslationX;
+            yOffset = resim.TranslationY;
+        }
+    }
+
+    // --- SINIR HESAPLAMA METODU ---
+    private (double minX, double maxX, double minY, double maxY) HesaplaSinirlar(Image resim)
+    {
+        // Görselin gerçek boyutları (piksel)
+        double imgWidth = resim.Width > 0 ? resim.Width : 300;   // Varsayılan değer
+        double imgHeight = resim.Height > 0 ? resim.Height : 300;
+
+        // Scale sonrası boyutlar
+        double scaledWidth = imgWidth * currentScale;
+        double scaledHeight = imgHeight * currentScale;
+
+        // Ekran (Grid) boyutları
+        double containerWidth = ((Grid)resim.Parent).Width;
+        double containerHeight = ((Grid)resim.Parent).Height;
+
+        // Yatay sınır: Resim konteynırdan büyükse hareket alanı = (scaledWidth - containerWidth) / 2
+        double maxOffsetX = Math.Max(0, (scaledWidth - containerWidth) / 2);
+        double maxOffsetY = Math.Max(0, (scaledHeight - containerHeight) / 2);
+
+        return (-maxOffsetX, maxOffsetX, -maxOffsetY, maxOffsetY);
     }
 
     private async void OnKapatClicked(object sender, EventArgs e)

@@ -1,0 +1,73 @@
+[MaterialButton] MaterialButton manages its own background to control elevation, shape, color and states. Consider using backgroundTint, shapeAppearance and other attributes where available. A custom background will ignore these attributes and you should consider handling interaction states such as pressed, focused and disabled
+[AutofillManager] view not autofillable - not passing ime action check
+[VRI[MainActivity]@e3a4a1f] ViewPostIme pointer 0
+[VRI[MainActivity]@e3a4a1f] call setFrameRateCategory for touch hint category=high hint, reason=touch, vri=VRI[MainActivity]@e3a4a1f
+[VRI[MainActivity]@e3a4a1f] ViewPostIme pointer 1
+[WindowOnBackDispatcher] OnBackInvokedCallback is not enabled for the application.
+[WindowOnBackDispatcher] Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+[AutofillManager] view not autofillable - not passing ime action check
+[AutofillManager] view not autofillable - not passing ime action check
+[AutofillManager] view not autofillable - not passing ime action check
+[MaterialButton] MaterialButton manages its own background to control elevation, shape, color and states. Consider using backgroundTint, shapeAppearance and other attributes where available. A custom background will ignore these attributes and you should consider handling interaction states such as pressed, focused and disabled
+[me.otoservisapp] Explicit concurrent mark compact GC freed 504KB AllocSpace bytes, 2(40KB) LOS objects, 75% free, 8090KB/31MB, paused 200us,1.537ms total 20.879ms
+[Kumiho-Kumiho] getPackageName: com.companyname.otoservisapp
+[Kumiho-Kumiho] getPackageName: com.companyname.otoservisapp
+[VRI[MainActivity]@e3a4a1f] call setFrameRateCategory for touch hint category=no preference, reason=boost timeout, vri=VRI[MainActivity]@e3a4a1f
+[VRI[MainActivity]@e3a4a1f] ViewPostIme pointer 0
+[GestureDetector] obtain mCurrentDownEvent. id: 738422803 caller: mono.android.view.View_OnTouchListenerImplementor.n_onTouch:-2 mono.android.view.View_OnTouchListenerImplementor.onTouch:31 android.view.View.performOnTouchCallback:17224 
+[VRI[MainActivity]@e3a4a1f] call setFrameRateCategory for touch hint category=high hint, reason=touch, vri=VRI[MainActivity]@e3a4a1f
+[GestureDetector] obtain mCurrentMotionEventRaw. action: 2 id: 178457501
+[VRI[MainActivity]@e3a4a1f] ViewPostIme pointer 1
+[WindowOnBackDispatcher] OnBackInvokedCallback is not enabled for the application.
+[WindowOnBackDispatcher] Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+[MaterialButton] MaterialButton manages its own background to control elevation, shape, color and states. Consider using backgroundTint, shapeAppearance and other attributes where available. A custom background will ignore these attributes and you should consider handling interaction states such as pressed, focused and disabled
+[Kumiho-Kumiho] getPackageName: com.companyname.otoservisapp
+[Kumiho-Kumiho] getPackageName: com.companyname.otoservisapp
+[GestureDetector] handleMessage TAP
+[VRI[MainActivity]@e3a4a1f] ViewPostIme pointer 0
+[GestureDetector] obtain mCurrentDownEvent. id: 1007189750 caller: android.view.ScaleGestureDetector.onTouchEvent:297 mono.android.view.View_OnTouchListenerImplementor.n_onTouch:-2 mono.android.view.View_OnTouchListenerImplementor.onTouch:31 
+[GestureDetector] obtain mCurrentDownEvent. id: 1007189750 caller: mono.android.view.View_OnTouchListenerImplementor.n_onTouch:-2 mono.android.view.View_OnTouchListenerImplementor.onTouch:31 android.view.View.performOnTouchCallback:17224 
+[GestureDetector] obtain mCurrentMotionEventRaw. action: 2 id: 263158774
+[GestureDetector] obtain mCurrentMotionEventRaw. action: 2 id: 263158774
+[ScaleGestureDetector] TwScaleGestureDetector
+[VRI[MainActivity]@e3a4a1f] call setFrameRateCategory for touch hint category=no preference, reason=boost timeout, vri=VRI[MainActivity]@e3a4a1f
+[VRI[MainActivity]@e3a4a1f] call setFrameRateCategory for touch hint category=high hint, reason=touch, vri=VRI[MainActivity]@e3a4a1f
+[monodroid-assembly] open_from_bundles: failed to load assembly System.ComponentModel.Primitives.dll
+Loaded assembly: /data/data/com.companyname.otoservisapp/files/.__override__/System.ComponentModel.Primitives.dll [External]
+[VRI[MainActivity]@e3a4a1f] ViewPostIme pointer 1
+[VRI[MainActivity]@e3a4a1f] ViewPostIme pointer 0
+[GestureDetector] obtain mCurrentDownEvent. id: 6454376 caller: android.view.ScaleGestureDetector.onTouchEvent:297 mono.android.view.View_OnTouchListenerImplementor.n_onTouch:-2 mono.android.view.View_OnTouchListenerImplementor.onTouch:31 
+[GestureDetector] obtain mCurrentDownEvent. id: 6454376 caller: mono.android.view.View_OnTouchListenerImplementor.n_onTouch:-2 mono.android.view.View_OnTouchListenerImplementor.onTouch:31 android.view.View.performOnTouchCallback:17224 
+[GestureDetector] obtain mCurrentMotionEventRaw. action: 261 id: 984342308
+[GestureDetector] obtain mCurrentMotionEventRaw. action: 261 id: 984342308
+[ScaleGestureDetector] TwScaleGestureDetector
+[RecyclerView] Error processing scroll; pointer index for id 1 not found. Did any MotionEvents get skipped?
+[VRI[MainActivity]@e3a4a1f] ViewPostIme pointer 1
+[VRI[MainActivity]@e3a4a1f] ViewPostIme pointer 0
+[GestureDetector] obtain mCurrentDownEvent. id: 583631383 caller: android.view.ScaleGestureDetector.onTouchEvent:297 mono.android.view.View_OnTouchListenerImplementor.n_onTouch:-2 mono.android.view.View_OnTouchListenerImplementor.onTouch:31 
+[GestureDetector] obtain mCurrentDownEvent. id: 583631383 caller: mono.android.view.View_OnTouchListenerImplementor.n_onTouch:-2 mono.android.view.View_OnTouchListenerImplementor.onTouch:31 android.view.View.performOnTouchCallback:17224 
+[GestureDetector] obtain mCurrentMotionEventRaw. action: 261 id: 304749293
+[GestureDetector] obtain mCurrentMotionEventRaw. action: 261 id: 304749293
+[ScaleGestureDetector] TwScaleGestureDetector
+[RecyclerView] Error processing scroll; pointer index for id 1 not found. Did any MotionEvents get skipped?
+[RecyclerView] Error processing scroll; pointer index for id 1 not found. Did any MotionEvents get skipped?
+[RecyclerView] Error processing scroll; pointer index for id 1 not found. Did any MotionEvents get skipped?
+[VRI[MainActivity]@e3a4a1f] ViewPostIme pointer 1
+[VRI[MainActivity]@e3a4a1f] ViewPostIme pointer 0
+[GestureDetector] obtain mCurrentDownEvent. id: 998060571 caller: android.view.ScaleGestureDetector.onTouchEvent:297 mono.android.view.View_OnTouchListenerImplementor.n_onTouch:-2 mono.android.view.View_OnTouchListenerImplementor.onTouch:31 
+[GestureDetector] obtain mCurrentDownEvent. id: 998060571 caller: mono.android.view.View_OnTouchListenerImplementor.n_onTouch:-2 mono.android.view.View_OnTouchListenerImplementor.onTouch:31 android.view.View.performOnTouchCallback:17224 
+[GestureDetector] obtain mCurrentMotionEventRaw. action: 261 id: 407304337
+[GestureDetector] obtain mCurrentMotionEventRaw. action: 261 id: 407304337
+[ScaleGestureDetector] TwScaleGestureDetector
+[RecyclerView] Error processing scroll; pointer index for id 1 not found. Did any MotionEvents get skipped?
+[VRI[MainActivity]@e3a4a1f] ViewPostIme pointer 1
+[VRI[MainActivity]@e3a4a1f] ViewPostIme pointer 0
+[GestureDetector] obtain mCurrentDownEvent. id: 262610715 caller: android.view.ScaleGestureDetector.onTouchEvent:297 mono.android.view.View_OnTouchListenerImplementor.n_onTouch:-2 mono.android.view.View_OnTouchListenerImplementor.onTouch:31 
+[GestureDetector] obtain mCurrentDownEvent. id: 262610715 caller: mono.android.view.View_OnTouchListenerImplementor.n_onTouch:-2 mono.android.view.View_OnTouchListenerImplementor.onTouch:31 android.view.View.performOnTouchCallback:17224 
+[GestureDetector] obtain mCurrentMotionEventRaw. action: 261 id: 743720399
+[GestureDetector] obtain mCurrentMotionEventRaw. action: 261 id: 743720399
+[ScaleGestureDetector] TwScaleGestureDetector
+[VRI[MainActivity]@e3a4a1f] ViewPostIme pointer 1
+Thread finished:  #5
+The thread 5 has exited with code 0 (0x0).
+[VRI[MainActivity]@e3a4a1f] call setFrameRateCategory for touch hint category=no preference, reason=boost timeout, vri=VRI[MainActivity]@e3a4a1f

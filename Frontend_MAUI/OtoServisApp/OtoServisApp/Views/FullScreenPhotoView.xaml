@@ -11,7 +11,8 @@
                       IndicatorView="indicatorView">
             <CarouselView.ItemTemplate>
                 <DataTemplate>
-                    <Grid>
+                    <!-- ÇÖZÜM 1: Grid'e ClipToBounds ekleyerek zoom yapıldığında görselin taşmasını engelliyoruz -->
+                    <Grid ClipToBounds="True">
                         <Image Source="{Binding TamUrl}" 
                                Aspect="AspectFit" 
                                HorizontalOptions="Fill" 
