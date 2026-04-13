@@ -13,6 +13,9 @@ namespace OtoServisApp.Controls
 
         public PinchToZoomContainer()
         {
+            // Taşmayı engellemek için kritik ayar
+            this.IsClippedToBounds = true;
+
             var pinchGesture = new PinchGestureRecognizer();
             pinchGesture.PinchUpdated += OnPinchUpdated;
             GestureRecognizers.Add(pinchGesture);
