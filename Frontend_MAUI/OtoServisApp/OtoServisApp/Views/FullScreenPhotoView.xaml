@@ -11,8 +11,8 @@
                       IndicatorView="indicatorView">
             <CarouselView.ItemTemplate>
                 <DataTemplate>
-                    <!-- ÇÖZÜM 1: Grid'e ClipToBounds ekleyerek zoom yapıldığında görselin taşmasını engelliyoruz -->
-                    <Grid ClipToBounds="True">
+                    <!-- Grid yerine ContentView kullanıyoruz (ClipToBounds destekler) -->
+                    <ContentView ClipToBounds="True">
                         <Image Source="{Binding TamUrl}" 
                                Aspect="AspectFit" 
                                HorizontalOptions="Fill" 
@@ -22,7 +22,7 @@
                                 <PanGestureRecognizer PanUpdated="OnPanUpdated" />
                             </Image.GestureRecognizers>
                         </Image>
-                    </Grid>
+                    </ContentView>
                 </DataTemplate>
             </CarouselView.ItemTemplate>
         </CarouselView>

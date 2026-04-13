@@ -106,16 +106,18 @@ public partial class FullScreenPhotoView : ContentPage
     private (double minX, double maxX, double minY, double maxY) HesaplaSinirlar(Image resim)
     {
         // Görselin gerçek boyutları (piksel)
-        double imgWidth = resim.Width > 0 ? resim.Width : 300;   // Varsayılan değer
+        double imgWidth = resim.Width > 0 ? resim.Width : 300;  // Varsayılan değer
         double imgHeight = resim.Height > 0 ? resim.Height : 300;
 
         // Scale sonrası boyutlar
         double scaledWidth = imgWidth * currentScale;
         double scaledHeight = imgHeight * currentScale;
 
+        // Parent ContentView boyutları
         // Ekran (Grid) boyutları
-        double containerWidth = ((Grid)resim.Parent).Width;
-        double containerHeight = ((Grid)resim.Parent).Height;
+        var parentView = resim.Parent as ContentView;
+        double containerWidth = parentView?.Width ?? 300;
+        double containerHeight = parentView?.Height ?? 300;
 
         // Yatay sınır: Resim konteynırdan büyükse hareket alanı = (scaledWidth - containerWidth) / 2
         double maxOffsetX = Math.Max(0, (scaledWidth - containerWidth) / 2);
