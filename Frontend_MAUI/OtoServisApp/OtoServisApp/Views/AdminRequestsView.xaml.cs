@@ -364,4 +364,75 @@ public partial class AdminRequestsView : ContentPage
             await Navigation.PushAsync(new ViewPhotosView(secilenTalep));
         }
     }
+
+    // =========================================================
+    // YENİ: ADMİN TARAFINDAN FOTOĞRAF EKLEME İŞLEMİ
+    // =========================================================
+    private async void OnAddPhotoClicked(object sender, EventArgs e)
+    {
+        var button = sender as Button;
+        var talep = button?.CommandParameter as ServisTalebi;
+
+        if (talep == null) return;
+
+        try
+        {
+            // 1. ADIM: Fotoğrafları seçiyoruz
+            var sonuclar = await FilePicker.PickMultipleAsync(new PickOptions
+            {
+                FileTypes = FilePickerFileType.Images,
+                PickerTitle = "Servis Fotoğraflarını Seçin"
+            });
+
+            if (sonuclar == null || !sonuclar.Any()) return;
+
+            // 2. ADIM: Yükleme ekranını yapılandır ve aç
+            LoadingTitle.Text = "Fotoğraflar Sunucuya Aktarılıyor...";
+            LoadingSubText.Text = $"{sonuclar.Count()} adet görsel işleniyor.";
+            LoadingOverlay.IsVisible = true;
+
+            int basarili = 0;
+            int hatali = 0;
+
+            foreach (var foto in sonuclar)
+            {
+                using var stream = await foto.OpenReadAsync();
+
+                // Güvenli isimlendirme (Admin olduğu için başına 'Admin' ekliyoruz)
+                string zaman = DateTime.Now.ToString("yyyyMMddHHmmssfff");
+                string uzanti = Path.GetExtension(foto.FileName);
+                if (string.IsNullOrEmpty(uzanti)) uzanti = ".jpg";
+
+                string ozelDosyaAdi = $"Admin-{talep.id}-{zaman}{uzanti}";
+
+                // API'ye gönderim yapıyoruz
+                string sonuc = await _apiService.UploadHasarFotografAsync(talep.id, stream, ozelDosyaAdi);
+
+                if (sonuc == "OK") basarili++;
+                else hatali++;
+            }
+
+            // 3. ADIM: Bilgilendirme ve Liste Yenileme
+            if (hatali > 0)
+            {
+                await DisplayAlert("Kısmi Başarılı", $"{basarili} fotoğraf yüklendi, {hatali} fotoğraf yüklenemedi.", "Tamam");
+            }
+            else
+            {
+                await DisplayAlert("Başarılı", "Tüm fotoğraflar talebe başarıyla eklendi.", "Tamam");
+            }
+
+            // Listeyi tazeliyoruz ki "Fotoğrafları Gör" butonu (eğer varsa) görünür olsun
+            await VerileriYukle();
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Hata", "Fotoğraf ekleme işlemi sırasında bir sorun oluştu: " + ex.Message, "Tamam");
+        }
+        finally
+        {
+            // 4. ADIM: Yükleme ekranını kapat
+            LoadingOverlay.IsVisible = false;
+        }
+    }
 }
