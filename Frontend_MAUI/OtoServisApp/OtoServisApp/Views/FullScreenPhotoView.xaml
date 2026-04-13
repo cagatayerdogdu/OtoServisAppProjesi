@@ -30,7 +30,7 @@
                        IndicatorColor="Grey"
                        SelectedIndicatorColor="White"
                        HorizontalOptions="Center"
-                       VerticalOptions="Bottom"
+                       VerticalOptions="End"
                        Margin="0,0,0,40" />
 
         <Button Text="X Kapat" 
