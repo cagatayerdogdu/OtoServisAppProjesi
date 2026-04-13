@@ -76,6 +76,8 @@ class KullaniciBase(BaseModel):
     telefon: str
     adres: Optional[str] = None  # YENİ EKLENDİ
     rol: Optional[str] = "Musteri" # YENİ EKLENEN SATIR
+    mail_istiyor_mu: bool # YENİ EKLENDİ 2026-04-13 18:33
+    son_hatirlatma_tarihi: Optional[datetime] = None  # YENİ EKLENDİ 2026-04-13 18:33
 
 class KullaniciCreate(KullaniciBase):
     sifre: str 

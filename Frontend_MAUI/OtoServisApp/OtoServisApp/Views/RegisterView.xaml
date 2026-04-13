@@ -69,8 +69,17 @@
                         </Grid>
                     </Border>
 
-                    <Button x:Name="RegisterButton" Text="KAYIT OL" Clicked="OnRegisterClicked" BackgroundColor="#00BCD4" TextColor="White" CornerRadius="8" HeightRequest="50" FontAttributes="Bold" Margin="0,15,0,0"/>
-                    
+                    <HorizontalStackLayout Spacing="8" Margin="0,10,0,10" VerticalOptions="Center">
+                        <CheckBox x:Name="MailIzniCheckBox" IsChecked="True" Color="#00BCD4" Scale="0.9" VerticalOptions="Center" />
+                        <Label Text="Hatırlatma ve kampanya e-postaları almak istiyorum." 
+                               FontSize="11" 
+                               TextColor="#666666" 
+                               VerticalOptions="Center" 
+                               LineBreakMode="WordWrap" />
+                    </HorizontalStackLayout>
+
+                    <Button x:Name="RegisterButton" Text="KAYIT OL" Clicked="OnRegisterClicked" BackgroundColor="#00BCD4" TextColor="White" CornerRadius="8" HeightRequest="50" FontAttributes="Bold" Margin="0,5,0,0"/>
+
                 </VerticalStackLayout>
             </Border>
 
