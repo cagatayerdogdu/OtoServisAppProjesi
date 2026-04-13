@@ -228,34 +228,66 @@ public partial class ProfileView : ContentPage
     }
     // --- YENİ REVİZE BİTİŞİ ---
 
-    // Anahtar (Switch) her değiştirildiğinde tetiklenecek metot
+    // YENİ EKLENEN DEĞİŞKEN: Switch'in kod tarafından mı yoksa kullanıcı tarafından mı değiştirildiğini anlamak için
+    private bool _isMailSwitchProgrammaticChange = false;
+    // --- YENİ REVİZE BAŞLANGICI: Nazik Uyarı ile Mail İzni Değiştirme ---
     private async void OnMailIzniToggled(object sender, ToggledEventArgs e)
     {
-        // Cihazda kayıtlı kullanıcı ID'sini alıyoruz (Senin projende ID'yi nasıl tutuyorsan ona göre uyarla)
+        // Eğer bu değişiklik kullanıcı tarafından değil de, bizim yazdığımız kod (vazgeçme durumu) tarafından yapıldıysa, metodu çalıştırma ve çık
+        if (_isMailSwitchProgrammaticChange) return;
+
+        bool yeniDurum = e.Value;
+
+        // Sadece kullanıcı bildirimleri KAPATMAK istediğinde (False olduğunda) araya girip uyarı veriyoruz
+        if (!yeniDurum)
+        {
+            bool eminMi = await DisplayAlert(
+                "E-Posta Bildirimleri",
+                "Araç bakımlarınız için size özel hazırladığımız hatırlatmaları ve önemli fırsatları kaçırmanızı istemeyiz. Yine de e-posta bildirimlerini kapatmak istediğinize emin misiniz?",
+                "Evet, Kapat",
+                "Vazgeç");
+
+            if (!eminMi)
+            {
+                // Kullanıcı "Vazgeç" dediyse, switch'i kod ile tekrar AÇIK (True) hale getiriyoruz
+                // Event'in tekrar tetiklenip sonsuz döngüye girmemesi için koruma bayrağını (flag) kullanıyoruz
+                _isMailSwitchProgrammaticChange = true;
+                MailIzniSwitch.IsToggled = true;
+                _isMailSwitchProgrammaticChange = false;
+
+                return; // DB güncellemesi yapmadan işlemi sonlandır
+            }
+        }
+
+        // Onay verildiyse veya kullanıcı bildirimleri AÇIYORSA (True) doğrudan DB güncellemesine geç
         var kullaniciIdStr = await SecureStorage.GetAsync("kullanici_id_gizli");
         if (string.IsNullOrEmpty(kullaniciIdStr)) return;
 
         int kullaniciId = int.Parse(kullaniciIdStr);
-        bool yeniDurum = e.Value;
 
         try
         {
-            // Az önce Python'da yazdığımız API'ye istek atıyoruz
             var body = new { mail_istiyor_mu = yeniDurum };
             var res = await _apiService.PutAsync($"kullanici/{kullaniciId}/mail-izni", body);
 
             if (!res.IsSuccessStatusCode)
             {
-                // Eğer API hata verirse anahtarı eski haline geri getiriyoruz
+                // API hatası olursa switch'i sessizce (event'i sonsuz döngüye sokmadan) eski haline al
+                _isMailSwitchProgrammaticChange = true;
                 MailIzniSwitch.IsToggled = !yeniDurum;
+                _isMailSwitchProgrammaticChange = false;
+
                 await DisplayAlert("Hata", "Bildirim ayarı güncellenemedi, lütfen bağlantınızı kontrol edin.", "Tamam");
             }
         }
         catch (Exception ex)
         {
-            // Olası bir çökmede yine eski duruma alıp kullanıcıyı uyarıyoruz
+            _isMailSwitchProgrammaticChange = true;
             MailIzniSwitch.IsToggled = !yeniDurum;
+            _isMailSwitchProgrammaticChange = false;
+
             System.Diagnostics.Debug.WriteLine($"Mail izni güncellenirken hata: {ex.Message}");
         }
     }
+    // --- YENİ REVİZE BİTİŞİ ---
 }

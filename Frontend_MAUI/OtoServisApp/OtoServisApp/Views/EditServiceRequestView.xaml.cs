@@ -14,12 +14,20 @@ public partial class EditServiceRequestView : ContentPage
     // YENİ: AracPicker yerine seçilen aracı hafızada tutacağımız değişken
     private dynamic _secilenArac;
 
+    // --- YENİ REVİZE BAŞLANGICI: Fotoğraf Değişkenleri ---
+    private int MaksimumFotoSayisi = 5;
+    public System.Collections.ObjectModel.ObservableCollection<FileResult> SecilenFotograflar { get; set; } = new();
+    // --- YENİ REVİZE BİTİŞİ ---
+
     public EditServiceRequestView(ServisTalebi talep, Kullanici aktifKullanici)
     {
         InitializeComponent();
         _talep = talep;
         _aktifKullanici = aktifKullanici;
         _apiService = new ApiService();
+
+        // --- Hasar Fotoğrafları Ekleme için ---
+        BindingContext = this;
     }
 
     protected override async void OnAppearing()
@@ -158,35 +166,20 @@ public partial class EditServiceRequestView : ContentPage
 
     private async void OnKaydetClicked(object sender, EventArgs e)
     {
-        bool basarili = false;
-
+        // --- 1. KONTROLLER (Hızlıca dönmesi gerekenler burada kalır) ---
         if (_talep.durum == "Bekliyor")
         {
-            // Eski Kod: var secilenHizmet = HizmetPicker.SelectedItem as Hizmet;
-            // YENİ KOD:
             if (_secilenHizmet == null)
             {
                 await DisplayAlert("Hata", "Lütfen bir hizmet seçin.", "Tamam");
                 return;
             }
 
-            // YENİ: Picker yerine yeni değişkenden kontrol
             if (_secilenArac == null)
             {
                 await DisplayAlert("Hata", "Lütfen Araç seçimini yapın.", "Tamam");
                 return;
             }
-
-            basarili = await _apiService.ServisTalebiGuncelleAsync(
-                _talep.id,
-                _secilenHizmet.id,
-                _secilenArac.Id, // Dynamic objeden Id'yi alıyoruz
-                TarihPicker.Date.ToString("yyyy-MM-dd"),
-                AdresEditor.Text,
-                NotlarEditor.Text,
-                false,
-                ""
-            );
         }
         else if (_talep.durum == "Onaylandı" || _talep.durum == "İşlemde")
         {
@@ -195,22 +188,116 @@ public partial class EditServiceRequestView : ContentPage
                 await DisplayAlert("Hata", "Lütfen düzeltmek istediğiniz alanları yazın.", "Tamam");
                 return;
             }
-
-            basarili = await _apiService.ServisTalebiGuncelleAsync(
-                _talep.id, null, null, "", "", "",
-                true,
-                DuzeltmeNotuEditor.Text
-            );
         }
 
-        if (basarili)
+        // --- 2. İŞLEM BAŞLADI: EKRANI KİLİTLE VE YÜKLEMEYİ GÖSTER ---
+        LoadingOverlay.IsVisible = true;
+        bool basarili = false;
+
+        // --- YENİ DİNAMİK METİN AYARI ---
+        if (SecilenFotograflar != null && SecilenFotograflar.Count > 0)
         {
-            await DisplayAlert("Başarılı", "İşleminiz başarıyla kaydedildi.", "Tamam");
-            await Navigation.PopAsync(); // Bir önceki sayfaya dön
+            LoadingTitle.Text = "Fotoğraflarınız Yükleniyor...";
+            LoadingSubText.Text = "Dosya boyutlarına göre bu işlem biraz zaman alabilir.\nLütfen bekleyiniz.";
         }
         else
         {
-            await DisplayAlert("Hata", "Bir sorun oluştu, lütfen tekrar deneyin.", "Tamam");
+            LoadingTitle.Text = "İşleminiz Yapılıyor...";
+            LoadingSubText.Text = "Lütfen bekleyiniz.";
+        }
+
+        try
+        {
+            // 3. ÖNCE VERİTABANI GÜNCELLEMESİ YAPILIR
+            if (_talep.durum == "Bekliyor")
+            {
+                basarili = await _apiService.ServisTalebiGuncelleAsync(
+                    _talep.id,
+                    _secilenHizmet.id,
+                    _secilenArac.Id,
+                    TarihPicker.Date.ToString("yyyy-MM-dd"),
+                    AdresEditor.Text,
+                    NotlarEditor.Text,
+                    false,
+                    ""
+                );
+            }
+            else if (_talep.durum == "Onaylandı" || _talep.durum == "İşlemde")
+            {
+                basarili = await _apiService.ServisTalebiGuncelleAsync(
+                    _talep.id, null, null, "", "", "",
+                    true,
+                    DuzeltmeNotuEditor.Text
+                );
+            }
+
+            // 4. SONRA FOTOĞRAF YÜKLEME İŞLEMİ YAPILIR
+            if (basarili)
+            {
+                int yuklenemeyen = 0;
+                string hataMesajlari = "";
+
+                if (SecilenFotograflar != null && SecilenFotograflar.Count > 0)
+                {
+                    // Eski fotoları temizle
+                    await _apiService.EskiFotograflariTemizleAsync(_talep.id);
+
+                    foreach (var foto in SecilenFotograflar)
+                    {
+                        using var stream = await foto.OpenReadAsync();
+
+                        string temizAdSoyad = "Kullanici";
+                        if (_aktifKullanici != null && !string.IsNullOrWhiteSpace(_aktifKullanici.ad_soyad))
+                        {
+                            temizAdSoyad = _aktifKullanici.ad_soyad.Replace(" ", "");
+                        }
+
+                        string uzanti = ".jpg";
+                        if (foto != null && !string.IsNullOrWhiteSpace(foto.FileName))
+                        {
+                            uzanti = Path.GetExtension(foto.FileName);
+                        }
+                        if (string.IsNullOrEmpty(uzanti)) uzanti = ".jpg";
+
+                        string zaman = DateTime.Now.ToString("yyyyMMddHHmmssfff");
+                        string ozelDosyaAdi = $"{temizAdSoyad}-{_talep.id}-{zaman}{uzanti}";
+
+                        string uploadSonuc = await _apiService.UploadHasarFotografAsync(_talep.id, stream, ozelDosyaAdi);
+
+                        if (uploadSonuc != "OK")
+                        {
+                            yuklenemeyen++;
+                            string dosyaIsmi = foto?.FileName ?? "BilinmeyenDosya";
+                            hataMesajlari += $"- {dosyaIsmi}: {uploadSonuc}\n";
+                        }
+                    }
+                }
+
+                // --- SONUÇ MESAJLARI ---
+                if (yuklenemeyen > 0)
+                {
+                    await DisplayAlert("Kısmi Başarılı", $"Talebiniz güncellendi ancak bazı fotoğraflar yüklenemedi:\n{hataMesajlari}", "Anladım");
+                }
+                else
+                {
+                    await DisplayAlert("Başarılı", "Talep bilgileriniz ve fotoğraflarınız başarıyla güncellendi.", "Tamam");
+                }
+
+                await Navigation.PopAsync();
+            }
+            else
+            {
+                await DisplayAlert("Hata", "Bir sorun oluştu, tekrar deneyin.", "Tamam");
+            }
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Hata", "İşlem sırasında hata: " + ex.Message, "Tamam");
+        }
+        finally
+        {
+            // 5. İŞLEM BİTTİ: EKRAN KİLİDİNİ AÇ (Hata olsa da olmasa da çalışır)
+            LoadingOverlay.IsVisible = false;
         }
     }
 
@@ -286,4 +373,60 @@ public partial class EditServiceRequestView : ContentPage
             AracListesi.SelectedItem = null; // Seçimi sıfırla
         }
     }
+
+    // --- YENİ REVİZE BAŞLANGICI: Hasar Fotoğrafı Seçme ve Silme İşlemleri ---
+    // YENİ REVİZE: Toplu Seçim İşlemi (Madde 1)
+    private async void OnAddPhotoClicked(object sender, EventArgs e)
+    {
+        if (SecilenFotograflar.Count >= MaksimumFotoSayisi)
+        {
+            await DisplayAlert("Bilgi", $"En fazla {MaksimumFotoSayisi} adet fotoğraf ekleyebilirsiniz.", "Tamam");
+            return;
+        }
+
+        try
+        {
+            // MAUI'de toplu fotoğraf seçimi için FilePicker sınıfını sadece resimlere filtreleyerek yapılandırıyoruz
+            var options = new PickOptions
+            {
+                PickerTitle = "Hasar Fotoğraflarını Seçin",
+                FileTypes = FilePickerFileType.Images
+            };
+
+            // MediaPicker yerine FilePicker'ın çoklu seçim metodunu kullanıyoruz
+            var photos = await FilePicker.Default.PickMultipleAsync(options);
+
+            if (photos != null)
+            {
+                foreach (var photo in photos)
+                {
+                    if (SecilenFotograflar.Count < MaksimumFotoSayisi)
+                    {
+                        SecilenFotograflar.Add(photo);
+                    }
+                    else
+                    {
+                        await DisplayAlert("Bilgi", $"Maksimum {MaksimumFotoSayisi} fotoğraf sınırına ulaşıldı. Diğerleri eklenemedi.", "Tamam");
+                        break;
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Hata", "Fotoğraflar seçilirken bir hata oluştu: " + ex.Message, "Tamam");
+        }
+    }
+
+    private void OnRemovePhotoClicked(object sender, EventArgs e)
+    {
+        var button = sender as Button;
+        var photo = button?.CommandParameter as FileResult;
+        if (photo != null)
+        {
+            SecilenFotograflar.Remove(photo);
+        }
+    }
+    // --- YENİ REVİZE BİTİŞİ ---
+
 }

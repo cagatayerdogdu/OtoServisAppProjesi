@@ -29,7 +29,7 @@ namespace OtoServisApp.Services
             // Artık tünele gerek yok, doğrudan sunucuya bağlanıyoruz.
             _httpClient.BaseAddress = new Uri(ApiConfig.BaseUrl);
         }
-
+        /*
         public async Task<Kullanici> GirisYapAsync(string eposta, string sifre)
         {
             try
@@ -49,6 +49,58 @@ namespace OtoServisApp.Services
                 return null;
             }
         }
+        */
+        public async Task<Kullanici> GirisYapAsync(string eposta, string sifre)
+        {
+            try
+            {
+                // Senin orijinal yapın: JSON olarak veri gönderimi
+                var loginData = new { eposta = eposta, sifre = sifre };
+                var response = await _httpClient.PostAsJsonAsync("/giris/", loginData).ConfigureAwait(false);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    return JsonSerializer.Deserialize<Kullanici>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                }
+                else
+                {
+                    // --- YENİ REVİZE: Hata detayını ayrıştırıp fırlatma (Madde 73) ---
+                    string rawError = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    string temizMesaj = "Sunucu ile iletişim kurulamadı.";
+
+                    try
+                    {
+                        using var jsonDoc = JsonDocument.Parse(rawError);
+                        var root = jsonDoc.RootElement;
+
+                        if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("detail", out var detailElement))
+                        {
+                            temizMesaj = detailElement.ValueKind == JsonValueKind.String
+                                ? detailElement.GetString()
+                                : detailElement.ToString();
+                        }
+                    }
+                    catch
+                    {
+                        temizMesaj = rawError; // JSON okunamıyorsa düz metni ver
+                    }
+
+                    throw new Exception(temizMesaj);
+                }
+            }
+            catch (HttpRequestException)
+            {
+                throw new Exception("Sunucuya ulaşılamıyor. Lütfen internet bağlantınızı kontrol edin.");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Giriş hatası: {ex.Message}");
+                throw; // UI (LoginView) tarafında catch bloğuna düşmesi için hatayı fırlatıyoruz
+            }
+        }
+
+
 
         public async Task<Kullanici> KullaniciGuncelleAsync(int id, KullaniciUpdate guncelVeri)
         {
@@ -139,10 +191,54 @@ namespace OtoServisApp.Services
             try
             {
                 var response = await _httpClient.PostAsJsonAsync("/servis-talepleri/", talep).ConfigureAwait(false);
-                if (response.IsSuccessStatusCode) return "OK";
+                //if (response.IsSuccessStatusCode) return "OK";
+                // YENİ REVİZE: Bize ID lazım ki fotoğrafı o ID'ye bağlayalım
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    using var jsonDoc = JsonDocument.Parse(content);
+                    return jsonDoc.RootElement.GetProperty("id").GetInt32().ToString(); // Başarılıysa ID döner
+                }
 
-                string errorDetail = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                return $"Sunucu Hatası: {errorDetail}";
+                // API'den dönen ham yanıtı (JSON) okuyoruz
+                string rawError = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                string temizMesaj = rawError; // Parse edilemezse varsayılan olarak ham yanıt dönsün
+
+                try
+                {
+                    // Gelen JSON paketini açıyoruz
+                    using var jsonDoc = JsonDocument.Parse(rawError);
+                    var root = jsonDoc.RootElement;
+
+                    // 1. Durum: Standart FastAPI Hatası -> {"detail": "Bu araç için..."}
+                    if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("detail", out var detailElement))
+                    {
+                        if (detailElement.ValueKind == JsonValueKind.String)
+                        {
+                            temizMesaj = detailElement.GetString();
+                        }
+                        // Eğer detail'in kendisi köşeli parantezli bir dizi ise
+                        else if (detailElement.ValueKind == JsonValueKind.Array && detailElement.GetArrayLength() > 0)
+                        {
+                            temizMesaj = detailElement[0].TryGetProperty("msg", out var msgProp) ? msgProp.GetString() : detailElement.ToString();
+                        }
+                    }
+                    // 2. Durum: Doğrudan Dizi Olarak Gelen Hatalar (Validation) -> [{"msg": "...", ...}]
+                    else if (root.ValueKind == JsonValueKind.Array && root.GetArrayLength() > 0)
+                    {
+                        var firstError = root[0];
+                        if (firstError.TryGetProperty("msg", out var msgProp))
+                        {
+                            temizMesaj = msgProp.GetString();
+                        }
+                    }
+                }
+                catch
+                {
+                    // Gelen yanıt JSON değilse (örneğin düz HTML 500 sayfasıysa) hiçbir şey yapma, ham hali kalsın
+                }
+
+                return temizMesaj;
             }
             catch (Exception ex)
             {
@@ -604,5 +700,60 @@ namespace OtoServisApp.Services
             }
             return null;
         }
+        // Madde 72-Servis talebi ekranında aracın hasar fotolarını yükleyebilmesi gerekiyor.
+        public async Task<string> UploadHasarFotografAsync(int talepId, Stream fileStream, string fileName)
+        {
+            try
+            {
+                using var multipartFormContent = new MultipartFormDataContent();
+
+                // YENİ REVİZE: Dosya yolu yerine Stream (Akış) kullanıyoruz, Android erişim engeli kalkıyor!
+                var fileStreamContent = new StreamContent(fileStream);
+                fileStreamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/jpeg");
+                multipartFormContent.Add(fileStreamContent, name: "file", fileName: fileName);
+
+                var response = await _httpClient.PostAsync($"/servis-talepleri/{talepId}/fotograf", multipartFormContent).ConfigureAwait(false);
+
+                if (response.IsSuccessStatusCode) return "OK";
+
+                // Hata mesajını ayrıştır (Dizi [array] olarak gelen 422 hatalarını da yakalar)
+                string rawError = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                string temizMesaj = "Sunucu fotoğrafı kabul etmedi.";
+                try
+                {
+                    using var jsonDoc = JsonDocument.Parse(rawError);
+                    var root = jsonDoc.RootElement;
+                    if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("detail", out var detailElement))
+                    {
+                        if (detailElement.ValueKind == JsonValueKind.String)
+                            temizMesaj = detailElement.GetString();
+                        else if (detailElement.ValueKind == JsonValueKind.Array && detailElement.GetArrayLength() > 0)
+                            temizMesaj = detailElement[0].TryGetProperty("msg", out var msgProp) ? msgProp.GetString() : detailElement.ToString();
+                    }
+                }
+                catch { }
+
+                return temizMesaj;
+            }
+            catch (Exception ex)
+            {
+                return $"Bağlantı Hatası: Fotoğraf yüklenemedi. ({ex.Message})";
+            }
+        }
+
+        // Düzenleme ekranında yeni fotoğraflar yüklenmeden önce eskileri temizler
+        public async Task<bool> EskiFotograflariTemizleAsync(int talepId)
+        {
+            try
+            {
+                var response = await _httpClient.DeleteAsync($"/servis-talepleri/{talepId}/fotograflari-temizle").ConfigureAwait(false);
+                return response.IsSuccessStatusCode;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
     }
 }

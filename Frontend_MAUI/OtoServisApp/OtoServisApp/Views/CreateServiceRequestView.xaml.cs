@@ -12,6 +12,10 @@ public partial class CreateServiceRequestView : ContentPage
     private Hizmet _secilenHizmet;
     private dynamic _secilenArac;
 
+    // Hasar Resimleri için Parametrik değişkenimiz
+    private int MaksimumFotoSayisi = 5;
+    public System.Collections.ObjectModel.ObservableCollection<FileResult> SecilenFotograflar { get; set; } = new();
+
     public CreateServiceRequestView(Kullanici kullanici)
     {
         InitializeComponent();
@@ -22,6 +26,8 @@ public partial class CreateServiceRequestView : ContentPage
         {
             AddressEditor.Text = _aktifKullanici.adres;
         }
+        // Hasar Resimleri için
+        BindingContext = this;
     }
 
     protected override async void OnAppearing()
@@ -142,39 +148,189 @@ public partial class CreateServiceRequestView : ContentPage
     // --- KAYDET BUTONU ---
     private async void OnSubmitClicked(object sender, EventArgs e)
     {
+        // --- 1. KONTROLLER ---
         if (_secilenArac == null || _secilenHizmet == null || string.IsNullOrEmpty(AddressEditor.Text))
         {
             await DisplayAlert("Uyarı", "Lütfen araç, hizmet ve adres alanlarını eksiksiz doldurun.", "Tamam");
             return;
         }
 
+        // --- 2. İŞLEM BAŞLADI: BUTONU VE EKRANI KİLİTLE ---
         SubmitButton.IsEnabled = false;
         SubmitButton.Text = "GÖNDERİLİYOR...";
+        LoadingOverlay.IsVisible = true;
 
-        string formatliTarih = RequestDatePicker.Date.ToString("yyyy-MM-dd");
-
-        var yeniTalep = new ServisTalebiRequest
+        // --- YENİ DİNAMİK METİN AYARI ---
+        if (SecilenFotograflar != null && SecilenFotograflar.Count > 0)
         {
-            kullanici_id = _aktifKullanici.id,
-            arac_id = _secilenArac.Id,
-            hizmet_id = _secilenHizmet.id,
-            talep_tarihi = formatliTarih,
-            adres = AddressEditor.Text,
-            notlar = NotesEditor.Text
-        };
-
-        string sonuc = await _apiService.ServisTalebiOlusturAsync(yeniTalep);
-
-        if (sonuc == "OK")
-        {
-            await DisplayAlert("Başarılı", "Servis talebiniz alınmıştır. En kısa sürede sizinle iletişime geçeceğiz.", "Tamam");
-            await Navigation.PopAsync();
+            LoadingTitle.Text = "Fotoğraflarınız Yükleniyor...";
+            LoadingSubText.Text = "Dosya boyutlarına göre bu işlem biraz zaman alabilir.\nLütfen bekleyiniz.";
         }
         else
         {
-            await DisplayAlert("Hata Oluştu", sonuc, "Tamam");
+            LoadingTitle.Text = "İşleminiz Yapılıyor...";
+            LoadingSubText.Text = "Lütfen bekleyiniz.";
+        }
+
+        LoadingOverlay.IsVisible = true; // Ekranı şimdi açıyoruz
+
+        try
+        {
+            string formatliTarih = RequestDatePicker.Date.ToString("yyyy-MM-dd");
+
+            var yeniTalep = new ServisTalebiRequest
+            {
+                kullanici_id = _aktifKullanici.id,
+                arac_id = _secilenArac.Id,
+                hizmet_id = _secilenHizmet.id,
+                talep_tarihi = formatliTarih,
+                adres = AddressEditor.Text,
+                notlar = NotesEditor.Text
+            };
+
+            // 3. VERİTABANINA KAYIT (Overlay devredeyken yapılıyor)
+            string sonuc = await _apiService.ServisTalebiOlusturAsync(yeniTalep);
+
+            if (int.TryParse(sonuc, out int olusturulanTalepId))
+            {
+                // 4. TALEBİMİZ OLUŞTU, ŞİMDİ FOTOĞRAFLARI YÜKLÜYORUZ
+                int yuklenemeyen = 0;
+                string hataMesajlari = "";
+
+                foreach (var foto in SecilenFotograflar)
+                {
+                    using var stream = await foto.OpenReadAsync();
+
+                    string temizAdSoyad = string.IsNullOrWhiteSpace(_aktifKullanici?.ad_soyad)
+                                          ? "Kullanici"
+                                          : _aktifKullanici.ad_soyad.Replace(" ", "");
+
+                    string uzanti = Path.GetExtension(foto.FileName);
+                    if (string.IsNullOrEmpty(uzanti)) uzanti = ".jpg";
+
+                    string ozelDosyaAdi = $"{temizAdSoyad}-{olusturulanTalepId}-{DateTime.Now.ToString("yyyyMMddHHmmssfff")}{uzanti}";
+
+                    string uploadSonuc = await _apiService.UploadHasarFotografAsync(olusturulanTalepId, stream, ozelDosyaAdi);
+
+                    if (uploadSonuc != "OK")
+                    {
+                        yuklenemeyen++;
+                        hataMesajlari += $"- {foto.FileName}: {uploadSonuc}\n";
+                    }
+                }
+
+                if (yuklenemeyen > 0)
+                {
+                    await DisplayAlert("Kısmi Başarılı", $"Servis talebiniz oluşturuldu ancak bazı fotoğraflar yüklenemedi:\n{hataMesajlari}\nDaha sonra talebi düzenle (Taleplerim/Durum Takibi) ekranından tekrar yüklemeyi deneyebilirsiniz.", "Anladım");
+                }
+                else
+                {
+                    await DisplayAlert("Başarılı", "Servis talebiniz ve fotoğraflarınız başarıyla alınmıştır. En kısa sürede sizinle iletişime geçeceğiz.", "Tamam");
+                }
+
+                await Navigation.PopAsync();
+            }
+            else
+            {
+                // Backend'den hata veya soru geldi
+                SubmitButton.IsEnabled = true;
+                SubmitButton.Text = "TALEBİ OLUŞTUR";
+
+                if (sonuc.Contains("yeni bir talep açmak ister misiniz?"))
+                {
+                    // Özel soru ekranını göstermeden önce Overlay'i kapatıyoruz ki soru gözüksün
+                    LoadingOverlay.IsVisible = false;
+
+                    bool cevap = await DisplayAlert("Mevcut Talep Uyarısı", sonuc, "Evet", "Vazgeç");
+                    if (cevap)
+                    {
+                        var silinecekHizmet = _orijinalHizmetler.FirstOrDefault(h => h.id == _secilenHizmet.id);
+                        if (silinecekHizmet != null)
+                        {
+                            _orijinalHizmetler.Remove(silinecekHizmet);
+                        }
+
+                        HizmetListesi.ItemsSource = null;
+                        HizmetListesi.ItemsSource = _orijinalHizmetler;
+
+                        _secilenHizmet = null;
+                        SecilenHizmetButonu.Text = "Hizmet Seçiniz";
+                        SecilenHizmetButonu.TextColor = Color.FromArgb("#888888");
+
+                        HizmetAramaKutusu.IsVisible = true;
+                        HizmetAramaBar.Focus();
+                    }
+                }
+                else
+                {
+                    await DisplayAlert("Hata Oluştu", sonuc, "Tamam");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
             SubmitButton.IsEnabled = true;
             SubmitButton.Text = "TALEBİ OLUŞTUR";
+            await DisplayAlert("Hata", "İşlem sırasında hata: " + ex.Message, "Tamam");
+        }
+        finally
+        {
+            // 5. İŞLEM BİTTİ: EKRAN KİLİDİNİ AÇ
+            LoadingOverlay.IsVisible = false;
+        }
+    }
+
+    // Hasarlı Araç Resimleri Ekleme Fonksiyonu
+    // YENİ REVİZE: Toplu Seçim İşlemi (Madde 1)
+    private async void OnAddPhotoClicked(object sender, EventArgs e)
+    {
+        if (SecilenFotograflar.Count >= MaksimumFotoSayisi)
+        {
+            await DisplayAlert("Bilgi", $"En fazla {MaksimumFotoSayisi} adet fotoğraf ekleyebilirsiniz.", "Tamam");
+            return;
+        }
+
+        try
+        {
+            // MAUI'de toplu fotoğraf seçimi için FilePicker sınıfını sadece resimlere filtreleyerek yapılandırıyoruz
+            var options = new PickOptions
+            {
+                PickerTitle = "Hasar Fotoğraflarını Seçin",
+                FileTypes = FilePickerFileType.Images
+            };
+
+            // MediaPicker yerine FilePicker'ın çoklu seçim metodunu kullanıyoruz
+            var photos = await FilePicker.Default.PickMultipleAsync(options);
+
+            if (photos != null)
+            {
+                foreach (var photo in photos)
+                {
+                    if (SecilenFotograflar.Count < MaksimumFotoSayisi)
+                    {
+                        SecilenFotograflar.Add(photo);
+                    }
+                    else
+                    {
+                        await DisplayAlert("Bilgi", $"Maksimum {MaksimumFotoSayisi} fotoğraf sınırına ulaşıldı. Diğerleri eklenemedi.", "Tamam");
+                        break;
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Hata", "Fotoğraflar seçilirken bir hata oluştu: " + ex.Message, "Tamam");
+        }
+    }
+
+    private void OnRemovePhotoClicked(object sender, EventArgs e)
+    {
+        var button = sender as Button;
+        var photo = button?.CommandParameter as FileResult;
+        if (photo != null)
+        {
+            SecilenFotograflar.Remove(photo);
         }
     }
 }

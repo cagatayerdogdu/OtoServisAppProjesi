@@ -2,12 +2,14 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:helpers="clr-namespace:OtoServisApp.Helpers"
+             xmlns:models="clr-namespace:OtoServisApp.Models" 
              x:Class="OtoServisApp.Views.NotificationsView"
              BackgroundColor="#F4F6F8"
              Title="Bildirimlerim">
 
     <Grid RowDefinitions="Auto, *">
 
+        <!-- Üst bar: Hepsini seç checkbox ve seçilenleri sil butonu -->
         <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Padding="15" BackgroundColor="#F8FAFC">
             <HorizontalStackLayout Grid.Column="0" Spacing="10" VerticalOptions="Center">
                 <CheckBox x:Name="ChkSelectAll" CheckedChanged="OnSelectAllCheckedChanged" Color="#00BCD4"/>
@@ -26,9 +28,8 @@
                 Padding="10,0"/>
         </Grid>
 
-        <CollectionView Grid.Row="1" x:Name="NotificationList" Margin="15" 
-                SelectionMode="Multiple" SelectionChanged="OnSelectionChanged">
-
+        <!-- Bildirim listesi -->
+        <CollectionView Grid.Row="1" x:Name="NotificationList" Margin="15">
             <CollectionView.EmptyView>
                 <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="10" Margin="0,100,0,0">
                     <Label Text="{x:Static helpers:IconFont.Bell}" FontFamily="FASolid" FontSize="50" TextColor="#888888" HorizontalOptions="Center" Opacity="0.5"/>
@@ -37,59 +38,70 @@
             </CollectionView.EmptyView>
 
             <CollectionView.ItemTemplate>
-                <DataTemplate>
+                <DataTemplate x:DataType="models:BildirimResponse">
                     <Grid Padding="0,0,0,10">
-                        <VisualStateManager.VisualStateGroups>
-                            <VisualStateGroup Name="CommonStates">
-                                <VisualState Name="Normal">
-                                    <VisualState.Setters>
-                                        <Setter TargetName="CardBorder" Property="Border.BackgroundColor" Value="White" />
-                                    </VisualState.Setters>
-                                </VisualState>
-                                <VisualState Name="Selected">
-                                    <VisualState.Setters>
-                                        <Setter TargetName="CardBorder" Property="Border.BackgroundColor" Value="#E8F5E9" />
-                                        <Setter TargetName="CardBorder" Property="Border.Stroke" Value="#4CAF50" />
-                                    </VisualState.Setters>
-                                </VisualState>
-                            </VisualStateGroup>
-                        </VisualStateManager.VisualStateGroups>
-
+                        <!-- Sola kaydırarak silme (SwipeView) - Kenarlık kaldırıldı -->
                         <SwipeView>
                             <SwipeView.RightItems>
                                 <SwipeItemView CommandParameter="{Binding .}" Invoked="OnSingleDeleteInvoked">
-                                    <Border BackgroundColor="#EF4444" StrokeShape="RoundRectangle 12" Padding="20" Margin="10,0,0,0" WidthRequest="70">
+                                    <Border BackgroundColor="#EF4444" StrokeThickness="0" StrokeShape="RoundRectangle 12" Padding="20" Margin="10,0,0,0" WidthRequest="70">
                                         <Label Text="{x:Static helpers:IconFont.Trash}" FontFamily="FASolid" FontSize="20" TextColor="White" VerticalOptions="Center" HorizontalOptions="Center"/>
                                     </Border>
                                 </SwipeItemView>
                             </SwipeView.RightItems>
 
-                            <Border x:Name="CardBorder" StrokeShape="RoundRectangle 12" Padding="15">
+                            <!-- Bildirim kartı -->
+                            <Border x:Name="CardBorder" StrokeShape="RoundRectangle 12" Padding="15" StrokeThickness="1.5">
+                                <!-- Kısa tıklama ile okundu işaretleme -->
                                 <Border.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="OnNotificationTapped" />
+                                    <TapGestureRecognizer Tapped="OnNotificationTapped" NumberOfTapsRequired="1" />
                                 </Border.GestureRecognizers>
 
-                                <Border.Triggers>
-                                    <DataTrigger TargetType="Border" Binding="{Binding okundu_mu}" Value="False">
-                                        <Setter Property="BackgroundColor" Value="#E0F7FA" />
-                                        <Setter Property="Stroke" Value="#00BCD4" />
-                                    </DataTrigger>
-                                </Border.Triggers>
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="BackgroundColor" Value="White" />
+                                        <Setter Property="Stroke" Value="Transparent" />
 
-                                <VerticalStackLayout Spacing="5">
-                                    <HorizontalStackLayout Spacing="10">
-                                        <Label Text="{x:Static helpers:IconFont.Bell}" FontFamily="FASolid" FontSize="16" TextColor="#00BCD4" VerticalOptions="Center"/>
-                                        <Label Text="{Binding baslik}" FontSize="15" TextColor="#111111" VerticalOptions="Center">
-                                            <Label.Triggers>
-                                                <DataTrigger TargetType="Label" Binding="{Binding okundu_mu}" Value="False">
-                                                    <Setter Property="FontAttributes" Value="Bold" />
-                                                </DataTrigger>
-                                            </Label.Triggers>
-                                        </Label>
-                                    </HorizontalStackLayout>
-                                    <Label Text="{Binding mesaj}" FontSize="13" TextColor="#555555" Margin="26,0,0,0" />
-                                    <Label Text="{Binding olusturulma_tarihi, StringFormat='{0:yyyy-MM-dd HH:mm}'}" FontSize="11" TextColor="#888888" HorizontalOptions="End" Margin="0,5,0,0"/>
-                                </VerticalStackLayout>
+                                        <Style.Triggers>
+                                            <DataTrigger TargetType="Border" Binding="{Binding okundu_mu}" Value="False">
+                                                <Setter Property="BackgroundColor" Value="#F0F9FF" />
+                                                <Setter Property="Stroke" Value="#0284C7" />
+                                            </DataTrigger>
+
+                                            <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
+                                                <Setter Property="BackgroundColor" Value="#E8F5E9" />
+                                                <Setter Property="Stroke" Value="#4CAF50" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+
+                                <Grid ColumnDefinitions="Auto, *">
+                                    <!-- Seçim CheckBox'u (TwoWay binding ile) -->
+                                    <CheckBox Grid.Column="0" 
+                              IsChecked="{Binding IsSelected}" 
+                              Color="#00BCD4" 
+                              VerticalOptions="Center"
+                              CheckedChanged="OnItemCheckChanged"/>
+
+                                    <!-- Bildirim içeriği -->
+                                    <VerticalStackLayout Grid.Column="1" Spacing="5" Margin="10,0,0,0">
+                                        <HorizontalStackLayout Spacing="10">
+                                            <Label Text="{x:Static helpers:IconFont.Bell}" FontFamily="FASolid" FontSize="16" TextColor="#00BCD4" VerticalOptions="Center"/>
+                                            <Label Text="{Binding baslik}" FontSize="15" TextColor="#111111" VerticalOptions="Center">
+                                                <Label.Triggers>
+                                                    <!-- Okunmamış başlık kalın ve renkli -->
+                                                    <DataTrigger TargetType="Label" Binding="{Binding okundu_mu}" Value="False">
+                                                        <Setter Property="FontAttributes" Value="Bold" />
+                                                        <Setter Property="TextColor" Value="#0284C7" />
+                                                    </DataTrigger>
+                                                </Label.Triggers>
+                                            </Label>
+                                        </HorizontalStackLayout>
+                                        <Label Text="{Binding mesaj}" FontSize="13" TextColor="#555555" />
+                                        <Label Text="{Binding olusturulma_tarihi, StringFormat='{0:yyyy-MM-dd HH:mm}'}" FontSize="11" TextColor="#888888" HorizontalOptions="End" Margin="0,5,0,0"/>
+                                    </VerticalStackLayout>
+                                </Grid>
                             </Border>
                         </SwipeView>
                     </Grid>

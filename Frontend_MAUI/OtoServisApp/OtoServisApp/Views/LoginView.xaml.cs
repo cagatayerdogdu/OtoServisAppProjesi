@@ -38,8 +38,8 @@ public partial class LoginView : ContentPage
         LoginButton.IsEnabled = false;
         LoginButton.Text = "GİRİŞ YAPILIYOR...";
 
+        /*
         var kullanici = await _apiService.GirisYapAsync(email, password);
-
         if (kullanici != null)
         {
             // --- BURAYI EKLE: Kullanıcı ID'sini kasaya kilitliyoruz ---
@@ -61,8 +61,8 @@ public partial class LoginView : ContentPage
                 SecureStorage.Default.Remove("kayitli_sifre");
             }
             // Herkes (Admin dahil) önce ana merkeze (Dashboard) gider!
-            /* ESKİ KOD: Rengi siyah bırakan varsayılan sayfa yönlendirmesi
-            Application.Current.MainPage = new NavigationPage(new DashboardView(kullanici)); */
+            // ESKİ KOD: Rengi siyah bırakan varsayılan sayfa yönlendirmesi
+            //Application.Current.MainPage = new NavigationPage(new DashboardView(kullanici)); 
             // YENİ EKLENEN REVİZE: Yeni sayfayı oluştururken üst barı turkuaz (#00BCD4) olarak yapılandırıyoruz
             //var dashNavPage = new NavigationPage(new DashboardView(kullanici));
             //dashNavPage.BarBackgroundColor = Color.FromArgb("#00BCD4");
@@ -72,15 +72,6 @@ public partial class LoginView : ContentPage
             var tabbedPage = new MainTabbedPage(kullanici);
             Application.Current.MainPage = tabbedPage;
 
-            /*
-            if (kullanici.rol == "Admin")
-            {
-                Application.Current.MainPage = new NavigationPage(new AdminDashboardView(kullanici));
-            }
-            else
-            {
-                Application.Current.MainPage = new NavigationPage(new DashboardView(kullanici));
-            }*/
         }
         else
         {
@@ -113,6 +104,45 @@ public partial class LoginView : ContentPage
             LoginButton.IsEnabled = true;
             LoginButton.Text = "GİRİŞ YAP";
         }
+        */
+
+        try
+        {
+            var kullanici = await _apiService.GirisYapAsync(email, password);
+
+            if (kullanici != null)
+            {
+                // Başarılı girişte bilgileri otomatik kaydediyoruz
+                await SecureStorage.Default.SetAsync("kayitli_eposta", email);
+                await SecureStorage.Default.SetAsync("kayitli_sifre", password);
+
+                await SecureStorage.Default.SetAsync("kullanici_id_gizli", kullanici.id.ToString());
+                await _apiService.FcmTokenGuncelle(kullanici.id);
+
+                var tabbedPage = new MainTabbedPage(kullanici);
+                Application.Current.MainPage = tabbedPage;
+            }
+        }
+        catch (Exception ex)
+        {
+            // API'den gelen spesifik hatayı (E-posta yok, Şifre hatalı, İnternet yok vb.) ekrana basıyoruz
+            await DisplayAlert("Giriş Başarısız", ex.Message, "Tamam");
+
+            // Yanlış giriş yapıldığı için eski kayıtlı verileri temizliyoruz (Güvenlik)
+            SecureStorage.Default.Remove("kayitli_eposta");
+            SecureStorage.Default.Remove("kayitli_sifre");
+
+            // Eğer sorun şifreyse kullanıcıya kolaylık olması için şifre kutusunu temizle ve odaklan
+            if (ex.Message.ToLower().Contains("şifre"))
+            {
+                PasswordEntry.Text = string.Empty;
+                PasswordEntry.Focus();
+            }
+
+            LoginButton.IsEnabled = true;
+            LoginButton.Text = "Giriş Yap";
+        }
+        // --- YENİ REVİZE BİTİŞİ ---
     }
 
     private async void OnRegisterTapped(object sender, EventArgs e)

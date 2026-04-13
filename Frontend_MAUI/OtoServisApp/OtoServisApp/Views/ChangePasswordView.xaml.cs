@@ -27,9 +27,24 @@ public partial class ChangePasswordView : ContentPage
             return;
         }
 
+        // --- YENİ REVİZE BAŞLANGICI: Şifre Uzunluk Kontrolü (Madde 71) ---
+        if (yeniSifre.Length < 6)
+        {
+            await DisplayAlert("Uyarı", "Güvenliğiniz için yeni şifreniz en az 6 karakterden oluşmalıdır.", "Tamam");
+            NewPasswordEntry.Text = string.Empty;
+            ConfirmPasswordEntry.Text = string.Empty;
+            NewPasswordEntry.Focus();
+            return;
+        }
+        // --- YENİ REVİZE BİTİŞİ ---
+
         if (yeniSifre != yeniSifreTekrar)
         {
             await DisplayAlert("Hata", "Yeni şifreler birbiriyle uyuşmuyor.", "Tamam");
+
+            // Kullanıcı dostu UX: Sadece tekrar kutusunu temizleyip oraya odaklan
+            ConfirmPasswordEntry.Text = string.Empty;
+            ConfirmPasswordEntry.Focus();
             return;
         }
 

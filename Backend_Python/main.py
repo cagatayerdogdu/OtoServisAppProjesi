@@ -28,10 +28,23 @@ from firebase_admin import credentials, messaging
 from pydantic import BaseModel
 from sqlalchemy import nullsfirst  
 from fastapi.responses import HTMLResponse
+# hasarlı resim ekleme importları
+import os
+import io
+import uuid
+from PIL import Image
+from fastapi import UploadFile, File
+from fastapi.staticfiles import StaticFiles
+##########
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Oto Bakım Servisi API", version="1.0.0")
+
+# hasarlı resim ekleme kodları
+os.makedirs("HasarImg", exist_ok=True) # Klasör yoksa otomatik oluşturur
+app.mount("/HasarImg", StaticFiles(directory="HasarImg"), name="HasarImg") # Klasörü dışa açar
+#################
 
 # Firebase Başlatma (Eğer yoksa main.py'nin üst kısımlarına ekle)
 if not firebase_admin._apps:
@@ -589,7 +602,7 @@ def manuel_hatirlatma_gonder(kullanici_id: int, istek: ManuelHatirlatmaIstegi, d
             <p>Hayırlı günler dileriz,<br><b>Oto Bakım Yönetimi</b></p>
             <hr>
             <p style="font-size: 11px; color: #999;">
-                Bu e-postayı almak istemiyorsanız <a href="http://BURAYA_IP_VERILECEK:8000/kvkk/mail-iptal/{kullanici.id}">buraya tıklayarak</a> abonelikten çıkabilirsiniz.
+                Bu e-postayı almak istemiyorsanız <a href="http://136.115.53.49:8000/kvkk/mail-iptal/{kullanici.id}">buraya tıklayarak</a> abonelikten çıkabilirsiniz.
             </p>
         </body>
     </html>
@@ -648,24 +661,48 @@ def mail_abonelik_iptal(kullanici_id: int, db: Session = Depends(get_db)):
     kullanici.mail_istiyor_mu = False
     db.commit()
     
+#    html_icerik = f"""
+#    <!DOCTYPE html>
+#    <html>
+#        <head>
+#            <meta charset="utf-8">
+#            <title>Abonelik İptali</title>
+#        </head>
+#        <body style="font-family: Arial, sans-serif; text-align: center; padding-top: 50px; #background-color: #F8FAFC;">
+#            <div style="background-color: white; padding: 40px; border-radius: 10px; #box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: inline-block; border: 1px solid #E2E8F0;">
+#                <h2 style="color: #25D366;">Abonelikten Çıkış Başarılı</h2>
+#                <p>Sayın <b>{kullanici.ad_soyad}</b>, e-posta bildirimleri kapatıldı.</p>
+#                <p>Artık hatırlatma e-postaları almayacaksınız.</p>
+#                <br>
+#                <p style="font-size: 12px; color: #7F8C8D;">Fikrinizi değiştirirseniz, #uygulamadaki profil ayarlarından tekrar açabilirsiniz.</p>
+#            </div>
+#        </body>
+#    </html>
+#    """
+
+# YENİ REVİZE: <meta name="viewport"...> etiketi sayesinde artık telefonda dev gibi ve net görünecek
     html_icerik = f"""
     <!DOCTYPE html>
     <html>
         <head>
             <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
             <title>Abonelik İptali</title>
         </head>
-        <body style="font-family: Arial, sans-serif; text-align: center; padding-top: 50px; background-color: #F8FAFC;">
-            <div style="background-color: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: inline-block; border: 1px solid #E2E8F0;">
-                <h2 style="color: #25D366;">Abonelikten Çıkış Başarılı</h2>
-                <p>Sayın <b>{kullanici.ad_soyad}</b>, e-posta bildirimleri kapatıldı.</p>
-                <p>Artık hatırlatma e-postaları almayacaksınız.</p>
+        <body style="font-family: Arial, sans-serif; text-align: center; padding: 20px; background-color: #F8FAFC; margin: 0;">
+            <div style="background-color: white; padding: 30px 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); display: block; max-width: 400px; margin: 40px auto; border: 1px solid #E2E8F0;">
+                <h2 style="color: #25D366; margin-top: 0;">Abonelikten Çıkış Başarılı</h2>
+                <p style="font-size: 16px; color: #333; line-height: 1.5;">Sayın <b>{kullanici.ad_soyad}</b>,<br>e-posta bildirimleri kapatıldı.</p>
+                <p style="font-size: 16px; color: #333;">Artık hatırlatma e-postaları almayacaksınız.</p>
                 <br>
-                <p style="font-size: 12px; color: #7F8C8D;">Fikrinizi değiştirirseniz, uygulamadaki profil ayarlarından tekrar açabilirsiniz.</p>
+                <p style="font-size: 13px; color: #7F8C8D; border-top: 1px solid #eee; padding-top: 15px;">
+                    Fikrinizi değiştirirseniz, uygulamadaki profil ayarlarından tekrar açabilirsiniz.
+                </p>
             </div>
         </body>
     </html>
     """
+
     # Burası ÇOK ÖNEMLİ: media_type'ı zorla veriyoruz ki tarayıcı düz yazı sanmasın
     return HTMLResponse(content=html_icerik, status_code=200, media_type="text/html")
 
@@ -774,17 +811,20 @@ def arac_guncelle(arac_id: int, arac_data: schemas.AracCreate, db: Session = Dep
 def servis_talebi_olustur(istek: schemas.ServisTalebiCreate, db: Session = Depends(get_db)):
     try:
         # --- MADDE 55 KONTROLÜ BAŞLANGICI ---
-        aktif_talep = db.query(models.ServisTalebi).filter(
+        aktif_talepler = db.query(models.ServisTalebi).filter(
             models.ServisTalebi.arac_id == istek.arac_id,
             models.ServisTalebi.durum.in_(["Bekliyor", "Onaylandı", "İşlemde"]),
             models.ServisTalebi.kayit_durumu == 'A'
-        ).first()
+        ).all()
 
-        if aktif_talep:
-            if aktif_talep.hizmet_id == istek.hizmet_id:
-                raise HTTPException(status_code=400, detail="Bu araç için aynı hizmetten zaten aktif bir talebiniz bulunuyor.")
-            else:
-                raise HTTPException(status_code=400, detail="Bu araç için mevcut bir talebiniz var. Yeni bir hizmet eklemek yerine lütfen mevcut talebinizi güncelleyiniz.")
+        if aktif_talepler:
+            # Bu araç için aktif olan taleplerin hizmet id'lerini bulalım
+            aktif_hizmetler = [t.hizmet_id for t in aktif_talepler]
+            
+            if istek.hizmet_id in aktif_hizmetler:
+                # Kullanıcı zaten aktif olan aynı hizmeti tekrar oluşturmaya çalışıyor -> Soru soralım
+                raise HTTPException(status_code=400, detail="Bu araç için mevcut bir talebiniz var. Yeni bir hizmet seçerek yeni bir talep açmak ister misiniz?")
+            # Eğer farklı bir hizmet ise kod hiçbir şeye takılmadan aşağıya devam edip yeni talebi oluşturacak.
         # --- MADDE 55 KONTROLÜ BİTİŞİ ---
         
         # 1. Yeni servis talebini oluşturuyoruz                        
@@ -825,6 +865,11 @@ def servis_talebi_olustur(istek: schemas.ServisTalebiCreate, db: Session = Depen
         db.commit()
         db.refresh(yeni_talep)
         return yeni_talep
+
+    # YENİ REVİZE (HATA YUTULMASINI ENGELLEYEN BLOK): 
+    # Bizim bilerek fırlattığımız 400 hatalarının aşağıdaki Exception'a düşüp 500 olmasını engeller.
+    except HTTPException as http_exc:
+        raise http_exc
 
     except Exception as e:
         # 4. YENİ REVİZE: Hata anında yukarıdaki db.add ile hafızaya alınan tüm işlemleri iptal ediyoruz (Atomic Rollback)
@@ -928,7 +973,7 @@ def kullanici_talep_guncelle(talep_id: int, istek: schemas.TalepGuncelleKullanic
             talep.notlar = istek.notlar
         # --- YENİ REVİZE BİTİŞİ ---
         
-        # KULLANICI DÜZELTMEYİ YAPTIĞI İÇİN BAYRAĞI İNDİRİYORUZ                                                                                                                                                                                                         
+        # KULLANICI DÜZELTMEYİ YAPTIĞI İÇİN BAYRAĞI İNDİRİYORUZ                                                                          
         talep.duzeltme_istendi_mi = False
         talep.duzeltme_notu = None
         
@@ -1919,3 +1964,70 @@ def log_client_error(error: ClientErrorLog, db: Session = Depends(get_db)):
     except Exception as e:
         print("Log yazma hatası:", e)
         return {"success": False}
+    
+
+#################################################################
+##################### HASARLI RESİM EKLEME ######################
+#################################################################
+MaksimumFotoSayisi = 5
+@app.post("/servis-talepleri/{talep_id}/fotograf")
+async def fotograf_yukle(talep_id: int, db: Session = Depends(get_db), file: UploadFile = File(...)):
+    talep = db.query(models.ServisTalebi).filter(models.ServisTalebi.id == talep_id).first()
+    if not talep:
+        raise HTTPException(status_code=404, detail="Talep bulunamadı.")
+
+    mevcut_sayi = db.query(models.ServisTalebiFotograf).filter(models.ServisTalebiFotograf.talep_id == talep_id).count()
+    if mevcut_sayi >= MaksimumFotoSayisi:
+        raise HTTPException(status_code=400, detail=f"Bu talep için maksimum fotoğraf sınırına ({MaksimumFotoSayisi}) ulaşıldı.")
+
+    try:
+        # 1. Dosyayı belleğe al ve Pillow ile aç
+        contents = await file.read()
+        image = Image.open(io.BytesIO(contents))
+        
+        # 2. Şeffaflık (PNG) varsa arka planı beyaza çevirip JPEG'e hazırla
+        if image.mode in ("RGBA", "P"):
+            image = image.convert("RGB")
+
+        # 3. Boyutu küçült (Optimizasyon - max 1024x1024)
+        image.thumbnail((1024, 1024))
+        
+        # 4. Benzersiz isimle kaydet
+        # dosya_adi = f"{uuid.uuid4().hex}.jpg"
+        # YENİ REVİZE: C# tarafından gönderilen özel ismi kullanıyoruz
+        dosya_adi = file.filename        
+        # Güvenlik: Eğer uzantı yoksa otomatik .jpg ekle
+        if not dosya_adi.lower().endswith(('.png', '.jpg', '.jpeg')):
+            dosya_adi += ".jpg"
+        dosya_yolu = os.path.join("HasarImg", dosya_adi)
+        image.save(dosya_yolu, "JPEG", quality=75) # Kalite %75 ile sıkıştırma
+
+        # 5. DB'ye yaz
+        yeni_foto = models.ServisTalebiFotograf(talep_id=talep_id, dosya_yolu=dosya_yolu)
+        db.add(yeni_foto)
+        db.commit()
+
+        return {"mesaj": "Fotoğraf başarıyla yüklendi", "dosya_yolu": dosya_yolu}
+    
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Fotoğraf işlenirken veya kaydedilirken sunucu hatası oluştu: {str(e)}")
+    
+# --- FOTOĞRAFLARI KOMPLE TEMİZLEME (ÜZERİNE YAZMA MANTIĞI İÇİN) ---
+@app.delete("/servis-talepleri/{talep_id}/fotograflari-temizle")
+def fotograflari_temizle(talep_id: int, db: Session = Depends(get_db)):
+    fotolar = db.query(models.ServisTalebiFotograf).filter(models.ServisTalebiFotograf.talep_id == talep_id).all()
+    
+    for foto in fotolar:
+        try:
+            # Fiziksel dosyayı sunucudan sil
+            if os.path.exists(foto.dosya_yolu):
+                os.remove(foto.dosya_yolu)
+        except:
+            pass # Dosya bulunamazsa takılma, devam et
+        
+        # Veritabanından sil
+        db.delete(foto)
+        
+    db.commit()
+    return {"mesaj": "Eski fotoğraflar başarıyla temizlendi."}
