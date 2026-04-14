@@ -63,14 +63,15 @@ public partial class MyServiceRequestsView : ContentPage
         {
             // 2. PARALEL İŞLEM İÇİN HAZIRLIK: Araçları hafızaya (RAM) alıyoruz.
             // ConcurrentDictionary kullanıyoruz çünkü birden fazla işlem aynı anda buraya yazmaya çalışacak.
+            // Araç havuzu ve paralel işlemler (fotoğraf kontrolü hariç)														 
             var aracHavuzu = new ConcurrentDictionary<int, Arac>(
                 _aktifKullanici.araclar?.ToDictionary(a => a.id) ?? new Dictionary<int, Arac>()
             );
 
-            // 3. İŞLEMLERİ AYNI ANDA BAŞLAT (N+1 Probleminin Çözümü)
+            // 3. İŞLEMLERİ AYNI ANDA BAŞLAT (N+1 Probleminin Çözümü)											 
             var gorevler = _orijinalTalepler.Select(async talep =>
             {
-                // Hizmet adını bul
+                // Hizmet adı
                 var hizmet = _tumHizmetler?.FirstOrDefault(h => h.id == talep.hizmet_id);
                 if (hizmet != null) talep.hizmet_adi = hizmet.ad;
 
@@ -79,12 +80,10 @@ public partial class MyServiceRequestsView : ContentPage
                 {
                     arac = await _apiService.AracGetirAsync(talep.arac_id);
                     if (arac != null)
-                    {
                         aracHavuzu.TryAdd(talep.arac_id, arac); // Bulduğumuz aracı havuza ekle ki bir daha çekmeyelim
-                    }
                 }
 
-                // Aracın gösterim adını ayarla
+                // Aracın gösterim adını ayarla				   
                 if (arac != null)
                 {
                     string gosterimAd = "";
@@ -103,14 +102,23 @@ public partial class MyServiceRequestsView : ContentPage
                 }
 
                 // Talebe ait fotoğraf var mı kontrolü (Aynı anda çalışır, sistemi bekletmez)
-                var fotolar = await _apiService.TalepFotograflariniGetirAsync(talep.id);
-                talep.foto_var_mi = fotolar != null && fotolar.Count > 0;
+                //var fotolar = await _apiService.TalepFotograflariniGetirAsync(talep.id);
+                //talep.foto_var_mi = fotolar != null && fotolar.Count > 0;
             });
 
             // Başlatılan tüm paralel görevlerin bitmesini bekle (Saniyeler süren işlemi milisaniyelere indirir)
             await Task.WhenAll(gorevler);
 
-            // Tüm veriler hazır olunca listeyi filtreleyip ekrana bas
+            // 4. Fotoğraf durumlarını TEK SEFERDE toplu olarak al
+            var talepIdleri = _orijinalTalepler.Select(t => t.id).ToList();
+            var fotoDurumlari = await _apiService.TopluFotografDurumuGetirAsync(talepIdleri);
+
+            foreach (var talep in _orijinalTalepler)
+            {
+                talep.foto_var_mi = fotoDurumlari.TryGetValue(talep.id, out var varMi) && varMi;
+            }
+
+            // 4. Filtreleri uygula
             FiltreleriUygula();
         }
         else

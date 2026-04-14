@@ -3,6 +3,7 @@ using System.Text.Json;
 using OtoServisApp.Models;
 using Plugin.Firebase.CloudMessaging;
 using System.Diagnostics;
+using System.Text;
 
 namespace OtoServisApp.Services
 {
@@ -780,6 +781,27 @@ namespace OtoServisApp.Services
             {
                 return false;
             }
+        }
+
+        public async Task<Dictionary<int, bool>> TopluFotografDurumuGetirAsync(List<int> talepIdleri)
+        {
+            try
+            {
+                var json = JsonSerializer.Serialize(new { talep_idleri = talepIdleri });
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync($"/servis-talepleri/toplu-fotograf-durumu", content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonResponse = await response.Content.ReadAsStringAsync();
+                    return JsonSerializer.Deserialize<Dictionary<int, bool>>(jsonResponse);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Toplu fotoğraf durumu alınamadı: {ex.Message}");
+            }
+            return new Dictionary<int, bool>();
         }
 
     }

@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, APIRouter
 from sqlalchemy.orm import Session
 import models, schemas
 from database import engine, get_db
-from typing import List
+from typing import List, Dict
 import logging
 from logging.handlers import RotatingFileHandler
 from fastapi import Request
@@ -35,6 +35,7 @@ import uuid
 from PIL import Image
 from fastapi import UploadFile, File
 from fastapi.staticfiles import StaticFiles
+
 ##########
 
 models.Base.metadata.create_all(bind=engine)
@@ -2055,3 +2056,25 @@ def fotograf_sil(foto_id: int, db: Session = Depends(get_db)):
     db.delete(foto)
     db.commit()
     return {"mesaj": "Fotoğraf başarıyla silindi"}
+
+
+class TopluFotografDurumuIstek(BaseModel):
+    talep_idleri: List[int]
+
+@app.post("/servis-talepleri/toplu-fotograf-durumu")
+def toplu_fotograf_durumu(
+    istek: TopluFotografDurumuIstek,
+    db: Session = Depends(get_db)
+) -> Dict[int, bool]:
+    """
+    Gönderilen talep ID'leri için fotoğraf var mı bilgisini döner.
+    Yanıt: { talep_id: bool, ... }
+    """
+    sonuc = {}
+    for talep_id in istek.talep_idleri:
+        # Veritabanında o talebe ait en az bir fotoğraf kaydı var mı kontrol et
+        var_mi = db.query(models.ServisTalebiFotograf).filter(
+            models.ServisTalebiFotograf.talep_id == talep_id
+        ).first() is not None
+        sonuc[talep_id] = var_mi
+    return sonuc
