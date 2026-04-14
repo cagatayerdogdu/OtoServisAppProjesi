@@ -110,12 +110,21 @@ public partial class AdminRequestsView : ContentPage
                 }
 
                 // Admin tarafında talebe ait fotoğraf var mı kontrolü
-                var fotolar = await _apiService.TalepFotograflariniGetirAsync(talep.id);
-                talep.foto_var_mi = fotolar != null && fotolar.Count > 0;
+                //var fotolar = await _apiService.TalepFotograflariniGetirAsync(talep.id);
+                //talep.foto_var_mi = fotolar != null && fotolar.Count > 0;
             });
 
             // Başlatılan tüm asenkron görevleri bekle
             await Task.WhenAll(gorevler);
+
+            // Fotoğraf durumlarını TEK SEFERDE toplu olarak al
+            var talepIdleri = _orijinalTalepler.Select(t => t.id).ToList();
+            var fotoDurumlari = await _apiService.TopluFotografDurumuGetirAsync(talepIdleri);
+
+            foreach (var talep in _orijinalTalepler)
+            {
+                talep.foto_var_mi = fotoDurumlari.TryGetValue(talep.id, out var varMi) && varMi;
+            }
 
             // Her şey hazır olunca filtreleri uygula ve ekrana bas
             FiltreleriUygula();
@@ -129,10 +138,25 @@ public partial class AdminRequestsView : ContentPage
     // =========================================================
     // FİLTRELEME SİSTEMİ
     // =========================================================
-
+    private CancellationTokenSource _aramaCts;
     private void OnFiltreDegisti(object sender, TextChangedEventArgs e)
     {
-        FiltreleriUygula();
+        _aramaCts?.Cancel();
+        _aramaCts = new CancellationTokenSource();
+
+        Task.Delay(100, _aramaCts.Token)
+            .ContinueWith(t =>
+            {
+                if (!t.IsCanceled)
+                    MainThread.BeginInvokeOnMainThread(FiltreleriUygula);
+            });
+    }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        _aramaCts?.Cancel();
+        RequestsList.ItemsSource = null;
     }
 
     private void FiltreleriUygula()

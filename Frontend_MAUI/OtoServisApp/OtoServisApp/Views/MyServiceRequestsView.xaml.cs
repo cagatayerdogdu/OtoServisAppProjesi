@@ -133,10 +133,27 @@ public partial class MyServiceRequestsView : ContentPage
     }
 
     // Arama barı tetikleyicisi
+    private CancellationTokenSource _aramaCts;
     private void OnFiltreDegisti(object sender, TextChangedEventArgs e)
     {
-        FiltreleriUygula();
+        _aramaCts?.Cancel();
+        _aramaCts = new CancellationTokenSource();
+
+        Task.Delay(100, _aramaCts.Token)
+            .ContinueWith(t =>
+            {
+                if (!t.IsCanceled)
+                    MainThread.BeginInvokeOnMainThread(FiltreleriUygula);
+            });
     }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        _aramaCts?.Cancel();
+        RequestsList.ItemsSource = null;
+    }
+
 
     private void OnFiltreSecildi(object sender, SelectionChangedEventArgs e)
     {
