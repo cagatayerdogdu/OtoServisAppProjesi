@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:helpers="clr-namespace:OtoServisApp.Helpers"
+             xmlns:views="clr-namespace:OtoServisApp.Views"
              x:Class="OtoServisApp.Views.AdminUserManagementView"
              BackgroundColor="#F5F6FA"
              Title="Kullanıcı Yönetimi">
@@ -22,7 +23,7 @@
 
         <CollectionView Grid.Row="2" x:Name="UsersList" Margin="15,5">
             <CollectionView.ItemTemplate>
-                <DataTemplate>
+                <DataTemplate x:DataType="views:KullaniciSadelestirilmis">
                     <Frame BackgroundColor="White" BorderColor="#DCDDE1" CornerRadius="10" Padding="15" Margin="0,5" HasShadow="False">
                         <Grid RowDefinitions="Auto, Auto" RowSpacing="15">
 
@@ -39,7 +40,7 @@
                                 </VerticalStackLayout>
 
                                 <VerticalStackLayout Grid.Column="1" VerticalOptions="Start" HorizontalOptions="Center" Spacing="2">
-                                    <Label Text="Durum" FontSize="11" TextColor="#555555" HorizontalOptions="Center"/> 
+                                    <Label Text="Durum" FontSize="11" TextColor="#555555" HorizontalOptions="Center"/>
 
                                     <Switch IsToggled="{Binding aktif_mi}" Scale="0.8" OnColor="#3498DB">
                                         <Switch.Triggers>
@@ -53,7 +54,7 @@
                                         </Switch.Triggers>
                                     </Switch>
                                 </VerticalStackLayout>
-                                
+
                             </Grid>
 
                             <Grid Grid.Row="1" ColumnDefinitions="*, Auto" ColumnSpacing="10" VerticalOptions="End">

@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:helpers="clr-namespace:OtoServisApp.Helpers"
+             xmlns:models="clr-namespace:OtoServisApp.Models" 
              x:Class="OtoServisApp.Views.EditServiceRequestView"
              Title="Talebi Düzenle"
              BackgroundColor="#F4F6F8">
@@ -9,12 +10,12 @@
         <ScrollView>
             <VerticalStackLayout Padding="20" Spacing="15">
 
-                <Border BackgroundColor="#E0F7FA" Stroke="#00BCD4" StrokeShape="RoundRectangle 8" Padding="15">
+                <Frame BackgroundColor="#E0F7FA" BorderColor="#00BCD4" CornerRadius="8" Padding="15" HasShadow="False">
                     <HorizontalStackLayout Spacing="10">
                         <Label Text="Mevcut Durum:" FontAttributes="Bold" TextColor="#006064" VerticalOptions="Center"/>
                         <Label x:Name="DurumLabel" FontAttributes="Bold" TextColor="#00BCD4" VerticalOptions="Center"/>
                     </HorizontalStackLayout>
-                </Border>
+                </Frame>
 
                 <Label x:Name="ReadOnlyWarningLabel" Text="Bu talep sonlandığı için üzerinde değişiklik yapılamaz." TextColor="#D32F2F" FontAttributes="Bold" IsVisible="False" HorizontalOptions="Center"/>
 
@@ -32,7 +33,7 @@
                             Clicked="OnHizmetSecimButonuClicked" 
                             HorizontalOptions="FillAndExpand"/>
 
-                    <Border x:Name="HizmetAramaKutusu" IsVisible="False" BackgroundColor="#FAFAFA" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10" Margin="0,5,0,10">
+                    <Frame x:Name="HizmetAramaKutusu" IsVisible="False" BackgroundColor="#FAFAFA" BorderColor="#E0E0E0" CornerRadius="8" Padding="10" Margin="0,5,0,10" HasShadow="False">
                         <VerticalStackLayout Spacing="5">
                             <SearchBar x:Name="HizmetAramaBar" 
                                        Placeholder="Hizmet ara... (Örn: Fren, Yağ)" 
@@ -43,7 +44,7 @@
 
                             <CollectionView x:Name="HizmetListesi" HeightRequest="200" SelectionMode="Single" SelectionChanged="OnHizmetSecildi">
                                 <CollectionView.ItemTemplate>
-                                    <DataTemplate>
+                                    <DataTemplate x:DataType="models:Hizmet">
                                         <VerticalStackLayout Padding="10">
                                             <Label Text="{Binding ad}" FontSize="14" FontAttributes="Bold" TextColor="#111111"/>
                                             <Label Text="{Binding aciklama}" FontSize="11" TextColor="#888888" LineBreakMode="WordWrap"/>
@@ -53,7 +54,7 @@
                                 </CollectionView.ItemTemplate>
                             </CollectionView>
                         </VerticalStackLayout>
-                    </Border>
+                    </Frame>
 
                     <Label Text="Araç Seçimi" FontSize="14" FontAttributes="Bold" TextColor="#333333"/>
                     <Button x:Name="SecilenAracButonu" 
@@ -67,7 +68,7 @@
                             Clicked="OnAracSecimButonuClicked" 
                             HorizontalOptions="FillAndExpand"/>
 
-                    <Border x:Name="AracAramaKutusu" IsVisible="False" BackgroundColor="#FAFAFA" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10" Margin="0,5,0,10">
+                    <Frame x:Name="AracAramaKutusu" IsVisible="False" BackgroundColor="#FAFAFA" BorderColor="#E0E0E0" CornerRadius="8" Padding="10" Margin="0,5,0,10" HasShadow="False">
                         <VerticalStackLayout Spacing="5">
                             <CollectionView x:Name="AracListesi" HeightRequest="150" SelectionMode="Single" SelectionChanged="OnAracSecildi">
                                 <CollectionView.ItemTemplate>
@@ -81,7 +82,7 @@
                                 </CollectionView.ItemTemplate>
                             </CollectionView>
                         </VerticalStackLayout>
-                    </Border>
+                    </Frame>
 
                     <Label Text="Talep Edilen Tarih" FontSize="14" FontAttributes="Bold" TextColor="#333333"/>
                     <DatePicker x:Name="TarihPicker" MinimumDate="{Binding Source={x:Static x:DateTime.Today}}" BackgroundColor="#FAFAFA" TextColor="#111111"/>
@@ -111,14 +112,14 @@
                             </DataTemplate>
                         </BindableLayout.ItemTemplate>
                     </FlexLayout>
-                </VerticalStackLayout> 
+                </VerticalStackLayout>
 
                 <VerticalStackLayout x:Name="DuzeltmeTalebiFormu" Spacing="15" IsVisible="False">
                     <Label Text="Yöneticiye Düzeltme İletin" FontSize="16" FontAttributes="Bold" TextColor="#F57C00"/>
                     <Label Text="Talebiniz onaylandığı için doğrudan değiştiremezsiniz. Lütfen düzeltmek istediğiniz kısımları (örn: adres değişikliği) aşağıya yazarak yöneticiye iletin." FontSize="12" TextColor="#666666"/>
                     <Editor x:Name="DuzeltmeNotuEditor" HeightRequest="100" Placeholder="Düzeltme talebinizi buraya yazın..." BackgroundColor="#FAFAFA" TextColor="#111111" PlaceholderColor="#888888"/>
                 </VerticalStackLayout>
-            
+
                 <Button x:Name="KaydetButton" Text="Değişiklikleri Kaydet" BackgroundColor="#4CAF50" TextColor="White" CornerRadius="8" HeightRequest="50" FontAttributes="Bold" Clicked="OnKaydetClicked" Margin="0,20,0,0"/>
 
             </VerticalStackLayout>
@@ -126,11 +127,7 @@
 
         <Grid x:Name="LoadingOverlay" BackgroundColor="#CCFFFFFF" IsVisible="False" InputTransparent="False">
 
-            <Border BackgroundColor="White" Stroke="#E0E0E0" StrokeShape="RoundRectangle 15" Padding="30" HorizontalOptions="Center" VerticalOptions="Center">
-                <Border.Shadow>
-                    <Shadow Brush="Black" Offset="0,5" Radius="15" Opacity="0.1" />
-                </Border.Shadow> 
-
+            <Frame BackgroundColor="White" BorderColor="#E0E0E0" CornerRadius="15" Padding="30" HorizontalOptions="Center" VerticalOptions="Center" HasShadow="False">
                 <VerticalStackLayout Spacing="15" HorizontalOptions="Center">
                     <ActivityIndicator IsRunning="{Binding Source={x:Reference LoadingOverlay}, Path=IsVisible}" Color="#00BCD4" WidthRequest="50" HeightRequest="50" HorizontalOptions="Center"/>
 
@@ -138,7 +135,7 @@
 
                     <Label x:Name="LoadingSubText" Text="İşleminiz gerçekleştiriliyor." FontSize="13" TextColor="#666666" HorizontalTextAlignment="Center" HorizontalOptions="Center"/>
                 </VerticalStackLayout>
-            </Border>
+            </Frame>
         </Grid>
 
     </Grid>

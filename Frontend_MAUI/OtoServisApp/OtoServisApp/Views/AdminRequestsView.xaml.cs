@@ -1,4 +1,5 @@
-﻿using OtoServisApp.Models;
+﻿using System.Collections.Concurrent;
+using OtoServisApp.Models;
 using OtoServisApp.Services;
 
 namespace OtoServisApp.Views;
@@ -9,7 +10,7 @@ public partial class AdminRequestsView : ContentPage
     private List<Hizmet> _tumHizmetler;
     private List<ServisTalebi> _orijinalTalepler;
 
-    private List<string> _durumFiltreleri = new List<string> { "Tümü", "Bekliyor", "Onaylandı", "İşlemde"}; //, "Tamamlandı", "İptal Edildi" 
+    private List<string> _durumFiltreleri = new List<string> { "Tümü", "Bekliyor", "Onaylandı", "İşlemde" };
     private string _secilenDurum = "Tümü";
 
     public AdminRequestsView()
@@ -23,19 +24,18 @@ public partial class AdminRequestsView : ContentPage
         base.OnAppearing();
 
         // 1. AŞAMA: Kullanıcıya donma hissi vermemek için Loading ekranını anında aç
+        LoadingTitle.Text = "Talepler Yükleniyor...";
+        LoadingSubText.Text = "Lütfen bekleyiniz.";
         LoadingOverlay.IsVisible = true;
 
-        // YENİ REVİZE: Arayüzün (UI) donmasını ve uygulamanın çökmesini engellemek ve Loading animasyonunu başlatması için 
-        // veri çekme işlemine geçmeden önce çok kısa bir süre (20ms) bekleyip thread'i rahatlatıyoruz..
-        await Task.Delay(20);
+        // Arayüzün çizilmesi için 20ms'lik bir nefes payı (UI donmasını kesin engeller)
+        await Task.Delay(5);
 
         try
         {
-            // Filtre dropdown listelerini vs. burada doldurabilirsin
             if (DurumListesi != null && DurumListesi.ItemsSource == null)
                 DurumListesi.ItemsSource = _durumFiltreleri;
 
-            // 3. AŞAMA: Asıl veriyi (API İsteklerini) şimdi çekiyoruz
             await VerileriYukle();
         }
         catch (Exception ex)
@@ -45,42 +45,56 @@ public partial class AdminRequestsView : ContentPage
         }
         finally
         {
-            // 4. AŞAMA: Veri gelse de, hata da verse Loading ekranını KESİNLİKLE kapat
             LoadingOverlay.IsVisible = false;
         }
     }
 
     private async Task VerileriYukle()
     {
-        // Veriler yüklenirken mevcut listeyi temizleyebiliriz				   
-        _tumHizmetler = await _apiService.HizmetleriGetirAsync();
-        _orijinalTalepler = await _apiService.AdminAktifTalepleriGetirAsync();
-        var markalar = await _apiService.MarkalariGetirAsync();
+        // 1. PARALEL ÇEKİM: Ana verileri aynı anda ateşleyip zaman kazanıyoruz
+        var hizmetTask = _apiService.HizmetleriGetirAsync();
+        var talepTask = _apiService.AdminAktifTalepleriGetirAsync();
+        var markaTask = _apiService.MarkalariGetirAsync();
 
-        if (_orijinalTalepler != null)
+        await Task.WhenAll(hizmetTask, talepTask, markaTask);
+
+        _tumHizmetler = await hizmetTask;
+        _orijinalTalepler = await talepTask;
+        var markalar = await markaTask;
+
+        if (_orijinalTalepler != null && _orijinalTalepler.Count > 0)
         {
-            foreach (var talep in _orijinalTalepler)
+            // 2. CACHE (ÖNBELLEK) MEKANİZMASI: Aynı aracı tekrar tekrar API'den çekmemek için
+            var aracHavuzu = new ConcurrentDictionary<int, Arac>();
+
+            // 3. N+1 PROBLEMİNİN ÇÖZÜMÜ: Tüm taleplerin detaylarını paralel olarak doldur
+            var gorevler = _orijinalTalepler.Select(async talep =>
             {
-                // 1. Hizmet Adı Eşleştirme
+                // Hizmet Eşleştirme
                 if (_tumHizmetler != null)
                 {
                     var h = _tumHizmetler.FirstOrDefault(x => x.id == talep.hizmet_id);
                     if (h != null) talep.hizmet_adi = h.ad;
                 }
 
-                // 2. Araç Bilgilerini Detaylandırma (Kritik Blok)
-                var arac = await _apiService.AracGetirAsync(talep.arac_id);
+                // Araç Bilgilerini Detaylandırma (Hafızada yoksa API'den çekip havuza at)
+                if (!aracHavuzu.TryGetValue(talep.arac_id, out var arac))
+                {
+                    arac = await _apiService.AracGetirAsync(talep.arac_id);
+                    if (arac != null)
+                    {
+                        aracHavuzu.TryAdd(talep.arac_id, arac);
+                    }
+                }
+
                 if (arac != null)
                 {
                     string gosterimAd = "";
                     if (arac.marka_id != null && arac.model_id != null && markalar != null)
                     {
                         var marka = markalar.FirstOrDefault(m => m.id == arac.marka_id);
-                        if (marka != null)
-                        {
-                            var model = marka.modeller?.FirstOrDefault(m => m.id == arac.model_id);
-                            if (model != null) gosterimAd = $"{marka.ad} {model.ad}";
-                        }
+                        var model = marka?.modeller?.FirstOrDefault(m => m.id == arac.model_id);
+                        if (marka != null && model != null) gosterimAd = $"{marka.ad} {model.ad}";
                     }
 
                     if (string.IsNullOrWhiteSpace(gosterimAd) && !string.IsNullOrWhiteSpace(arac.ozel_marka))
@@ -95,13 +109,20 @@ public partial class AdminRequestsView : ContentPage
                     talep.arac_adi_tam = "Sistemden Silinmiş Araç";
                 }
 
-                // YENİ REVİZE: 3. Admin tarafında talebe ait fotoğraf var mı kontrolü
+                // Admin tarafında talebe ait fotoğraf var mı kontrolü
                 var fotolar = await _apiService.TalepFotograflariniGetirAsync(talep.id);
                 talep.foto_var_mi = fotolar != null && fotolar.Count > 0;
-            }
+            });
 
-            // Veriler işlendikten sonra filtreyi uygula ve listeyi yapılandır										 
+            // Başlatılan tüm asenkron görevleri bekle
+            await Task.WhenAll(gorevler);
+
+            // Her şey hazır olunca filtreleri uygula ve ekrana bas
             FiltreleriUygula();
+        }
+        else
+        {
+            RequestsList.ItemsSource = null;
         }
     }
 
@@ -120,23 +141,13 @@ public partial class AdminRequestsView : ContentPage
 
         var filtrelenmisListe = _orijinalTalepler.AsEnumerable();
 
-        // 1. ARAMA FİLTRESİ
-        if (!string.IsNullOrWhiteSpace(AramaBar.Text))
-        {
-            var metin = AramaBar.Text;
-            filtrelenmisListe = filtrelenmisListe.Where(t =>
-                (t.kullanici_ad_soyad != null && t.kullanici_ad_soyad.Contains(metin, StringComparison.OrdinalIgnoreCase)) ||
-                (t.arac_adi_tam != null && t.arac_adi_tam.Contains(metin, StringComparison.OrdinalIgnoreCase))
-            );
-        }
-
-        // 2. DURUM FİLTRESİ
+        // 1. DURUM FİLTRESİ
         if (_secilenDurum != "Tümü")
         {
             filtrelenmisListe = filtrelenmisListe.Where(t => t.durum == _secilenDurum);
         }
 
-        // Arama Barı Filtresi			   
+        // 2. ARAMA BARI FİLTRESİ (Gereksiz kod tekrarı temizlendi)
         if (!string.IsNullOrWhiteSpace(AramaBar.Text))
         {
             var kelime = AramaBar.Text.ToLower();
@@ -146,21 +157,21 @@ public partial class AdminRequestsView : ContentPage
             );
         }
 
-        // Değişiklikleri ekrana yansıtmak için listeyi tazeliyoruz
         RequestsList.ItemsSource = null;
-        // 3. EFSANE SIRALAMA MANTIĞI (Geri Geldi!)
-        // Önce duruma göre aciliyet sırası, sonra eskiden yeniye (ID sırası en güvenli tarih sırasıdır)
+
+        // 3. EFSANE SIRALAMA MANTIĞI
         filtrelenmisListe = filtrelenmisListe
             .OrderBy(t => t.durum switch
             {
                 "Bekliyor" => 1,
                 "Onaylandı" => 2,
                 "İşlemde" => 3,
-                "Tamamlandı" => 4,
-                "İptal Edildi" => 5,
-                _ => 6
+                //"Tamamlandı" => 4,
+                //"İptal Edildi" => 5,
+                _ => 4
             })
-            .ThenBy(t => t.id); // Aynı durumdaki talepleri en eskiden (ilk eklenen) en yeniye doğru sıralar
+            .ThenBy(t => t.id);
+
         RequestsList.ItemsSource = filtrelenmisListe.ToList();
     }
 
@@ -172,7 +183,6 @@ public partial class AdminRequestsView : ContentPage
     {
         DurumSecimKutusu.IsVisible = !DurumSecimKutusu.IsVisible;
 
-        // REVİZE: Üst filtre açıldığında, kartların içindeki tüm açık dropdownları kapat ve ekranı tazele
         if (DurumSecimKutusu.IsVisible && _orijinalTalepler != null)
         {
             foreach (var talep in _orijinalTalepler)
@@ -196,86 +206,8 @@ public partial class AdminRequestsView : ContentPage
         }
     }
 
-    /*
     // =========================================================
     // KART İÇİ DURUM SEÇİM KONTROLLERİ
-    // =========================================================
-
-    private void OnItemDurumKutusuAc(object sender, EventArgs e)
-    {
-        var btn = sender as Button;
-        var tiklananTalep = btn?.BindingContext as ServisTalebi;
-
-        if (tiklananTalep != null)
-        {
-            // REVİZE: Kart içindeki açılırken ÜST FİLTREYİ ZORLA KAPAT
-            DurumSecimKutusu.IsVisible = false;
-
-            if (_orijinalTalepler != null)
-            {
-                foreach (var talep in _orijinalTalepler)
-                {
-                    if (talep != tiklananTalep)
-                    {
-                        talep.DropdownAcikMi = false;
-                    }
-                }
-            }
-
-            tiklananTalep.DropdownAcikMi = !tiklananTalep.DropdownAcikMi;
-
-            // REVİZE: Değişikliği ekranda göstermek için listeyi tazele
-            FiltreleriUygula();
-        }
-    }
-
-
-    private void OnItemDurumSecildi(object sender, EventArgs e)
-    {
-        var btn = sender as Button;
-        if (btn != null)
-        {
-            var yeniDurum = btn.Text;
-            var secilenTalep = btn.BindingContext as ServisTalebi;
-
-            if (secilenTalep != null)
-            {
-                secilenTalep.durum = yeniDurum;
-                secilenTalep.DropdownAcikMi = false;
-                FiltreleriUygula(); // UI Tazele
-            }
-        }
-    }
-    // =========================================================
-    // GÜNCELLEME İŞLEMİ
-    // =========================================================
-    private async void OnUpdateClicked(object sender, EventArgs e)
-    {
-        var button = sender as Button;
-        var talep = button?.CommandParameter as ServisTalebi;
-
-        if (talep != null)
-        {
-            // API üzerinden güncelleme isteği yapılandırılır											
-            bool basarili = await _apiService.AdminTalepGuncelleAsync(talep.id, talep.durum, talep.tahmini_tutar);
-
-            if (basarili)
-            {
-                await DisplayAlert("Başarılı", "Talep başarıyla güncellendi.", "Tamam");
-                await VerileriYukle(); // Listeyi son haliyle tazele
-            }
-            else
-            {
-                await DisplayAlert("Hata", "Güncellenirken bir sorun oluştu, lütfen tekrar deneyin.", "Tamam");
-            }
-        }
-    }
-    */
-
-
-
-    // =========================================================
-    // KART İÇİ DURUM SEÇİM KONTROLLERİ (SCROLL KAYMAMASI İÇİN YENİDEN YAZILDI)
     // =========================================================
 
     private void OnItemDurumKutusuAc(object sender, EventArgs e)
@@ -285,7 +217,6 @@ public partial class AdminRequestsView : ContentPage
 
         if (parentStack != null)
         {
-            // Tıklanan butonun hemen altındaki dropdown kutusunu (Border) buluyoruz
             var dropdownBorder = parentStack.Children.OfType<Border>().FirstOrDefault();
             if (dropdownBorder != null)
             {
@@ -304,15 +235,13 @@ public partial class AdminRequestsView : ContentPage
             var yeniDurum = btn.Text;
             secilenTalep.durum = yeniDurum;
 
-            // Kapatılacak dropdown menüsünü bul
             var verticalLayout = btn.Parent as VerticalStackLayout;
             var dropdownBorder = verticalLayout?.Parent as Border;
 
             if (dropdownBorder != null)
             {
-                dropdownBorder.IsVisible = false; // Menüyü kapat
+                dropdownBorder.IsVisible = false;
 
-                // Ana butonu bul ve ekrandaki metnini (durumunu) değiştir
                 var mainStack = dropdownBorder.Parent as VerticalStackLayout;
                 var mainButton = mainStack?.Children.OfType<Button>().FirstOrDefault();
                 if (mainButton != null)
@@ -333,17 +262,13 @@ public partial class AdminRequestsView : ContentPage
 
         if (talep != null)
         {
-            // İşlem başlıyor, ekranı kilitle ve Loading'i göster
             LoadingTitle.Text = "Güncelleniyor...";
             LoadingOverlay.IsVisible = true;
-            await Task.Delay(20); // UI çizimi için nefes aldır
+            await Task.Delay(5);
 
-            // YENİ EKLENEN KISIM: Uygulamaya giriş yapan kişinin ID'sini alıyoruz.
-            // Bulduğun 'kullanici_id_gizli' anahtarını kullanarak ID'yi çekiyoruz
             string idStr = await SecureStorage.Default.GetAsync("kullanici_id_gizli");
             int? aktifAdminId = int.TryParse(idStr, out int id) ? id : (int?)null;
 
-            // API servisine bu ID'yi de parametre olarak geçiyoruz
             bool basarili = await _apiService.AdminTalepGuncelleAsync(talep.id, talep.durum, talep.tahmini_tutar, aktifAdminId);
 
             try
@@ -351,10 +276,7 @@ public partial class AdminRequestsView : ContentPage
                 if (basarili)
                 {
                     await DisplayAlert("Başarılı", "Talep güncellendi.", "Tamam");
-
-                    // Listeyi yeniden yükle (Artık donmayacak çünkü Loading çalışıyor)
                     await VerileriYukle();
-                    // Artık güncelledikten sonra liste asla kaymayacak, sen sayfadan çıkana kadar orada kalacak. Kapamıştım geri açtık.
                 }
                 else
                 {
@@ -363,11 +285,9 @@ public partial class AdminRequestsView : ContentPage
             }
             finally
             {
-                // İşlem bitti, ekranı serbest bırak
                 LoadingOverlay.IsVisible = false;
-                LoadingTitle.Text = "Veriler Yükleniyor..."; // Sonraki kullanımlar için varsayılana çevir
+                LoadingTitle.Text = "Talepler Yükleniyor...";
             }
-
         }
     }
 
@@ -388,7 +308,7 @@ public partial class AdminRequestsView : ContentPage
     }
 
     // ===============================================================================
-    // YENİ REVİZE: Admin Tarafından Fotoğrafları Gör Butonu Tıklanma Olayı
+    // Admin Tarafından Fotoğrafları Gör Butonu Tıklanma Olayı
     // ===============================================================================
     private async void OnViewPhotosClicked(object sender, EventArgs e)
     {
@@ -402,7 +322,7 @@ public partial class AdminRequestsView : ContentPage
     }
 
     // =========================================================
-    // YENİ: ADMİN TARAFINDAN FOTOĞRAF EKLEME İŞLEMİ
+    // ADMİN TARAFINDAN FOTOĞRAF EKLEME İŞLEMİ
     // =========================================================
     private async void OnAddPhotoClicked(object sender, EventArgs e)
     {
@@ -413,7 +333,6 @@ public partial class AdminRequestsView : ContentPage
 
         try
         {
-            // 1. ADIM: Fotoğrafları seçiyoruz
             var sonuclar = await FilePicker.PickMultipleAsync(new PickOptions
             {
                 FileTypes = FilePickerFileType.Images,
@@ -422,10 +341,10 @@ public partial class AdminRequestsView : ContentPage
 
             if (sonuclar == null || !sonuclar.Any()) return;
 
-            // 2. ADIM: Yükleme ekranını yapılandır ve aç
             LoadingTitle.Text = "Fotoğraflar Sunucuya Aktarılıyor...";
             LoadingSubText.Text = $"{sonuclar.Count()} adet görsel işleniyor.";
             LoadingOverlay.IsVisible = true;
+            await Task.Delay(5);
 
             int basarili = 0;
             int hatali = 0;
@@ -434,21 +353,18 @@ public partial class AdminRequestsView : ContentPage
             {
                 using var stream = await foto.OpenReadAsync();
 
-                // Güvenli isimlendirme (Admin olduğu için başına 'Admin' ekliyoruz)
                 string zaman = DateTime.Now.ToString("yyyy_MM_dd_HHmm_ssfff");
                 string uzanti = Path.GetExtension(foto.FileName);
                 if (string.IsNullOrEmpty(uzanti)) uzanti = ".jpg";
 
                 string ozelDosyaAdi = $"Admin-{talep.id}-{zaman}{uzanti}";
 
-                // API'ye gönderim yapıyoruz
                 string sonuc = await _apiService.UploadHasarFotografAsync(talep.id, stream, ozelDosyaAdi);
 
                 if (sonuc == "OK") basarili++;
                 else hatali++;
             }
 
-            // 3. ADIM: Bilgilendirme ve Liste Yenileme
             if (hatali > 0)
             {
                 await DisplayAlert("Kısmi Başarılı", $"{basarili} fotoğraf yüklendi, {hatali} fotoğraf yüklenemedi.", "Tamam");
@@ -458,7 +374,6 @@ public partial class AdminRequestsView : ContentPage
                 await DisplayAlert("Başarılı", "Tüm fotoğraflar talebe başarıyla eklendi.", "Tamam");
             }
 
-            // Listeyi tazeliyoruz ki "Fotoğrafları Gör" butonu (eğer varsa) görünür olsun
             await VerileriYukle();
         }
         catch (Exception ex)
@@ -467,8 +382,16 @@ public partial class AdminRequestsView : ContentPage
         }
         finally
         {
-            // 4. ADIM: Yükleme ekranını kapat
             LoadingOverlay.IsVisible = false;
+        }
+    }
+
+    private void OnPhoneTapped(object sender, TappedEventArgs e)
+    {
+        var phoneNumber = e.Parameter as string;
+        if (!string.IsNullOrWhiteSpace(phoneNumber) && PhoneDialer.Default.IsSupported)
+        {
+            PhoneDialer.Default.Open(phoneNumber);
         }
     }
 }

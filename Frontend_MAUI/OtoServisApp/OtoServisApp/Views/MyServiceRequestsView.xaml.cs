@@ -1,4 +1,5 @@
-﻿using OtoServisApp.Models;
+﻿using System.Collections.Concurrent;
+using OtoServisApp.Models;
 using OtoServisApp.Services;
 
 namespace OtoServisApp.Views;
@@ -26,68 +27,72 @@ public partial class MyServiceRequestsView : ContentPage
     {
         base.OnAppearing();
 
-        // 1. AŞAMA: Kullanıcıya donma hissi vermemek için Loading ekranını anında aç
+        // EKRAN YAZISINI GÜVENÇE ALTINA ALIYORUZ
+        LoadingTitle.Text = "Talepler Yükleniyor...";
         LoadingOverlay.IsVisible = true;
 
-        // YENİ REVİZE: Arayüzün (UI) donmasını ve uygulamanın çökmesini engellemek ve Loading animasyonunu başlatması için 
-        // veri çekme işlemine geçmeden önce çok kısa bir süre (20ms) bekleyip thread'i rahatlatıyoruz..
-        await Task.Delay(20);
+        // UI'ın çizilmesi için çok kısa bir nefes payı
+        await Task.Delay(5);
 
         try
         {
-            // Filtre dropdown listelerini vs. burada doldurabilirsin
             if (DurumListesi != null && DurumListesi.ItemsSource == null)
                 DurumListesi.ItemsSource = _durumFiltreleri;
 
-            // 3. AŞAMA: Asıl veriyi (API İsteklerini) şimdi çekiyoruz
             await VerileriYukle();
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Hata", "Veriler yüklenirken bir sorun oluştu.", "Tamam");
+            await DisplayAlert("Hata", "Talep verileri yüklenirken bir sorun oluştu.", "Tamam");
             System.Diagnostics.Debug.WriteLine($"Yükleme Hatası: {ex.Message}");
         }
         finally
         {
-            // 4. AŞAMA: Veri gelse de, hata da verse Loading ekranını KESİNLİKLE kapat
             LoadingOverlay.IsVisible = false;
         }
     }
 
     private async Task VerileriYukle()
     {
+        // 1. Temel verileri çek
         _tumHizmetler = await _apiService.HizmetleriGetirAsync();
         _tumMarkalar = await _apiService.MarkalariGetirAsync();
-
         _orijinalTalepler = await _apiService.ServisTalepleriniGetirAsync(_aktifKullanici.id);
 
-        if (_orijinalTalepler != null)
+        if (_orijinalTalepler != null && _orijinalTalepler.Count > 0)
         {
-            foreach (var talep in _orijinalTalepler)
+            // 2. PARALEL İŞLEM İÇİN HAZIRLIK: Araçları hafızaya (RAM) alıyoruz.
+            // ConcurrentDictionary kullanıyoruz çünkü birden fazla işlem aynı anda buraya yazmaya çalışacak.
+            var aracHavuzu = new ConcurrentDictionary<int, Arac>(
+                _aktifKullanici.araclar?.ToDictionary(a => a.id) ?? new Dictionary<int, Arac>()
+            );
+
+            // 3. İŞLEMLERİ AYNI ANDA BAŞLAT (N+1 Probleminin Çözümü)
+            var gorevler = _orijinalTalepler.Select(async talep =>
             {
+                // Hizmet adını bul
                 var hizmet = _tumHizmetler?.FirstOrDefault(h => h.id == talep.hizmet_id);
                 if (hizmet != null) talep.hizmet_adi = hizmet.ad;
-                // Aracın Aktifler (A) listesinde olup olmadığına bak
-                var aracAktif = _aktifKullanici.araclar?.FirstOrDefault(a => a.id == talep.arac_id);
 
-                // Eğer araç listede yoksa (Yani Soft Delete 'X' yapılmışsa) API'den geçmiş kaydını bul!
-                if (aracAktif == null)
+                // Araç Bilgisini Getir (Sadece hafızada yoksa API'ye git)
+                if (!aracHavuzu.TryGetValue(talep.arac_id, out var arac))
                 {
-                    aracAktif = await _apiService.AracGetirAsync(talep.arac_id);
+                    arac = await _apiService.AracGetirAsync(talep.arac_id);
+                    if (arac != null)
+                    {
+                        aracHavuzu.TryAdd(talep.arac_id, arac); // Bulduğumuz aracı havuza ekle ki bir daha çekmeyelim
+                    }
                 }
 
-                var arac = await _apiService.AracGetirAsync(talep.arac_id);
+                // Aracın gösterim adını ayarla
                 if (arac != null)
                 {
                     string gosterimAd = "";
                     if (arac.marka_id != null && arac.model_id != null && _tumMarkalar != null)
                     {
                         var marka = _tumMarkalar.FirstOrDefault(m => m.id == arac.marka_id);
-                        if (marka != null)
-                        {
-                            var model = marka.modeller?.FirstOrDefault(m => m.id == arac.model_id);
-                            if (model != null) gosterimAd = $"{marka.ad} {model.ad}";
-                        }
+                        var model = marka?.modeller?.FirstOrDefault(m => m.id == arac.model_id);
+                        if (marka != null && model != null) gosterimAd = $"{marka.ad} {model.ad}";
                     }
 
                     if (string.IsNullOrWhiteSpace(gosterimAd) && !string.IsNullOrWhiteSpace(arac.ozel_marka))
@@ -97,11 +102,20 @@ public partial class MyServiceRequestsView : ContentPage
                     talep.arac_adi = string.IsNullOrWhiteSpace(gosterimAd) ? $"Araç ID: {arac.id}" : gosterimAd;
                 }
 
-                // YENİ REVİZE: Talebe ait fotoğraf var mı kontrolü
+                // Talebe ait fotoğraf var mı kontrolü (Aynı anda çalışır, sistemi bekletmez)
                 var fotolar = await _apiService.TalepFotograflariniGetirAsync(talep.id);
                 talep.foto_var_mi = fotolar != null && fotolar.Count > 0;
-            }
+            });
+
+            // Başlatılan tüm paralel görevlerin bitmesini bekle (Saniyeler süren işlemi milisaniyelere indirir)
+            await Task.WhenAll(gorevler);
+
+            // Tüm veriler hazır olunca listeyi filtreleyip ekrana bas
             FiltreleriUygula();
+        }
+        else
+        {
+            RequestsList.ItemsSource = null;
         }
     }
 
@@ -110,7 +124,6 @@ public partial class MyServiceRequestsView : ContentPage
         DurumSecimKutusu.IsVisible = !DurumSecimKutusu.IsVisible;
     }
 
-    // Arama barı tetikleyicisi
     private void OnFiltreDegisti(object sender, TextChangedEventArgs e)
     {
         FiltreleriUygula();
@@ -140,7 +153,6 @@ public partial class MyServiceRequestsView : ContentPage
             filtrelenmisListe = filtrelenmisListe.Where(t => t.durum == _secilenDurum);
         }
 
-        // YENİ EKLENEN ARAMA KONTROLÜ
         if (!string.IsNullOrWhiteSpace(AramaBar.Text))
         {
             var kelime = AramaBar.Text.ToLower();
@@ -162,7 +174,6 @@ public partial class MyServiceRequestsView : ContentPage
             })
             .ThenByDescending(t => t.id);
 
-        // YENİ KURAL (Madde 16): Talepleri ID'ye (veya tarihe) göre en yeniden en eskiye sırala
         RequestsList.ItemsSource = null;
         RequestsList.ItemsSource = filtrelenmisListe.ToList();
     }
@@ -190,7 +201,6 @@ public partial class MyServiceRequestsView : ContentPage
 
         if (secilenTalep != null)
         {
-            // YENİ KURAL: Sadece Bekliyor olanlar iptal edilebilir										
             if (secilenTalep.durum != "Bekliyor")
             {
                 await DisplayAlert("İşlem Engellendi", "Sadece 'Bekliyor' durumundaki talepler iptal edilebilir.", "Tamam");
@@ -200,23 +210,17 @@ public partial class MyServiceRequestsView : ContentPage
             bool eminMisin = await DisplayAlert("Onay", "Bu servis talebini iptal etmek (silmek) istediğinize emin misiniz?", "Evet, İptal Et", "Vazgeç");
             if (eminMisin)
             {
-
-                // İşlem başlıyor, ekranı kilitle ve Loading'i göster
                 LoadingTitle.Text = "Lütfen bekleyiniz...";
                 LoadingOverlay.IsVisible = true;
-                await Task.Delay(20); // UI çizimi için nefes aldır
-
-                bool basarili = await _apiService.ServisTalebiSilAsync(secilenTalep.id);
+                await Task.Delay(10);
 
                 try
                 {
+                    bool basarili = await _apiService.ServisTalebiSilAsync(secilenTalep.id);
                     if (basarili)
                     {
                         await DisplayAlert("Başarılı", "Talebiniz iptal edildi.", "Tamam");
-
-                        // Listeyi yeniden yükle (Artık donmayacak çünkü Loading çalışıyor)
                         await VerileriYukle();
-                        // Artık güncelledikten sonra liste asla kaymayacak, sen sayfadan çıkana kadar orada kalacak. Kapamıştım geri açtık.
                     }
                     else
                     {
@@ -225,15 +229,13 @@ public partial class MyServiceRequestsView : ContentPage
                 }
                 finally
                 {
-                    // İşlem bitti, ekranı serbest bırak
                     LoadingOverlay.IsVisible = false;
-                    LoadingTitle.Text = "Veriler Yükleniyor..."; // Sonraki kullanımlar için varsayılana çevir
+                    LoadingTitle.Text = "Talepler Yükleniyor..."; // Yazıyı geri eski haline alıyoruz
                 }
             }
         }
     }
 
-    // YENİ REVİZE: Fotoğrafları Gör Butonu Tıklanma Olayı
     private async void OnViewPhotosClicked(object sender, EventArgs e)
     {
         var buton = sender as Button;

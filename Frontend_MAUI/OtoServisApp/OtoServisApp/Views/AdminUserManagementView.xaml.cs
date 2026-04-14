@@ -28,7 +28,7 @@ public partial class AdminUserManagementView : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        await Task.Delay(150); // Çizim için kısa bir bekleme
+        await Task.Delay(10); // Çizim için kısa bir bekleme
         await VerileriGetir();
     }
 

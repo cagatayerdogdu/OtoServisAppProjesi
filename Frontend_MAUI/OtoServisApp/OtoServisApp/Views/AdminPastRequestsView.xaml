@@ -2,15 +2,15 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:helpers="clr-namespace:OtoServisApp.Helpers"
+             xmlns:models="clr-namespace:OtoServisApp.Models" 
              x:Class="OtoServisApp.Views.AdminPastRequestsView"
              BackgroundColor="#F4F6F8"
              Title="Geçmiş Talepler">
 
     <Grid RowDefinitions="Auto, *">
 
-        <Border Grid.Row="0" BackgroundColor="#FAFAFA" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="5" Margin="10,10,10,5">
+        <Frame Grid.Row="0" BackgroundColor="#FAFAFA" BorderColor="#E0E0E0" CornerRadius="8" Padding="5" Margin="10,10,10,5" HasShadow="False" ZIndex="1">
             <HorizontalStackLayout Spacing="10" HorizontalOptions="FillAndExpand">
-
                 <Grid WidthRequest="220" VerticalOptions="Center" HorizontalOptions="Start">
                     <SearchBar x:Name="AramaBar" Placeholder="Ad veya Araç..." TextChanged="OnFiltreDegisti" BackgroundColor="#FAFAFA" TextColor="#111111" Margin="30,0,0,0"/>
                     <Label Text="{x:Static helpers:IconFont.Search}" FontFamily="FASolid" FontSize="14" TextColor="#888888" HorizontalOptions="Start" VerticalOptions="Center" Margin="10,0,0,0"/>
@@ -18,26 +18,23 @@
 
                 <HorizontalStackLayout Spacing="5" VerticalOptions="Center" HorizontalOptions="EndAndExpand">
                     <Label Text="Durum:" VerticalOptions="Center" FontSize="13" FontAttributes="Bold" TextColor="#333333"/>
-
-                    <VerticalStackLayout>
-                        <Button x:Name="SecilenDurumButonu" Text="Tümü" BackgroundColor="White" TextColor="#111111" BorderColor="#CCCCCC" BorderWidth="1" CornerRadius="15" HeightRequest="35" WidthRequest="110" FontSize="12" Padding="5,0" Clicked="OnFiltreDurumKutusuAcKapat" />
-
-                        <Border x:Name="DurumSecimKutusu" IsVisible="False" BackgroundColor="White" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="5" Margin="0,5,0,0" ZIndex="99">
-                            <CollectionView x:Name="DurumListesi" HeightRequest="120" WidthRequest="110" SelectionMode="Single" SelectionChanged="OnFiltreDurumSecildi">
-                                <CollectionView.ItemTemplate>
-                                    <DataTemplate>
-                                        <VerticalStackLayout Padding="10">
-                                            <Label Text="{Binding .}" FontSize="12" TextColor="#111111"/>
-                                            <BoxView HeightRequest="1" Color="#EEEEEE" Margin="0,5,0,0"/>
-                                        </VerticalStackLayout>
-                                    </DataTemplate>
-                                </CollectionView.ItemTemplate>
-                            </CollectionView>
-                        </Border>
-                    </VerticalStackLayout>
+                    <Button x:Name="SecilenDurumButonu" Text="Tümü" BackgroundColor="White" TextColor="#111111" BorderColor="#CCCCCC" BorderWidth="1" CornerRadius="15" HeightRequest="35" WidthRequest="110" FontSize="12" Padding="5,0" Clicked="OnFiltreDurumKutusuAcKapat" />
                 </HorizontalStackLayout>
             </HorizontalStackLayout>
-        </Border>
+        </Frame>
+
+        <Frame x:Name="DurumSecimKutusu" Grid.Row="0" Grid.RowSpan="2" IsVisible="False" BackgroundColor="White" BorderColor="#E0E0E0" CornerRadius="8" Padding="5" Margin="0,60,15,0" ZIndex="99" HasShadow="False" HorizontalOptions="End" VerticalOptions="Start">
+            <CollectionView x:Name="DurumListesi" HeightRequest="110" WidthRequest="110" SelectionMode="Single" SelectionChanged="OnFiltreDurumSecildi">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                        <VerticalStackLayout Padding="10">
+                            <Label Text="{Binding .}" FontSize="12" TextColor="#111111"/>
+                            <BoxView HeightRequest="1" Color="#EEEEEE" Margin="0,5,0,0"/>
+                        </VerticalStackLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Frame>
 
         <CollectionView x:Name="PastRequestsList" Grid.Row="1" Margin="15,10,15,0">
 
@@ -50,8 +47,8 @@
             </CollectionView.EmptyView>
 
             <CollectionView.ItemTemplate>
-                <DataTemplate>
-                    <Border BackgroundColor="#FAFAFA" StrokeShape="RoundRectangle 12" Padding="15" Margin="0,0,0,15" Stroke="#E0E0E0" StrokeThickness="1">
+                <DataTemplate x:DataType="models:ServisTalebi">
+                    <Frame BackgroundColor="#FAFAFA" CornerRadius="12" Padding="15" Margin="0,0,0,15" BorderColor="#E0E0E0" HasShadow="False">
                         <VerticalStackLayout Spacing="8">
 
                             <Grid ColumnDefinitions="*, Auto">
@@ -134,29 +131,29 @@
 
                             </VerticalStackLayout>
 
-                            <Border BackgroundColor="#E0F7FA" Stroke="Transparent" StrokeShape="RoundRectangle 5" Padding="10" Margin="0,5">
+                            <Frame BackgroundColor="#E0F7FA" BorderColor="Transparent" CornerRadius="5" Padding="10" Margin="0,5" HasShadow="False">
                                 <HorizontalStackLayout Spacing="5">
                                     <Label Text="{x:Static helpers:IconFont.Coins}" FontFamily="FASolid" FontSize="14" TextColor="#00796B" VerticalOptions="Center"/>
                                     <Label Text="Tutar:" FontSize="13" FontAttributes="Bold" TextColor="#00796B" VerticalOptions="Center"/>
                                     <Label Text="{Binding tahmini_tutar}" FontSize="13" FontAttributes="Bold" TextColor="#004D40" VerticalOptions="Center"/>
                                 </HorizontalStackLayout>
-                            </Border>
+                            </Frame>
 
                         </VerticalStackLayout>
-                    </Border>
+                    </Frame>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
 
 
         <Grid x:Name="LoadingOverlay" BackgroundColor="#CCFFFFFF" IsVisible="False" InputTransparent="False" Grid.RowSpan="2">
-            <Border BackgroundColor="White" Stroke="#E0E0E0" StrokeShape="RoundRectangle 15" Padding="30" HorizontalOptions="Center" VerticalOptions="Center">
+            <Frame BackgroundColor="White" BorderColor="#E0E0E0" CornerRadius="15" Padding="30" HorizontalOptions="Center" VerticalOptions="Center" HasShadow="False">
                 <VerticalStackLayout Spacing="15" HorizontalOptions="Center">
                     <ActivityIndicator IsRunning="{Binding Source={x:Reference LoadingOverlay}, Path=IsVisible}" Color="#00BCD4" WidthRequest="50" HeightRequest="50" HorizontalOptions="Center"/>
                     <Label x:Name="LoadingTitle" Text="Veriler Yükleniyor..." FontSize="16" FontAttributes="Bold" TextColor="#333333" HorizontalOptions="Center"/>
                     <Label x:Name="LoadingSubText" Text="Lütfen işlem bitene kadar bekleyiniz." FontSize="13" TextColor="#666666" HorizontalTextAlignment="Center" HorizontalOptions="Center"/>
                 </VerticalStackLayout>
-            </Border>
+            </Frame>
         </Grid>
 
     </Grid>

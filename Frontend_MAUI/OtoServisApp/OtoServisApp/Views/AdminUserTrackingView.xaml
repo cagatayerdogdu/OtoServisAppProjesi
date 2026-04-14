@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:OtoServisApp.Models" 
+             xmlns:views="clr-namespace:OtoServisApp.Views"
              x:Class="OtoServisApp.Views.AdminUserTrackingView"
              Title="Müşteri Takibi"
              BackgroundColor="#F5F6FA">
@@ -10,8 +12,8 @@
 
         <CollectionView Grid.Row="1" x:Name="TrackingList">
             <CollectionView.ItemTemplate>
-                <DataTemplate>
-                    <Border BackgroundColor="White" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="15" Margin="5,5,5,10">
+                <DataTemplate x:DataType="views:TakipMusteri">
+                    <Frame BackgroundColor="White" BorderColor="#E0E0E0" CornerRadius="8" Padding="15" Margin="5,5,5,10" HasShadow="False">
                         <Grid ColumnDefinitions="*, Auto" ColumnSpacing="15" VerticalOptions="Center">
 
                             <VerticalStackLayout Grid.Column="0" Spacing="4">
@@ -36,7 +38,7 @@
                                     IsEnabled="{Binding mail_istiyor_mu}"
                                     VerticalOptions="Center"/>
                         </Grid>
-                    </Border>
+                    </Frame>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>

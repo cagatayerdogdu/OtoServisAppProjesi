@@ -35,11 +35,13 @@ public partial class EditServiceRequestView : ContentPage
         base.OnAppearing();
 
         // 1. AŞAMA: Kullanıcıya donma hissi vermemek için Loading ekranını anında aç
+        LoadingTitle.Text = "Bilgiler Yükleniyor..."; // YENİ REVİZE: Ekran açılış yazısını amaca uygun güncelledik
+        LoadingSubText.Text = "Lütfen bekleyiniz.";
         LoadingOverlay.IsVisible = true;
 
         // YENİ REVİZE: Arayüzün (UI) donmasını ve uygulamanın çökmesini engellemek ve Loading animasyonunu başlatması için 
         // veri çekme işlemine geçmeden önce çok kısa bir süre (20ms) bekleyip thread'i rahatlatıyoruz.
-        await Task.Delay(20);
+        await Task.Delay(10);
 
         try
         {
@@ -51,6 +53,7 @@ public partial class EditServiceRequestView : ContentPage
                 DuzeltmeTalebiFormu.IsVisible = false;
                 KaydetButton.IsVisible = true;
                 KaydetButton.Text = "Değişiklikleri Kaydet";
+
                 // 3. AŞAMA: Asıl veriyi (API İsteklerini) şimdi çekiyoruz
                 await VerileriYukle();
             }
@@ -90,21 +93,28 @@ public partial class EditServiceRequestView : ContentPage
 
     private async Task VerileriYukle()
     {
-        //var hizmetler = await _apiService.HizmetleriGetirAsync();
+        // --- ESKİ YAPI (YORUM SATIRINA ALINDI: Çalışan kod silinmedi, yeni revize eklendi) ---
+        // _orijinalHizmetler = await _apiService.HizmetleriGetirAsync();
+        // var araclar = await _apiService.KullaniciAraclariGetirAsync(_aktifKullanici.id);
+        // var markalar = await _apiService.MarkalariGetirAsync();
 
-        // Hizmetleri çek ve orijinal listeye kaydet (A-Z sıralı gelecek zaten)
-        _orijinalHizmetler = await _apiService.HizmetleriGetirAsync();
-        var araclar = await _apiService.KullaniciAraclariGetirAsync(_aktifKullanici.id);
+        // --- YENİ REVİZE BAŞLANGICI: Paralel Veri Çekimi (Sayfa Açılışını Hızlandırır) ---
+        var hizmetTask = _apiService.HizmetleriGetirAsync();
+        var aracTask = _apiService.KullaniciAraclariGetirAsync(_aktifKullanici.id);
+        var markaTask = _apiService.MarkalariGetirAsync();
 
-        // Sadece markaları çekmemiz yetiyor, modeller zaten markaların içinde gizli!
-        var markalar = await _apiService.MarkalariGetirAsync();
+        // Üç isteğin de aynı anda tamamlanmasını bekliyoruz (Zaman tasarrufu)
+        await Task.WhenAll(hizmetTask, aracTask, markaTask);
 
+        _orijinalHizmetler = await hizmetTask;
+        var araclar = await aracTask;
+        var markalar = await markaTask;
+        // --- YENİ REVİZE BİTİŞİ ---
 
         if (_orijinalHizmetler != null)
         {
             HizmetListesi.ItemsSource = _orijinalHizmetler;
 
-            // YENİ: Sayfa açıldığında mevcut hizmeti butona yazdır
             var mevcutHizmet = _orijinalHizmetler.FirstOrDefault(h => h.id == _talep.hizmet_id);
             if (mevcutHizmet != null)
             {
@@ -113,28 +123,18 @@ public partial class EditServiceRequestView : ContentPage
                 SecilenHizmetButonu.TextColor = Color.FromArgb("#111111");
             }
         }
-        /*
-        if (hizmetler != null)
-        {
-            HizmetPicker.ItemsSource = hizmetler;
-            HizmetPicker.SelectedItem = hizmetler.FirstOrDefault(h => h.id == _talep.hizmet_id);
-        }
-        */
 
         if (araclar != null)
         {
             var pickerAracListesi = araclar.Select(a => {
                 string gosterimAd = "";
 
-                // Senaryo A: Standart veritabanı kayıtları
                 if (a.marka_id != null && a.model_id != null && markalar != null)
                 {
                     var marka = markalar.FirstOrDefault(m => m.id == a.marka_id);
                     if (marka != null)
                     {
-                        // Modeli API'den değil, direkt bulduğumuz markanın kendi listesinden çekiyoruz!
                         var model = marka.modeller?.FirstOrDefault(m => m.id == a.model_id);
-
                         if (model != null)
                         {
                             gosterimAd = $"{marka.ad} {model.ad}";
@@ -142,26 +142,21 @@ public partial class EditServiceRequestView : ContentPage
                     }
                 }
 
-                // Senaryo B: Müşteri standart dışı (özel) araç girmişse
                 if (string.IsNullOrWhiteSpace(gosterimAd) && !string.IsNullOrWhiteSpace(a.ozel_marka))
                 {
                     gosterimAd = $"{a.ozel_marka} {a.ozel_model}";
                 }
 
-                // Senaryo C: Son Çare (Sadece marka/model sistemden fiziksel olarak silindiyse çalışır)
                 if (string.IsNullOrWhiteSpace(gosterimAd))
                 {
                     gosterimAd = "Araç ID: " + a.id;
                 }
 
-                // YENİ: XAML'deki Binding isimlerine (marka_model_yazi ve yil) uygun isimlendirildi
                 return new { Id = a.id, marka_model_yazi = gosterimAd, yil = a.yil };
             }).ToList();
 
-            // YENİ: Picker yerine CollectionView'a bağlıyoruz
             AracListesi.ItemsSource = pickerAracListesi;
 
-            // YENİ: Sayfa açıldığında mevcut aracı butona yazdır
             var seciliArac = pickerAracListesi.FirstOrDefault(a => a.Id == _talep.arac_id);
             if (seciliArac != null)
             {
@@ -193,7 +188,7 @@ public partial class EditServiceRequestView : ContentPage
         LoadingSubText.Text = "Lütfen işlemin bitmesini bekleyiniz.";
 
         // Arayüz motoruna "Loading" çizimi için 50ms nefes aldırıyoruz (Ölümcül donmayı engeller)
-        await Task.Delay(30);
+        await Task.Delay(10);
 
         try
         {

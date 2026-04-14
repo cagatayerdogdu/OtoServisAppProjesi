@@ -27,7 +27,7 @@ public partial class AdminPastRequestsView : ContentPage
 
         // YENİ REVİZE: Arayüzün (UI) donmasını ve uygulamanın çökmesini engellemek ve Loading animasyonunu başlatması için 
         // veri çekme işlemine geçmeden önce çok kısa bir süre (20ms) bekleyip thread'i rahatlatıyoruz.
-        await Task.Delay(20);
+        await Task.Delay(1);
 
         try
         {
