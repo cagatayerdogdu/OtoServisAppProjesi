@@ -148,5 +148,16 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
+
+        <Grid x:Name="LoadingOverlay" BackgroundColor="#CCFFFFFF" IsVisible="False" InputTransparent="False" Grid.RowSpan="2">
+            <Border BackgroundColor="White" Stroke="#E0E0E0" StrokeShape="RoundRectangle 15" Padding="30" HorizontalOptions="Center" VerticalOptions="Center">
+                <VerticalStackLayout Spacing="15" HorizontalOptions="Center">
+                    <ActivityIndicator IsRunning="{Binding Source={x:Reference LoadingOverlay}, Path=IsVisible}" Color="#00BCD4" WidthRequest="50" HeightRequest="50" HorizontalOptions="Center"/>
+                    <Label x:Name="LoadingTitle" Text="Veriler Yükleniyor..." FontSize="16" FontAttributes="Bold" TextColor="#333333" HorizontalOptions="Center"/>
+                    <Label x:Name="LoadingSubText" Text="Lütfen işlem bitene kadar bekleyiniz." FontSize="13" TextColor="#666666" HorizontalTextAlignment="Center" HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+
     </Grid>
 </ContentPage>

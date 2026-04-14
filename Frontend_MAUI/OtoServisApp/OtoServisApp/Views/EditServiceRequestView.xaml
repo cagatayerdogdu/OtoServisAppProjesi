@@ -129,7 +129,7 @@
             <Border BackgroundColor="White" Stroke="#E0E0E0" StrokeShape="RoundRectangle 15" Padding="30" HorizontalOptions="Center" VerticalOptions="Center">
                 <Border.Shadow>
                     <Shadow Brush="Black" Offset="0,5" Radius="15" Opacity="0.1" />
-                </Border.Shadow>
+                </Border.Shadow> 
 
                 <VerticalStackLayout Spacing="15" HorizontalOptions="Center">
                     <ActivityIndicator IsRunning="{Binding Source={x:Reference LoadingOverlay}, Path=IsVisible}" Color="#00BCD4" WidthRequest="50" HeightRequest="50" HorizontalOptions="Center"/>

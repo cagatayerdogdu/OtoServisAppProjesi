@@ -30,7 +30,7 @@ public partial class MyServiceRequestsView : ContentPage
         LoadingOverlay.IsVisible = true;
 
         // YENİ REVİZE: Arayüzün (UI) donmasını ve uygulamanın çökmesini engellemek ve Loading animasyonunu başlatması için 
-        // veri çekme işlemine geçmeden önce çok kısa bir süre (20ms) bekleyip thread'i rahatlatıyoruz.
+        // veri çekme işlemine geçmeden önce çok kısa bir süre (20ms) bekleyip thread'i rahatlatıyoruz..
         await Task.Delay(20);
 
         try

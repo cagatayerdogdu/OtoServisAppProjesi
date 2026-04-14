@@ -34,42 +34,57 @@ public partial class EditServiceRequestView : ContentPage
     {
         base.OnAppearing();
 
-        // YENİ REVİZE: Arayüzün (UI) donmasını ve uygulamanın çökmesini engellemek için 
-        // veri çekme işlemine geçmeden önce çok kısa bir süre (100ms) bekleyip thread'i rahatlatıyoruz.
-        // await Task.Delay(20);
+        // 1. AŞAMA: Kullanıcıya donma hissi vermemek için Loading ekranını anında aç
+        LoadingOverlay.IsVisible = true;
 
-        // Yükleme işlemini bu rahatlamadan sonra tetikliyoruz.
+        // YENİ REVİZE: Arayüzün (UI) donmasını ve uygulamanın çökmesini engellemek ve Loading animasyonunu başlatması için 
+        // veri çekme işlemine geçmeden önce çok kısa bir süre (20ms) bekleyip thread'i rahatlatıyoruz.
+        await Task.Delay(20);
 
-        DurumLabel.Text = _talep.durum;
-
-        if (_talep.durum == "Bekliyor")
+        try
         {
-            StandartDuzenlemeFormu.IsVisible = true;
-            DuzeltmeTalebiFormu.IsVisible = false;
-            KaydetButton.IsVisible = true;
-            KaydetButton.Text = "Değişiklikleri Kaydet";
-            await VerileriYukle();
-        }
-        else if (_talep.durum == "Onaylandı" || _talep.durum == "İşlemde")
-        {
-            StandartDuzenlemeFormu.IsVisible = false;
-            DuzeltmeTalebiFormu.IsVisible = true;
-            KaydetButton.IsVisible = true;
-            KaydetButton.Text = "Düzeltme Talebini İlet";
-            KaydetButton.BackgroundColor = Color.FromArgb("#F57C00");
+            DurumLabel.Text = _talep.durum;
 
-            // Eğer daha önceden bir not yazdıysa onu göster
-            if (!string.IsNullOrEmpty(_talep.duzeltme_notu))
+            if (_talep.durum == "Bekliyor")
             {
-                DuzeltmeNotuEditor.Text = _talep.duzeltme_notu;
+                StandartDuzenlemeFormu.IsVisible = true;
+                DuzeltmeTalebiFormu.IsVisible = false;
+                KaydetButton.IsVisible = true;
+                KaydetButton.Text = "Değişiklikleri Kaydet";
+                // 3. AŞAMA: Asıl veriyi (API İsteklerini) şimdi çekiyoruz
+                await VerileriYukle();
+            }
+            else if (_talep.durum == "Onaylandı" || _talep.durum == "İşlemde")
+            {
+                StandartDuzenlemeFormu.IsVisible = false;
+                DuzeltmeTalebiFormu.IsVisible = true;
+                KaydetButton.IsVisible = true;
+                KaydetButton.Text = "Düzeltme Talebini İlet";
+                KaydetButton.BackgroundColor = Color.FromArgb("#F57C00");
+
+                // Eğer daha önceden bir not yazdıysa onu göster
+                if (!string.IsNullOrEmpty(_talep.duzeltme_notu))
+                {
+                    DuzeltmeNotuEditor.Text = _talep.duzeltme_notu;
+                }
+            }
+            else // Tamamlandı veya İptal Edildi
+            {
+                StandartDuzenlemeFormu.IsVisible = false;
+                DuzeltmeTalebiFormu.IsVisible = false;
+                KaydetButton.IsVisible = false;
+                ReadOnlyWarningLabel.IsVisible = true;
             }
         }
-        else // Tamamlandı veya İptal Edildi
+        catch (Exception ex)
         {
-            StandartDuzenlemeFormu.IsVisible = false;
-            DuzeltmeTalebiFormu.IsVisible = false;
-            KaydetButton.IsVisible = false;
-            ReadOnlyWarningLabel.IsVisible = true;
+            await DisplayAlert("Hata", "Veriler yüklenirken bir sorun oluştu.", "Tamam");
+            System.Diagnostics.Debug.WriteLine($"Yükleme Hatası: {ex.Message}");
+        }
+        finally
+        {
+            // 4. AŞAMA: Veri gelse de, hata da verse Loading ekranını KESİNLİKLE kapat
+            LoadingOverlay.IsVisible = false;
         }
     }
 
@@ -164,142 +179,201 @@ public partial class EditServiceRequestView : ContentPage
         NotlarEditor.Text = _talep.notlar;
     }
 
+    // =====================================================================================
+    // 1. ANA TETİKLEYİCİ METOT (Sadece iş akışını yönetir, detaylarla boğuşmaz)
+    // =====================================================================================
     private async void OnKaydetClicked(object sender, EventArgs e)
     {
-        // --- 1. KONTROLLER (Hızlıca dönmesi gerekenler burada kalır) ---
-        if (_talep.durum == "Bekliyor")
+        // 1. Doğrulama (Hatalıysa işlemi anında kes)
+        if (!GirdileriDogrula()) return;
+
+        // 2. Arayüzü Kilitle ve Kullanıcıya Bilgi Ver
+        LoadingOverlay.IsVisible = true;
+        LoadingTitle.Text = (SecilenFotograflar != null && SecilenFotograflar.Count > 0) ? "Fotoğraflar Yükleniyor..." : "Kaydediliyor...";
+        LoadingSubText.Text = "Lütfen işlemin bitmesini bekleyiniz.";
+
+        // Arayüz motoruna "Loading" çizimi için 50ms nefes aldırıyoruz (Ölümcül donmayı engeller)
+        await Task.Delay(30);
+
+        try
         {
-            if (_secilenHizmet == null)
+            // 3. Veritabanı Güncellemesini Yap
+            bool guncellemeBasarili = await VeritabaniGuncelleAsync();
+
+            if (!guncellemeBasarili)
             {
-                await DisplayAlert("Hata", "Lütfen bir hizmet seçin.", "Tamam");
-                return;
+                await DisplayAlert("Hata", "Güncelleme sırasında bir sorun oluştu, lütfen tekrar deneyin.", "Tamam");
+                return; // İşlemi kes
             }
 
-            if (_secilenArac == null)
+            // 4. Fotoğrafları Yükle (Varsa)
+            string fotoHataMesajlari = await FotograflariYukleAsync();
+
+            // 5. Sonuç Mesajını Göster ve Çık
+            if (!string.IsNullOrEmpty(fotoHataMesajlari))
             {
-                await DisplayAlert("Hata", "Lütfen Araç seçimini yapın.", "Tamam");
-                return;
+                await DisplayAlert("Kısmi Başarılı", $"Talebiniz güncellendi ancak bazı fotoğraflar yüklenemedi:\n{fotoHataMesajlari}", "Anladım");
             }
+            else
+            {
+                await DisplayAlert("Başarılı", "Talep bilgileriniz ve fotoğraflarınız başarıyla güncellendi.", "Tamam");
+            }
+
+            await Navigation.PopAsync(); // Önceki ekrana dön
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Hata", "Beklenmeyen bir hata oluştu: " + ex.Message, "Tamam");
+        }
+        finally
+        {
+            // İşlem bitince şalteri KESİNLİKLE indir
+            LoadingOverlay.IsVisible = false;
+        }
+    }
+
+    // =====================================================================================
+    // 2. YARDIMCI METOT: Sadece form doğrulamasını yapar
+    // =====================================================================================
+    private bool GirdileriDogrula()
+    {
+        if (_talep.durum == "Bekliyor")
+        {
+            if (_secilenHizmet == null) { DisplayAlert("Uyarı", "Lütfen bir hizmet seçin.", "Tamam"); return false; }
+            if (_secilenArac == null) { DisplayAlert("Uyarı", "Lütfen Araç seçimini yapın.", "Tamam"); return false; }
         }
         else if (_talep.durum == "Onaylandı" || _talep.durum == "İşlemde")
         {
             if (string.IsNullOrWhiteSpace(DuzeltmeNotuEditor.Text))
             {
-                await DisplayAlert("Hata", "Lütfen düzeltmek istediğiniz alanları yazın.", "Tamam");
-                return;
+                DisplayAlert("Uyarı", "Lütfen düzeltmek istediğiniz alanları yazın.", "Tamam"); return false;
             }
         }
+        return true;
+    }
 
-        // --- 2. İŞLEM BAŞLADI: EKRANI KİLİTLE VE YÜKLEMEYİ GÖSTER ---
-        LoadingOverlay.IsVisible = true;
-        bool basarili = false;
-
-        // --- YENİ DİNAMİK METİN AYARI ---
-        if (SecilenFotograflar != null && SecilenFotograflar.Count > 0)
+    // =====================================================================================
+    // 3. YARDIMCI METOT: Sadece veritabanı (API Put) işlemini yapar
+    // =====================================================================================
+    private async Task<bool> VeritabaniGuncelleAsync()
+    {
+        if (_talep.durum == "Bekliyor")
         {
-            LoadingTitle.Text = "Fotoğraflarınız Yükleniyor...";
-            LoadingSubText.Text = "Dosya boyutlarına göre bu işlem biraz zaman alabilir.\nLütfen bekleyiniz.";
+            return await _apiService.ServisTalebiGuncelleAsync(
+                _talep.id, _secilenHizmet.id, _secilenArac.Id, TarihPicker.Date.ToString("yyyy-MM-dd"), AdresEditor.Text, NotlarEditor.Text, false, ""
+            );
         }
         else
         {
-            LoadingTitle.Text = "İşleminiz Yapılıyor...";
-            LoadingSubText.Text = "Lütfen bekleyiniz.";
+            return await _apiService.ServisTalebiGuncelleAsync(
+                _talep.id, null, null, "", "", "", true, DuzeltmeNotuEditor.Text
+            );
+        }
+    }
+
+    // =====================================================================================
+    // 4. YARDIMCI METOT: Sadece Fotoğraf Yükleme ve Stream işlemlerini yapar
+    // =====================================================================================
+    private async Task<string> FotograflariYukleAsync()
+    {
+        if (SecilenFotograflar == null || SecilenFotograflar.Count == 0) return ""; // Fotoğraf yoksa boş dön, hata yok.
+
+        string hatalar = "";
+
+        // Önce eskileri temizle
+        await _apiService.EskiFotograflariTemizleAsync(_talep.id);
+
+        // Kullanıcı adını döngü dışında SADECE BİR KERE temizleyerek işlemciyi yormuyoruz
+        string temizAdSoyad = string.IsNullOrWhiteSpace(_aktifKullanici?.ad_soyad) ? "Kullanici" : _aktifKullanici.ad_soyad.Replace(" ", "");
+
+        foreach (var foto in SecilenFotograflar)
+        {
+            try
+            {
+                using var stream = await foto.OpenReadAsync();
+
+                string uzanti = string.IsNullOrWhiteSpace(foto.FileName) ? ".jpg" : Path.GetExtension(foto.FileName);
+                if (string.IsNullOrEmpty(uzanti)) uzanti = ".jpg";
+
+                string zaman = DateTime.Now.ToString("yyyyMMdd_HHmmssfff");
+                string ozelDosyaAdi = $"{temizAdSoyad}-{_talep.id}-{zaman}{uzanti}";
+
+                string uploadSonuc = await _apiService.UploadHasarFotografAsync(_talep.id, stream, ozelDosyaAdi);
+
+                if (uploadSonuc != "OK")
+                {
+                    hatalar += $"- {foto.FileName ?? "Bilinmeyen Dosya"}: {uploadSonuc}\n";
+                }
+            }
+            catch (Exception ex)
+            {
+                hatalar += $"- {foto.FileName}: Dosya okunamadı ({ex.Message})\n";
+            }
+        }
+
+        return hatalar; // Hata varsa string dolu döner, yoksa boş döner
+    }
+
+
+    // =====================================================================================
+    // 5. YENİ REVİZE: Fotoğraf Seçimi (OnAddPhotoClicked) 
+    // Gereksiz if/else karmaşası temizlendi, kod daha akıcı hale getirildi.
+    // =====================================================================================
+    private async void OnAddPhotoClicked(object sender, EventArgs e)
+    {
+        int eklenebilirSayi = MaksimumFotoSayisi - SecilenFotograflar.Count;
+
+        if (eklenebilirSayi <= 0)
+        {
+            await DisplayAlert("Bilgi", $"En fazla {MaksimumFotoSayisi} adet fotoğraf ekleyebilirsiniz.", "Tamam");
+            return;
         }
 
         try
         {
-            // 3. ÖNCE VERİTABANI GÜNCELLEMESİ YAPILIR
-            if (_talep.durum == "Bekliyor")
+            var options = new PickOptions
             {
-                basarili = await _apiService.ServisTalebiGuncelleAsync(
-                    _talep.id,
-                    _secilenHizmet.id,
-                    _secilenArac.Id,
-                    TarihPicker.Date.ToString("yyyy-MM-dd"),
-                    AdresEditor.Text,
-                    NotlarEditor.Text,
-                    false,
-                    ""
-                );
-            }
-            else if (_talep.durum == "Onaylandı" || _talep.durum == "İşlemde")
-            {
-                basarili = await _apiService.ServisTalebiGuncelleAsync(
-                    _talep.id, null, null, "", "", "",
-                    true,
-                    DuzeltmeNotuEditor.Text
-                );
-            }
+                PickerTitle = "Hasar Fotoğraflarını Seçin",
+                FileTypes = FilePickerFileType.Images
+            };
 
-            // 4. SONRA FOTOĞRAF YÜKLEME İŞLEMİ YAPILIR
-            if (basarili)
-            {
-                int yuklenemeyen = 0;
-                string hataMesajlari = "";
+            var photos = await FilePicker.Default.PickMultipleAsync(options);
 
-                if (SecilenFotograflar != null && SecilenFotograflar.Count > 0)
+            if (photos != null)
+            {
+                int eklenen = 0;
+                foreach (var photo in photos)
                 {
-                    // Eski fotoları temizle
-                    await _apiService.EskiFotograflariTemizleAsync(_talep.id);
-
-                    foreach (var foto in SecilenFotograflar)
+                    if (eklenen < eklenebilirSayi)
                     {
-                        using var stream = await foto.OpenReadAsync();
-
-                        string temizAdSoyad = "Kullanici";
-                        if (_aktifKullanici != null && !string.IsNullOrWhiteSpace(_aktifKullanici.ad_soyad))
-                        {
-                            temizAdSoyad = _aktifKullanici.ad_soyad.Replace(" ", "");
-                        }
-
-                        string uzanti = ".jpg";
-                        if (foto != null && !string.IsNullOrWhiteSpace(foto.FileName))
-                        {
-                            uzanti = Path.GetExtension(foto.FileName);
-                        }
-                        if (string.IsNullOrEmpty(uzanti)) uzanti = ".jpg";
-
-                        string zaman = DateTime.Now.ToString("yyyy_MM_dd_HHmm_ssfff");
-                        string ozelDosyaAdi = $"{temizAdSoyad}-{_talep.id}-{zaman}{uzanti}";
-
-                        string uploadSonuc = await _apiService.UploadHasarFotografAsync(_talep.id, stream, ozelDosyaAdi);
-
-                        if (uploadSonuc != "OK")
-                        {
-                            yuklenemeyen++;
-                            string dosyaIsmi = foto?.FileName ?? "BilinmeyenDosya";
-                            hataMesajlari += $"- {dosyaIsmi}: {uploadSonuc}\n";
-                        }
+                        SecilenFotograflar.Add(photo);
+                        eklenen++;
+                    }
+                    else
+                    {
+                        await DisplayAlert("Sınır Aşıldı", $"Maksimum {MaksimumFotoSayisi} fotoğrafa ulaşıldı, diğerleri göz ardı edildi.", "Tamam");
+                        break;
                     }
                 }
-
-                // --- SONUÇ MESAJLARI ---
-                if (yuklenemeyen > 0)
-                {
-                    await DisplayAlert("Kısmi Başarılı", $"Talebiniz güncellendi ancak bazı fotoğraflar yüklenemedi:\n{hataMesajlari}", "Anladım");
-                }
-                else
-                {
-                    await DisplayAlert("Başarılı", "Talep bilgileriniz ve fotoğraflarınız başarıyla güncellendi.", "Tamam");
-                }
-
-                await Navigation.PopAsync();
-            }
-            else
-            {
-                await DisplayAlert("Hata", "Bir sorun oluştu, tekrar deneyin.", "Tamam");
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            await DisplayAlert("Hata", "İşlem sırasında hata: " + ex.Message, "Tamam");
-        }
-        finally
-        {
-            // 5. İŞLEM BİTTİ: EKRAN KİLİDİNİ AÇ (Hata olsa da olmasa da çalışır)
-            LoadingOverlay.IsVisible = false;
+            await DisplayAlert("İptal", "Fotoğraf seçimi iptal edildi veya bir sorun oluştu.", "Tamam");
         }
     }
+
+    // --- YENİ REVİZE BAŞLANGICI: Hasar Fotoğrafı Silme İşlemleri ---
+    private void OnRemovePhotoClicked(object sender, EventArgs e)
+    {
+        var button = sender as Button;
+        var photo = button?.CommandParameter as FileResult;
+        if (photo != null)
+        {
+            SecilenFotograflar.Remove(photo);
+        }
+    }
+    // --- YENİ REVİZE BİTİŞİ ---
 
     // --- HİZMET SEÇİMİ METOTLARI ---
     private void OnHizmetSecimButonuClicked(object sender, EventArgs e)
@@ -373,60 +447,4 @@ public partial class EditServiceRequestView : ContentPage
             AracListesi.SelectedItem = null; // Seçimi sıfırla
         }
     }
-
-    // --- YENİ REVİZE BAŞLANGICI: Hasar Fotoğrafı Seçme ve Silme İşlemleri ---
-    // YENİ REVİZE: Toplu Seçim İşlemi (Madde 1)
-    private async void OnAddPhotoClicked(object sender, EventArgs e)
-    {
-        if (SecilenFotograflar.Count >= MaksimumFotoSayisi)
-        {
-            await DisplayAlert("Bilgi", $"En fazla {MaksimumFotoSayisi} adet fotoğraf ekleyebilirsiniz.", "Tamam");
-            return;
-        }
-
-        try
-        {
-            // MAUI'de toplu fotoğraf seçimi için FilePicker sınıfını sadece resimlere filtreleyerek yapılandırıyoruz
-            var options = new PickOptions
-            {
-                PickerTitle = "Hasar Fotoğraflarını Seçin",
-                FileTypes = FilePickerFileType.Images
-            };
-
-            // MediaPicker yerine FilePicker'ın çoklu seçim metodunu kullanıyoruz
-            var photos = await FilePicker.Default.PickMultipleAsync(options);
-
-            if (photos != null)
-            {
-                foreach (var photo in photos)
-                {
-                    if (SecilenFotograflar.Count < MaksimumFotoSayisi)
-                    {
-                        SecilenFotograflar.Add(photo);
-                    }
-                    else
-                    {
-                        await DisplayAlert("Bilgi", $"Maksimum {MaksimumFotoSayisi} fotoğraf sınırına ulaşıldı. Diğerleri eklenemedi.", "Tamam");
-                        break;
-                    }
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            await DisplayAlert("Hata", "Fotoğraflar seçilirken bir hata oluştu: " + ex.Message, "Tamam");
-        }
-    }
-
-    private void OnRemovePhotoClicked(object sender, EventArgs e)
-    {
-        var button = sender as Button;
-        var photo = button?.CommandParameter as FileResult;
-        if (photo != null)
-        {
-            SecilenFotograflar.Remove(photo);
-        }
-    }
-    // --- YENİ REVİZE BİTİŞİ ---
-
 }
