@@ -26,13 +26,32 @@ public partial class MyServiceRequestsView : ContentPage
     {
         base.OnAppearing();
 
-        // YENİ REVİZE: Arayüzün (UI) donmasını ve uygulamanın çökmesini engellemek için 
-        // veri çekme işlemine geçmeden önce çok kısa bir süre (100ms) bekleyip thread'i rahatlatıyoruz.
-        // await Task.Delay(20);
+        // 1. AŞAMA: Kullanıcıya donma hissi vermemek için Loading ekranını anında aç
+        LoadingOverlay.IsVisible = true;
 
-        // Yükleme işlemini bu rahatlamadan sonra tetikliyoruz.
-        DurumListesi.ItemsSource = _durumFiltreleri;
-        await VerileriYukle();
+        // YENİ REVİZE: Arayüzün (UI) donmasını ve uygulamanın çökmesini engellemek ve Loading animasyonunu başlatması için 
+        // veri çekme işlemine geçmeden önce çok kısa bir süre (20ms) bekleyip thread'i rahatlatıyoruz.
+        await Task.Delay(20);
+
+        try
+        {
+            // Filtre dropdown listelerini vs. burada doldurabilirsin
+            if (DurumListesi != null && DurumListesi.ItemsSource == null)
+                DurumListesi.ItemsSource = _durumFiltreleri;
+
+            // 3. AŞAMA: Asıl veriyi (API İsteklerini) şimdi çekiyoruz
+            await VerileriYukle();
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Hata", "Veriler yüklenirken bir sorun oluştu.", "Tamam");
+            System.Diagnostics.Debug.WriteLine($"Yükleme Hatası: {ex.Message}");
+        }
+        finally
+        {
+            // 4. AŞAMA: Veri gelse de, hata da verse Loading ekranını KESİNLİKLE kapat
+            LoadingOverlay.IsVisible = false;
+        }
     }
 
     private async Task VerileriYukle()
@@ -179,18 +198,36 @@ public partial class MyServiceRequestsView : ContentPage
             }
 
             bool eminMisin = await DisplayAlert("Onay", "Bu servis talebini iptal etmek (silmek) istediğinize emin misiniz?", "Evet, İptal Et", "Vazgeç");
-
             if (eminMisin)
             {
+
+                // İşlem başlıyor, ekranı kilitle ve Loading'i göster
+                LoadingTitle.Text = "Lütfen bekleyiniz...";
+                LoadingOverlay.IsVisible = true;
+                await Task.Delay(20); // UI çizimi için nefes aldır
+
                 bool basarili = await _apiService.ServisTalebiSilAsync(secilenTalep.id);
-                if (basarili)
+
+                try
                 {
-                    await DisplayAlert("Başarılı", "Talebiniz iptal edildi.", "Tamam");
-                    await VerileriYukle();
+                    if (basarili)
+                    {
+                        await DisplayAlert("Başarılı", "Talebiniz iptal edildi.", "Tamam");
+
+                        // Listeyi yeniden yükle (Artık donmayacak çünkü Loading çalışıyor)
+                        await VerileriYukle();
+                        // Artık güncelledikten sonra liste asla kaymayacak, sen sayfadan çıkana kadar orada kalacak. Kapamıştım geri açtık.
+                    }
+                    else
+                    {
+                        await DisplayAlert("Hata", "Talebiniz iptal edilirken bir sorun oluştu.", "Tamam");
+                    }
                 }
-                else
+                finally
                 {
-                    await DisplayAlert("Hata", "Talebiniz iptal edilirken bir sorun oluştu.", "Tamam");
+                    // İşlem bitti, ekranı serbest bırak
+                    LoadingOverlay.IsVisible = false;
+                    LoadingTitle.Text = "Veriler Yükleniyor..."; // Sonraki kullanımlar için varsayılana çevir
                 }
             }
         }

@@ -22,13 +22,32 @@ public partial class AdminRequestsView : ContentPage
     {
         base.OnAppearing();
 
-        // YENİ REVİZE: Arayüzün (UI) donmasını ve uygulamanın çökmesini engellemek için 
-        // veri çekme işlemine geçmeden önce çok kısa bir süre (100ms) bekleyip thread'i rahatlatıyoruz.
-        // await Task.Delay(20);
+        // 1. AŞAMA: Kullanıcıya donma hissi vermemek için Loading ekranını anında aç
+        LoadingOverlay.IsVisible = true;
 
-        // Yükleme işlemini bu rahatlamadan sonra tetikliyoruz.
-        DurumListesi.ItemsSource = _durumFiltreleri;
-        await VerileriYukle();
+        // YENİ REVİZE: Arayüzün (UI) donmasını ve uygulamanın çökmesini engellemek ve Loading animasyonunu başlatması için 
+        // veri çekme işlemine geçmeden önce çok kısa bir süre (20ms) bekleyip thread'i rahatlatıyoruz.
+        await Task.Delay(20);
+
+        try
+        {
+            // Filtre dropdown listelerini vs. burada doldurabilirsin
+            if (DurumListesi != null && DurumListesi.ItemsSource == null)
+                DurumListesi.ItemsSource = _durumFiltreleri;
+
+            // 3. AŞAMA: Asıl veriyi (API İsteklerini) şimdi çekiyoruz
+            await VerileriYukle();
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Hata", "Veriler yüklenirken bir sorun oluştu.", "Tamam");
+            System.Diagnostics.Debug.WriteLine($"Yükleme Hatası: {ex.Message}");
+        }
+        finally
+        {
+            // 4. AŞAMA: Veri gelse de, hata da verse Loading ekranını KESİNLİKLE kapat
+            LoadingOverlay.IsVisible = false;
+        }
     }
 
     private async Task VerileriYukle()
@@ -314,6 +333,11 @@ public partial class AdminRequestsView : ContentPage
 
         if (talep != null)
         {
+            // İşlem başlıyor, ekranı kilitle ve Loading'i göster
+            LoadingTitle.Text = "Güncelleniyor...";
+            LoadingOverlay.IsVisible = true;
+            await Task.Delay(20); // UI çizimi için nefes aldır
+
             // YENİ EKLENEN KISIM: Uygulamaya giriş yapan kişinin ID'sini alıyoruz.
             // Bulduğun 'kullanici_id_gizli' anahtarını kullanarak ID'yi çekiyoruz
             string idStr = await SecureStorage.Default.GetAsync("kullanici_id_gizli");
@@ -321,17 +345,29 @@ public partial class AdminRequestsView : ContentPage
 
             // API servisine bu ID'yi de parametre olarak geçiyoruz
             bool basarili = await _apiService.AdminTalepGuncelleAsync(talep.id, talep.durum, talep.tahmini_tutar, aktifAdminId);
-            
-            if (basarili)
+
+            try
             {
-                await DisplayAlert("Başarılı", "Talep başarıyla güncellendi.", "Tamam");
-                // YENİ REVİZE: VerileriYukle(); metodunu sildik! 
-                // Artık güncelledikten sonra liste asla kaymayacak, sen sayfadan çıkana kadar orada kalacak.
+                if (basarili)
+                {
+                    await DisplayAlert("Başarılı", "Talep güncellendi.", "Tamam");
+
+                    // Listeyi yeniden yükle (Artık donmayacak çünkü Loading çalışıyor)
+                    await VerileriYukle();
+                    // Artık güncelledikten sonra liste asla kaymayacak, sen sayfadan çıkana kadar orada kalacak. Kapamıştım geri açtık.
+                }
+                else
+                {
+                    await DisplayAlert("Hata", "Güncellenirken bir sorun oluştu.", "Tamam");
+                }
             }
-            else
+            finally
             {
-                await DisplayAlert("Hata", "Güncellenirken bir sorun oluştu, lütfen tekrar deneyin.", "Tamam");
+                // İşlem bitti, ekranı serbest bırak
+                LoadingOverlay.IsVisible = false;
+                LoadingTitle.Text = "Veriler Yükleniyor..."; // Sonraki kullanımlar için varsayılana çevir
             }
+
         }
     }
 
