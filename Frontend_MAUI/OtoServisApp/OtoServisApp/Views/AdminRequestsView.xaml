@@ -27,8 +27,8 @@
             <CollectionView x:Name="RequestsList" Grid.Row="1" Margin="10">
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:ServisTalebi">
-                        <Border BackgroundColor="#FAFAFA" StrokeShape="RoundRectangle 12" Padding="15" Margin="0,0,0,15" Stroke="#E0E0E0" StrokeThickness="1" IsClippedToBounds="False">
-                            <VerticalStackLayout Spacing="10" IsClippedToBounds="False">
+                        <Border BackgroundColor="#FAFAFA" StrokeShape="RoundRectangle 12" Padding="15" Margin="0,0,0,15" Stroke="#E0E0E0" StrokeThickness="1">
+                            <VerticalStackLayout Spacing="10">
 
                                 <Grid ColumnDefinitions="*, Auto">
                                     <VerticalStackLayout Grid.Column="0" Spacing="4">
@@ -117,12 +117,12 @@
                                     <Button Text="Fotoğraf Ekle" CommandParameter="{Binding .}" Clicked="OnAddPhotoClicked" BackgroundColor="#FF9800" TextColor="White" CornerRadius="8" FontAttributes="Bold" FontSize="11" HeightRequest="30" Padding="15,0" />
                                 </HorizontalStackLayout>
 
-                                <Grid ColumnDefinitions="*, *, Auto" ColumnSpacing="10" IsClippedToBounds="False">
+                                <Grid ColumnDefinitions="*, *, Auto" ColumnSpacing="10">
 
-                                    <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="End" IsClippedToBounds="False">
+                                    <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="End">
                                         <Label Text="Mevcut Durum" FontSize="10" TextColor="#888888" Margin="5,0,0,0"/>
 
-                                        <Grid IsClippedToBounds="False">
+                                        <Grid>
                                             <Button Text="{Binding durum}" 
                                                     CommandParameter="{Binding .}"
                                                     Clicked="OnItemDurumKutusuAc" 

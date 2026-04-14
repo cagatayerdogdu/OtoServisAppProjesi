@@ -130,29 +130,9 @@ public partial class AdminRequestsView : ContentPage
     // FİLTRELEME SİSTEMİ
     // =========================================================
 
-    private CancellationTokenSource _aramaCts; // DeepSeek hızlandırma önerisi
-
     private void OnFiltreDegisti(object sender, TextChangedEventArgs e)
     {
-        _aramaCts?.Cancel();
-        _aramaCts = new CancellationTokenSource();
-
-        Task.Delay(100, _aramaCts.Token)
-            .ContinueWith(t =>
-            {
-                if (!t.IsCanceled)
-                    MainThread.BeginInvokeOnMainThread(FiltreleriUygula);
-            });
-    }
-
-    // Sayfadan Çıkarken Kaynakları Temizleyin.
-    // OnDisappearing metodunu override ederek ItemsSource'u null yapın ve
-    // CancellationTokenSource'u iptal edin:
-    protected override void OnDisappearing()  // DeepSeek hızlandırma önerisi
-    {
-        base.OnDisappearing();
-        _aramaCts?.Cancel();
-        RequestsList.ItemsSource = null;
+        FiltreleriUygula();
     }
 
     private void FiltreleriUygula()
