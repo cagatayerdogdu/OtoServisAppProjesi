@@ -1,7 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using OtoServisApp.Models;
 using OtoServisApp.Services;
-using OtoServisApp.Extensions; // Mutlaka ekli olmalı
 
 namespace OtoServisApp.Views;
 
@@ -11,11 +10,8 @@ public partial class AdminRequestsView : ContentPage
     private List<Hizmet> _tumHizmetler;
     private List<ServisTalebi> _orijinalTalepler;
 
-    private List<string> _durumFiltreleri = new List<string> { "Tümü", "Bekliyor", "Onaylandı", "İşlemde", "Tamamlandı", "İptal Edildi" };
+    private List<string> _durumFiltreleri = new List<string> { "Tümü", "Bekliyor", "Onaylandı", "İşlemde" };
     private string _secilenDurum = "Tümü";
-
-    // Global dropdown için hedef talep
-    private ServisTalebi _globalDropdownHedefTalep;
 
     public AdminRequestsView()
     {
@@ -105,18 +101,12 @@ public partial class AdminRequestsView : ContentPage
                 {
                     talep.arac_adi_tam = "Sistemden Silinmiş Araç";
                 }
+
+                var fotolar = await _apiService.TalepFotograflariniGetirAsync(talep.id);
+                talep.foto_var_mi = fotolar != null && fotolar.Count > 0;
             });
 
             await Task.WhenAll(gorevler);
-
-            // Toplu fotoğraf durumu
-            var talepIdleri = _orijinalTalepler.Select(t => t.id).ToList();
-            var fotoDurumlari = await _apiService.TopluFotografDurumuGetirAsync(talepIdleri);
-
-            foreach (var talep in _orijinalTalepler)
-            {
-                talep.foto_var_mi = fotoDurumlari.TryGetValue(talep.id, out var varMi) && varMi;
-            }
 
             FiltreleriUygula();
         }
@@ -126,29 +116,9 @@ public partial class AdminRequestsView : ContentPage
         }
     }
 
-    // =========================================================
-    // FİLTRELEME SİSTEMİ
-    // =========================================================
-    private CancellationTokenSource _aramaCts;
     private void OnFiltreDegisti(object sender, TextChangedEventArgs e)
     {
-        _aramaCts?.Cancel();
-        _aramaCts = new CancellationTokenSource();
-
-        Task.Delay(100, _aramaCts.Token)
-            .ContinueWith(t =>
-            {
-                if (!t.IsCanceled)
-                    MainThread.BeginInvokeOnMainThread(FiltreleriUygula);
-            });
-    }
-
-    protected override void OnDisappearing()
-    {
-        base.OnDisappearing();
-        _aramaCts?.Cancel();
-        RequestsList.ItemsSource = null;
-        GlobalDurumDropdown.IsVisible = false;
+        FiltreleriUygula();
     }
 
     private void FiltreleriUygula()
@@ -177,24 +147,24 @@ public partial class AdminRequestsView : ContentPage
                 "Bekliyor" => 1,
                 "Onaylandı" => 2,
                 "İşlemde" => 3,
-                "Tamamlandı" => 4,
-                "İptal Edildi" => 5,
-                _ => 6
+                _ => 4
             })
             .ThenBy(t => t.id);
 
         RequestsList.ItemsSource = filtrelenmisListe.ToList();
     }
 
-    // =========================================================
-    // ÜST TARAF FİLTRE DROPDOWN KONTROLLERİ
-    // =========================================================
     private void OnFiltreDurumKutusuAcKapat(object sender, EventArgs e)
     {
-        if (GlobalDurumDropdown.IsVisible)
-            GlobalDurumDropdown.IsVisible = false;
-
         DurumSecimKutusu.IsVisible = !DurumSecimKutusu.IsVisible;
+
+        if (DurumSecimKutusu.IsVisible && _orijinalTalepler != null)
+        {
+            foreach (var talep in _orijinalTalepler.Where(t => t.DropdownAcikMi))
+            {
+                talep.DropdownAcikMi = false;
+            }
+        }
     }
 
     private void OnFiltreDurumSecildi(object sender, SelectionChangedEventArgs e)
@@ -210,9 +180,6 @@ public partial class AdminRequestsView : ContentPage
         }
     }
 
-    // =========================================================
-    // KART İÇİ DURUM SEÇİMİ (GLOBAL DROPDOWN İLE)
-    // =========================================================
     private void OnItemDurumKutusuAc(object sender, EventArgs e)
     {
         var btn = sender as Button;
@@ -222,38 +189,44 @@ public partial class AdminRequestsView : ContentPage
         {
             DurumSecimKutusu.IsVisible = false;
 
-            var bounds = btn.GetAbsoluteBounds();
-            if (bounds.HasValue)
+            if (_orijinalTalepler != null)
             {
-                GlobalDurumDropdown.Margin = new Thickness(bounds.Value.X, bounds.Value.Bottom, 0, 0);
-                GlobalDurumDropdown.WidthRequest = btn.Width;
+                foreach (var talep in _orijinalTalepler.Where(t => t.DropdownAcikMi && t != secilenTalep))
+                {
+                    talep.DropdownAcikMi = false;
+                }
             }
 
-            _globalDropdownHedefTalep = secilenTalep;
-            GlobalDurumDropdown.IsVisible = true;
+            secilenTalep.DropdownAcikMi = !secilenTalep.DropdownAcikMi;
         }
     }
 
-    private void OnGlobalDurumSecildi(object sender, EventArgs e)
+    private void OnItemDurumSecildi(object sender, EventArgs e)
     {
         var btn = sender as Button;
-        var yeniDurum = btn.Text;
+        var yeniDurum = btn?.Text;
+        var secilenTalep = btn?.BindingContext as ServisTalebi;
 
-        if (_globalDropdownHedefTalep != null)
+        if (secilenTalep != null && !string.IsNullOrEmpty(yeniDurum))
         {
-            _globalDropdownHedefTalep.durum = yeniDurum;
-            // Eğer ServisTalebi INotifyPropertyChanged implemente ediyorsa buton otomatik güncellenir.
-            // Etmiyorsa listeyi yenileyelim:
-            FiltreleriUygula();
-        }
+            secilenTalep.durum = yeniDurum;
+            secilenTalep.DropdownAcikMi = false;
 
-        GlobalDurumDropdown.IsVisible = false;
-        _globalDropdownHedefTalep = null;
+            var verticalLayout = btn.Parent as VerticalStackLayout;
+            var dropdownBorder = verticalLayout?.Parent as Border;
+            var grid = dropdownBorder?.Parent as Grid;
+
+            if (grid != null)
+            {
+                var mainButton = grid.Children.OfType<Button>().FirstOrDefault();
+                if (mainButton != null)
+                {
+                    mainButton.Text = yeniDurum;
+                }
+            }
+        }
     }
 
-    // =========================================================
-    // GÜNCELLEME İŞLEMİ
-    // =========================================================
     private async void OnUpdateClicked(object sender, EventArgs e)
     {
         var button = sender as Button;
@@ -290,9 +263,6 @@ public partial class AdminRequestsView : ContentPage
         }
     }
 
-    // =========================================================
-    // MAUI'nin yerleşik panoya kopyalama özelliği
-    // =========================================================    
     private async void OnCopyTapped(object sender, EventArgs e)
     {
         var label = sender as Label;
@@ -306,9 +276,6 @@ public partial class AdminRequestsView : ContentPage
         }
     }
 
-    // ===============================================================================
-    // Admin Tarafından Fotoğrafları Gör Butonu Tıklanma Olayı
-    // ===============================================================================
     private async void OnViewPhotosClicked(object sender, EventArgs e)
     {
         var buton = sender as Button;
@@ -320,9 +287,6 @@ public partial class AdminRequestsView : ContentPage
         }
     }
 
-    // =========================================================
-    // ADMİN TARAFINDAN FOTOĞRAF EKLEME İŞLEMİ
-    // =========================================================
     private async void OnAddPhotoClicked(object sender, EventArgs e)
     {
         var button = sender as Button;
