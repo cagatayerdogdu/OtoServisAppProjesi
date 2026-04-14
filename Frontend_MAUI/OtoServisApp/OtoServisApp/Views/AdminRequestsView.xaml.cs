@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using OtoServisApp.Models;
 using OtoServisApp.Services;
+using OtoServisApp.Extensions; // Yeni eklenen extension metodu için
 
 namespace OtoServisApp.Views;
 
@@ -12,6 +13,9 @@ public partial class AdminRequestsView : ContentPage
 
     private List<string> _durumFiltreleri = new List<string> { "Tümü", "Bekliyor", "Onaylandı", "İşlemde" };
     private string _secilenDurum = "Tümü";
+
+    // Global dropdown için hedef talep
+    private ServisTalebi _globalDropdownHedefTalep;
 
     public AdminRequestsView()
     {
@@ -157,6 +161,7 @@ public partial class AdminRequestsView : ContentPage
         base.OnDisappearing();
         _aramaCts?.Cancel();
         RequestsList.ItemsSource = null;
+        GlobalDurumDropdown.IsVisible = false;
     }
 
     private void FiltreleriUygula()
@@ -205,9 +210,13 @@ public partial class AdminRequestsView : ContentPage
 
     private void OnFiltreDurumKutusuAcKapat(object sender, EventArgs e)
     {
+        // Global dropdown açıksa kapat
+        if (GlobalDurumDropdown.IsVisible)
+            GlobalDurumDropdown.IsVisible = false;
+
         DurumSecimKutusu.IsVisible = !DurumSecimKutusu.IsVisible;
 
-        // ÜSTTEKİ MENÜ AÇILIRSA: Alttaki açık olan kart menülerini zorla kapat
+        // ÜSTTEKİ MENÜ AÇILIRSA: Alttaki açık olan kart menülerini zorla kapat (Artık global dropdown kullanıldığı için bu kısım gereksiz, ama bırakıyoruz)
         if (DurumSecimKutusu.IsVisible && _orijinalTalepler != null)
         {
             foreach (var talep in _orijinalTalepler.Where(t => t.DropdownAcikMi))
@@ -231,7 +240,7 @@ public partial class AdminRequestsView : ContentPage
     }
 
     // =========================================================
-    // KART İÇİ DURUM SEÇİM KONTROLLERİ (HIZLANDIRILMIŞ & DÜZELTİLMİŞ)
+    // KART İÇİ DURUM SEÇİMİ (GLOBAL DROPDOWN İLE)
     // =========================================================
 
     private void OnItemDurumKutusuAc(object sender, EventArgs e)
@@ -241,48 +250,38 @@ public partial class AdminRequestsView : ContentPage
 
         if (secilenTalep != null)
         {
-            // KART AÇILINCA: Üstteki ana filtreyi zorla kapat
+            // Üstteki ana filtreyi kapat
             DurumSecimKutusu.IsVisible = false;
 
-            // KART AÇILINCA: Listede açık olan diğer kartların menüsünü kapat
-            if (_orijinalTalepler != null)
+            // Global dropdown'ı konumlandır
+            var bounds = btn.GetAbsoluteBounds();
+            if (bounds.HasValue)
             {
-                foreach (var talep in _orijinalTalepler.Where(t => t.DropdownAcikMi && t != secilenTalep))
-                {
-                    talep.DropdownAcikMi = false;
-                }
+                GlobalDurumDropdown.Margin = new Thickness(bounds.Value.X, bounds.Value.Bottom, 0, 0);
+                GlobalDurumDropdown.WidthRequest = btn.Width;
             }
 
-            // Tıklananı aç/kapat (INotifyPropertyChanged anında arayüzü günceller)
-            secilenTalep.DropdownAcikMi = !secilenTalep.DropdownAcikMi;
+            _globalDropdownHedefTalep = secilenTalep;
+            GlobalDurumDropdown.IsVisible = true;
         }
     }
 
-    private void OnItemDurumSecildi(object sender, EventArgs e)
+    private void OnGlobalDurumSecildi(object sender, EventArgs e)
     {
         var btn = sender as Button;
-        var yeniDurum = btn?.Text;
-        var secilenTalep = btn?.BindingContext as ServisTalebi;
+        var yeniDurum = btn.Text;
 
-        if (secilenTalep != null && !string.IsNullOrEmpty(yeniDurum))
+        if (_globalDropdownHedefTalep != null)
         {
-            secilenTalep.durum = yeniDurum;
-            secilenTalep.DropdownAcikMi = false; // Menüyü kapatır
+            // Durumu güncelle
+            _globalDropdownHedefTalep.durum = yeniDurum;
 
-            // Seçilen durumu anında göstermek için ana butonu bul ve yazısını değiştir
-            var verticalLayout = btn.Parent as VerticalStackLayout;
-            var dropdownBorder = verticalLayout?.Parent as Border;
-            var grid = dropdownBorder?.Parent as Grid; // Tasarımı Grid'e aldığımız için bir üstü Grid oldu
-
-            if (grid != null)
-            {
-                var mainButton = grid.Children.OfType<Button>().FirstOrDefault();
-                if (mainButton != null)
-                {
-                    mainButton.Text = yeniDurum;
-                }
-            }
+            // Listeyi yenile (buton metni güncellenir)
+            FiltreleriUygula();
         }
+
+        GlobalDurumDropdown.IsVisible = false;
+        _globalDropdownHedefTalep = null;
     }
 
     // =========================================================
