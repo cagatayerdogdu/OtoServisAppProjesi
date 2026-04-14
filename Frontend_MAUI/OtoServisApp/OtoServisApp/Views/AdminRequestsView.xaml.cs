@@ -130,9 +130,29 @@ public partial class AdminRequestsView : ContentPage
     // FİLTRELEME SİSTEMİ
     // =========================================================
 
+    private CancellationTokenSource _aramaCts; // DeepSeek hızlandırma önerisi
+
     private void OnFiltreDegisti(object sender, TextChangedEventArgs e)
     {
-        FiltreleriUygula();
+        _aramaCts?.Cancel();
+        _aramaCts = new CancellationTokenSource();
+
+        Task.Delay(100, _aramaCts.Token)
+            .ContinueWith(t =>
+            {
+                if (!t.IsCanceled)
+                    MainThread.BeginInvokeOnMainThread(FiltreleriUygula);
+            });
+    }
+
+    // Sayfadan Çıkarken Kaynakları Temizleyin.
+    // OnDisappearing metodunu override ederek ItemsSource'u null yapın ve
+    // CancellationTokenSource'u iptal edin:
+    protected override void OnDisappearing()  // DeepSeek hızlandırma önerisi
+    {
+        base.OnDisappearing();
+        _aramaCts?.Cancel();
+        RequestsList.ItemsSource = null;
     }
 
     private void FiltreleriUygula()
@@ -157,7 +177,7 @@ public partial class AdminRequestsView : ContentPage
             );
         }
 
-        RequestsList.ItemsSource = null;
+        // RequestsList.ItemsSource = null;
 
         // 3. EFSANE SIRALAMA MANTIĞI
         filtrelenmisListe = filtrelenmisListe
@@ -166,8 +186,8 @@ public partial class AdminRequestsView : ContentPage
                 "Bekliyor" => 1,
                 "Onaylandı" => 2,
                 "İşlemde" => 3,
-                //"Tamamlandı" => 4,
-                //"İptal Edildi" => 5,
+                // "Tamamlandı" => 4,
+                // "İptal Edildi" => 5,
                 _ => 4
             })
             .ThenBy(t => t.id);
@@ -183,13 +203,13 @@ public partial class AdminRequestsView : ContentPage
     {
         DurumSecimKutusu.IsVisible = !DurumSecimKutusu.IsVisible;
 
+        // ÜSTTEKİ MENÜ AÇILIRSA: Alttaki açık olan kart menülerini zorla kapat
         if (DurumSecimKutusu.IsVisible && _orijinalTalepler != null)
         {
-            foreach (var talep in _orijinalTalepler)
+            foreach (var talep in _orijinalTalepler.Where(t => t.DropdownAcikMi))
             {
                 talep.DropdownAcikMi = false;
             }
-            FiltreleriUygula();
         }
     }
 
@@ -207,43 +227,52 @@ public partial class AdminRequestsView : ContentPage
     }
 
     // =========================================================
-    // KART İÇİ DURUM SEÇİM KONTROLLERİ
+    // KART İÇİ DURUM SEÇİM KONTROLLERİ (HIZLANDIRILMIŞ & DÜZELTİLMİŞ)
     // =========================================================
 
     private void OnItemDurumKutusuAc(object sender, EventArgs e)
     {
         var btn = sender as Button;
-        var parentStack = btn?.Parent as VerticalStackLayout;
+        var secilenTalep = btn?.BindingContext as ServisTalebi;
 
-        if (parentStack != null)
+        if (secilenTalep != null)
         {
-            var dropdownBorder = parentStack.Children.OfType<Border>().FirstOrDefault();
-            if (dropdownBorder != null)
+            // KART AÇILINCA: Üstteki ana filtreyi zorla kapat
+            DurumSecimKutusu.IsVisible = false;
+
+            // KART AÇILINCA: Listede açık olan diğer kartların menüsünü kapat
+            if (_orijinalTalepler != null)
             {
-                dropdownBorder.IsVisible = !dropdownBorder.IsVisible;
+                foreach (var talep in _orijinalTalepler.Where(t => t.DropdownAcikMi && t != secilenTalep))
+                {
+                    talep.DropdownAcikMi = false;
+                }
             }
+
+            // Tıklananı aç/kapat (INotifyPropertyChanged anında arayüzü günceller)
+            secilenTalep.DropdownAcikMi = !secilenTalep.DropdownAcikMi;
         }
     }
 
     private void OnItemDurumSecildi(object sender, EventArgs e)
     {
         var btn = sender as Button;
+        var yeniDurum = btn?.Text;
         var secilenTalep = btn?.BindingContext as ServisTalebi;
 
-        if (secilenTalep != null && btn != null)
+        if (secilenTalep != null && !string.IsNullOrEmpty(yeniDurum))
         {
-            var yeniDurum = btn.Text;
             secilenTalep.durum = yeniDurum;
+            secilenTalep.DropdownAcikMi = false; // Menüyü kapatır
 
+            // Seçilen durumu anında göstermek için ana butonu bul ve yazısını değiştir
             var verticalLayout = btn.Parent as VerticalStackLayout;
             var dropdownBorder = verticalLayout?.Parent as Border;
+            var grid = dropdownBorder?.Parent as Grid; // Tasarımı Grid'e aldığımız için bir üstü Grid oldu
 
-            if (dropdownBorder != null)
+            if (grid != null)
             {
-                dropdownBorder.IsVisible = false;
-
-                var mainStack = dropdownBorder.Parent as VerticalStackLayout;
-                var mainButton = mainStack?.Children.OfType<Button>().FirstOrDefault();
+                var mainButton = grid.Children.OfType<Button>().FirstOrDefault();
                 if (mainButton != null)
                 {
                     mainButton.Text = yeniDurum;

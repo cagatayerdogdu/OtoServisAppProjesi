@@ -27,8 +27,8 @@
             <CollectionView x:Name="RequestsList" Grid.Row="1" Margin="10">
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:ServisTalebi">
-                        <Border BackgroundColor="#FAFAFA" StrokeShape="RoundRectangle 12" Padding="15" Margin="0,0,0,15" Stroke="#E0E0E0" StrokeThickness="1">
-                            <VerticalStackLayout Spacing="10">
+                        <Border BackgroundColor="#FAFAFA" StrokeShape="RoundRectangle 12" Padding="15" Margin="0,0,0,15" Stroke="#E0E0E0" StrokeThickness="1" IsClippedToBounds="False">
+                            <VerticalStackLayout Spacing="10" IsClippedToBounds="False">
 
                                 <Grid ColumnDefinitions="*, Auto">
                                     <VerticalStackLayout Grid.Column="0" Spacing="4">
@@ -117,24 +117,28 @@
                                     <Button Text="Fotoğraf Ekle" CommandParameter="{Binding .}" Clicked="OnAddPhotoClicked" BackgroundColor="#FF9800" TextColor="White" CornerRadius="8" FontAttributes="Bold" FontSize="11" HeightRequest="30" Padding="15,0" />
                                 </HorizontalStackLayout>
 
-                                <Grid ColumnDefinitions="*, *, Auto" ColumnSpacing="10">
+                                <Grid ColumnDefinitions="*, *, Auto" ColumnSpacing="10" IsClippedToBounds="False">
 
-                                    <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="End">
+                                    <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="End" IsClippedToBounds="False">
                                         <Label Text="Mevcut Durum" FontSize="10" TextColor="#888888" Margin="5,0,0,0"/>
-                                        <Button Text="{Binding durum}" 
-                                                CommandParameter="{Binding .}"
-                                                Clicked="OnItemDurumKutusuAc" 
-                                                BackgroundColor="#FAFAFA" TextColor="#333333" BorderColor="#CCCCCC" BorderWidth="1" CornerRadius="15" FontSize="13" FontAttributes="Bold" HeightRequest="35" Padding="15,0" VerticalOptions="End"/>
 
-                                        <Border BackgroundColor="#FFFFFF" 
-                                                IsVisible="{Binding DropdownAcikMi}" 
-                                                Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Margin="0,5,0,0" Padding="0">
-                                            <VerticalStackLayout Spacing="0">
-                                                <Button Text="Bekliyor" Clicked="OnItemDurumSecildi" BackgroundColor="Transparent" TextColor="#111111" FontSize="12" HeightRequest="30" Padding="0"/>
-                                                <Button Text="Onaylandı" Clicked="OnItemDurumSecildi" BackgroundColor="Transparent" TextColor="#111111" FontSize="12" HeightRequest="30" Padding="0"/>
-                                                <Button Text="İşlemde" Clicked="OnItemDurumSecildi" BackgroundColor="Transparent" TextColor="#111111" FontSize="12" HeightRequest="30" Padding="0"/>
-                                            </VerticalStackLayout>
-                                        </Border>
+                                        <Grid IsClippedToBounds="False">
+                                            <Button Text="{Binding durum}" 
+                                                    CommandParameter="{Binding .}"
+                                                    Clicked="OnItemDurumKutusuAc" 
+                                                    BackgroundColor="#FAFAFA" TextColor="#333333" BorderColor="#CCCCCC" BorderWidth="1" CornerRadius="15" FontSize="13" FontAttributes="Bold" HeightRequest="35" Padding="15,0" VerticalOptions="End"/>
+
+                                            <Border BackgroundColor="#FFFFFF" 
+                                                    IsVisible="{Binding DropdownAcikMi}" 
+                                                    Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" 
+                                                    Margin="0,40,0,-120" Padding="0" ZIndex="999">
+                                                <VerticalStackLayout Spacing="0">
+                                                    <Button Text="Bekliyor" Clicked="OnItemDurumSecildi" BackgroundColor="Transparent" TextColor="#111111" FontSize="12" HeightRequest="30" Padding="0"/>
+                                                    <Button Text="Onaylandı" Clicked="OnItemDurumSecildi" BackgroundColor="Transparent" TextColor="#111111" FontSize="12" HeightRequest="30" Padding="0"/>
+                                                    <Button Text="İşlemde" Clicked="OnItemDurumSecildi" BackgroundColor="Transparent" TextColor="#111111" FontSize="12" HeightRequest="30" Padding="0"/>
+                                                </VerticalStackLayout>
+                                            </Border>
+                                        </Grid>
                                     </VerticalStackLayout>
 
                                     <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="End">
