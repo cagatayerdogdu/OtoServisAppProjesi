@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using OtoServisApp.Models;
 using OtoServisApp.Services;
-using OtoServisApp.Extensions; // Yeni eklenen extension metodu için
+using OtoServisApp.Extensions; // Mutlaka ekli olmalı
 
 namespace OtoServisApp.Views;
 
@@ -11,7 +11,7 @@ public partial class AdminRequestsView : ContentPage
     private List<Hizmet> _tumHizmetler;
     private List<ServisTalebi> _orijinalTalepler;
 
-    private List<string> _durumFiltreleri = new List<string> { "Tümü", "Bekliyor", "Onaylandı", "İşlemde" };
+    private List<string> _durumFiltreleri = new List<string> { "Tümü", "Bekliyor", "Onaylandı", "İşlemde", "Tamamlandı", "İptal Edildi" };
     private string _secilenDurum = "Tümü";
 
     // Global dropdown için hedef talep
@@ -27,12 +27,10 @@ public partial class AdminRequestsView : ContentPage
     {
         base.OnAppearing();
 
-        // 1. AŞAMA: Kullanıcıya donma hissi vermemek için Loading ekranını anında aç
         LoadingTitle.Text = "Talepler Yükleniyor...";
         LoadingSubText.Text = "Lütfen bekleyiniz.";
         LoadingOverlay.IsVisible = true;
 
-        // Arayüzün çizilmesi için 20ms'lik bir nefes payı (UI donmasını kesin engeller)
         await Task.Delay(5);
 
         try
@@ -55,7 +53,6 @@ public partial class AdminRequestsView : ContentPage
 
     private async Task VerileriYukle()
     {
-        // 1. PARALEL ÇEKİM: Ana verileri aynı anda ateşleyip zaman kazanıyoruz
         var hizmetTask = _apiService.HizmetleriGetirAsync();
         var talepTask = _apiService.AdminAktifTalepleriGetirAsync();
         var markaTask = _apiService.MarkalariGetirAsync();
@@ -68,20 +65,16 @@ public partial class AdminRequestsView : ContentPage
 
         if (_orijinalTalepler != null && _orijinalTalepler.Count > 0)
         {
-            // 2. CACHE (ÖNBELLEK) MEKANİZMASI: Aynı aracı tekrar tekrar API'den çekmemek için
             var aracHavuzu = new ConcurrentDictionary<int, Arac>();
 
-            // 3. N+1 PROBLEMİNİN ÇÖZÜMÜ: Tüm taleplerin detaylarını paralel olarak doldur
             var gorevler = _orijinalTalepler.Select(async talep =>
             {
-                // Hizmet Eşleştirme
                 if (_tumHizmetler != null)
                 {
                     var h = _tumHizmetler.FirstOrDefault(x => x.id == talep.hizmet_id);
                     if (h != null) talep.hizmet_adi = h.ad;
                 }
 
-                // Araç Bilgilerini Detaylandırma (Hafızada yoksa API'den çekip havuza at)
                 if (!aracHavuzu.TryGetValue(talep.arac_id, out var arac))
                 {
                     arac = await _apiService.AracGetirAsync(talep.arac_id);
@@ -112,16 +105,11 @@ public partial class AdminRequestsView : ContentPage
                 {
                     talep.arac_adi_tam = "Sistemden Silinmiş Araç";
                 }
-
-                // Admin tarafında talebe ait fotoğraf var mı kontrolü
-                //var fotolar = await _apiService.TalepFotograflariniGetirAsync(talep.id);
-                //talep.foto_var_mi = fotolar != null && fotolar.Count > 0;
             });
 
-            // Başlatılan tüm asenkron görevleri bekle
             await Task.WhenAll(gorevler);
 
-            // Fotoğraf durumlarını TEK SEFERDE toplu olarak al
+            // Toplu fotoğraf durumu
             var talepIdleri = _orijinalTalepler.Select(t => t.id).ToList();
             var fotoDurumlari = await _apiService.TopluFotografDurumuGetirAsync(talepIdleri);
 
@@ -130,7 +118,6 @@ public partial class AdminRequestsView : ContentPage
                 talep.foto_var_mi = fotoDurumlari.TryGetValue(talep.id, out var varMi) && varMi;
             }
 
-            // Her şey hazır olunca filtreleri uygula ve ekrana bas
             FiltreleriUygula();
         }
         else
@@ -170,13 +157,11 @@ public partial class AdminRequestsView : ContentPage
 
         var filtrelenmisListe = _orijinalTalepler.AsEnumerable();
 
-        // 1. DURUM FİLTRESİ
         if (_secilenDurum != "Tümü")
         {
             filtrelenmisListe = filtrelenmisListe.Where(t => t.durum == _secilenDurum);
         }
 
-        // 2. ARAMA BARI FİLTRESİ (Gereksiz kod tekrarı temizlendi)
         if (!string.IsNullOrWhiteSpace(AramaBar.Text))
         {
             var kelime = AramaBar.Text.ToLower();
@@ -186,18 +171,15 @@ public partial class AdminRequestsView : ContentPage
             );
         }
 
-        // RequestsList.ItemsSource = null;
-
-        // 3. EFSANE SIRALAMA MANTIĞI
         filtrelenmisListe = filtrelenmisListe
             .OrderBy(t => t.durum switch
             {
                 "Bekliyor" => 1,
                 "Onaylandı" => 2,
                 "İşlemde" => 3,
-                // "Tamamlandı" => 4,
-                // "İptal Edildi" => 5,
-                _ => 4
+                "Tamamlandı" => 4,
+                "İptal Edildi" => 5,
+                _ => 6
             })
             .ThenBy(t => t.id);
 
@@ -207,23 +189,12 @@ public partial class AdminRequestsView : ContentPage
     // =========================================================
     // ÜST TARAF FİLTRE DROPDOWN KONTROLLERİ
     // =========================================================
-
     private void OnFiltreDurumKutusuAcKapat(object sender, EventArgs e)
     {
-        // Global dropdown açıksa kapat
         if (GlobalDurumDropdown.IsVisible)
             GlobalDurumDropdown.IsVisible = false;
 
         DurumSecimKutusu.IsVisible = !DurumSecimKutusu.IsVisible;
-
-        // ÜSTTEKİ MENÜ AÇILIRSA: Alttaki açık olan kart menülerini zorla kapat (Artık global dropdown kullanıldığı için bu kısım gereksiz, ama bırakıyoruz)
-        if (DurumSecimKutusu.IsVisible && _orijinalTalepler != null)
-        {
-            foreach (var talep in _orijinalTalepler.Where(t => t.DropdownAcikMi))
-            {
-                talep.DropdownAcikMi = false;
-            }
-        }
     }
 
     private void OnFiltreDurumSecildi(object sender, SelectionChangedEventArgs e)
@@ -242,7 +213,6 @@ public partial class AdminRequestsView : ContentPage
     // =========================================================
     // KART İÇİ DURUM SEÇİMİ (GLOBAL DROPDOWN İLE)
     // =========================================================
-
     private void OnItemDurumKutusuAc(object sender, EventArgs e)
     {
         var btn = sender as Button;
@@ -250,10 +220,8 @@ public partial class AdminRequestsView : ContentPage
 
         if (secilenTalep != null)
         {
-            // Üstteki ana filtreyi kapat
             DurumSecimKutusu.IsVisible = false;
 
-            // Global dropdown'ı konumlandır
             var bounds = btn.GetAbsoluteBounds();
             if (bounds.HasValue)
             {
@@ -273,10 +241,9 @@ public partial class AdminRequestsView : ContentPage
 
         if (_globalDropdownHedefTalep != null)
         {
-            // Durumu güncelle
             _globalDropdownHedefTalep.durum = yeniDurum;
-
-            // Listeyi yenile (buton metni güncellenir)
+            // Eğer ServisTalebi INotifyPropertyChanged implemente ediyorsa buton otomatik güncellenir.
+            // Etmiyorsa listeyi yenileyelim:
             FiltreleriUygula();
         }
 
