@@ -170,7 +170,12 @@
         </Grid>
 
         <AbsoluteLayout x:Name="FloatingMenuOverlay" IsVisible="False" BackgroundColor="Transparent" ZIndex="999" InputTransparent="False">
-            <Grid AbsoluteLayout.LayoutBounds="0,0,1,1" AbsoluteLayout.LayoutFlags="All" Tapped="OnFloatingMenuClose" />
+            <Grid AbsoluteLayout.LayoutBounds="0,0,1,1" AbsoluteLayout.LayoutFlags="All" BackgroundColor="Transparent">
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnFloatingMenuClose" />
+                </Grid.GestureRecognizers>
+            </Grid>
+
 
             <Border x:Name="FloatingItemDurumMenusu" BackgroundColor="White" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="0" ZIndex="1" AbsoluteLayout.LayoutBounds="0,0,130,160" AbsoluteLayout.LayoutFlags="None">
                 <VerticalStackLayout Spacing="0">

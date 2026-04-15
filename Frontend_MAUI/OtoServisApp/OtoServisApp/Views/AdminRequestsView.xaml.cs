@@ -282,7 +282,7 @@ public partial class AdminRequestsView : ContentPage
 
         // Menüyü dinamik olarak butonun tam altına konumlandır
         // (40 birim offset, butonu kapatmasın diye)
-        AbsoluteLayout.SetLayoutBounds(FloatingItemDurumMenusu, new Rect(buton_X, buton_Y + 40, 130, 160));
+        AbsoluteLayout.SetLayoutBounds(FloatingItemDurumMenusu, new Microsoft.Maui.Graphics.Rect(buton_X, buton_Y + 40, 130, 160));
     }
 
     private void OnFloatingItemDurumSecildi(object sender, EventArgs e)
@@ -394,7 +394,7 @@ public partial class AdminRequestsView : ContentPage
                 using var stream = await foto.OpenReadAsync();
 
                 string zaman = DateTime.Now.ToString("yyyy_MM_dd_HHmm_ssfff");
-                string uzanti = Path.GetExtension(foto.FileName);
+                string uzanti = System.IO.Path.GetExtension(foto.FileName);
                 if (string.IsNullOrEmpty(uzanti)) uzanti = ".jpg";
 
                 string ozelDosyaAdi = $"Admin-{talep.id}-{zaman}{uzanti}";
