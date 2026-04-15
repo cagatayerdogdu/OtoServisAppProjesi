@@ -17,7 +17,7 @@
         <Border Grid.Row="1" BackgroundColor="White" Stroke="#DCDDE1" StrokeThickness="1" StrokeShape="RoundRectangle 8" Margin="15,0,15,10" Padding="10,0">
             <Grid ColumnDefinitions="Auto, *">
                 <Label Grid.Column="0" Text="{x:Static helpers:IconFont.Search}" FontFamily="FASolid" TextColor="#3498DB" VerticalOptions="Center" Margin="5,0"/>
-                <Entry Grid.Column="1" x:Name="UserSearchBar" Placeholder="İsim veya E-posta ile ara..." TextChanged="OnSearchTextChanged" TextColor="#2F3640" PlaceholderColor="#A4B0BE" HeightRequest="45"/>
+                <Entry Grid.Column="1" x:Name="UserSearchBar" Placeholder="İsim veya E-posta ile ara..." TextChanged="OnSearchTextChanged" TextColor="#2F3640" PlaceholderColor="#A4B0BE" HeightRequest="45" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False"/>
             </Grid>
         </Border>
 
@@ -60,10 +60,12 @@
 
                             <Grid Grid.Row="1" ColumnDefinitions="*, Auto" ColumnSpacing="10" VerticalOptions="End">
                                 <Border Grid.Column="0" Padding="10,0" Stroke="#BDC3C7" StrokeThickness="1" StrokeShape="RoundRectangle 8" HeightRequest="45" BackgroundColor="Transparent">
-                                    <Entry Text="{Binding ad_soyad}" Placeholder="Kullanıcı Adı" TextColor="#2C3E50" VerticalOptions="Center" BackgroundColor="Transparent"/>
+                                    <Entry Text="{Binding ad_soyad}" Placeholder="Kullanıcı Adı" TextColor="#2C3E50" VerticalOptions="Center" BackgroundColor="Transparent" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False"/>
                                 </Border>
 
-                                <Button Grid.Column="1" Text="Güncelle" Clicked="OnUpdateUserClicked" CommandParameter="{Binding .}" BackgroundColor="#00BCD4" TextColor="White" FontAttributes="Bold" CornerRadius="8" HeightRequest="45" Padding="20,0"/>
+                                <Border Grid.Column="1" BackgroundColor="#00BCD4" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="45" Padding="0">
+                                    <Button Text="Güncelle" Clicked="OnUpdateUserClicked" CommandParameter="{Binding .}" BackgroundColor="Transparent" TextColor="White" FontAttributes="Bold" Padding="20,0" BorderWidth="0" Margin="0"/>
+                                </Border>
                             </Grid>
 
                         </Grid>
@@ -74,9 +76,15 @@
 
         <Border Grid.Row="3" BackgroundColor="White" Stroke="#DCDDE1" StrokeThickness="1" StrokeShape="Rectangle" Padding="10">
             <HorizontalStackLayout HorizontalOptions="Center" Spacing="20">
-                <Button x:Name="BtnGeri" Text="Geri" Clicked="OnPrevPageClicked" BackgroundColor="#EDF2F7" TextColor="#2C3E50" HeightRequest="40" CornerRadius="5"/>
+                <Border BackgroundColor="#EDF2F7" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 5" HeightRequest="40" Padding="0">
+                    <Button x:Name="BtnGeri" Text="Geri" Clicked="OnPrevPageClicked" BackgroundColor="Transparent" TextColor="#2C3E50" BorderWidth="0" Padding="15,0" Margin="0"/>
+                </Border>
+
                 <Label x:Name="PageInfoLabel" Text="Sayfa 1 / 1" VerticalOptions="Center" FontAttributes="Bold" TextColor="#2C3E50"/>
-                <Button x:Name="BtnIleri" Text="İleri" Clicked="OnNextPageClicked" BackgroundColor="#EDF2F7" TextColor="#2C3E50" HeightRequest="40" CornerRadius="5"/>
+
+                <Border BackgroundColor="#EDF2F7" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 5" HeightRequest="40" Padding="0">
+                    <Button x:Name="BtnIleri" Text="İleri" Clicked="OnNextPageClicked" BackgroundColor="Transparent" TextColor="#2C3E50" BorderWidth="0" Padding="15,0" Margin="0"/>
+                </Border>
             </HorizontalStackLayout>
         </Border>
 

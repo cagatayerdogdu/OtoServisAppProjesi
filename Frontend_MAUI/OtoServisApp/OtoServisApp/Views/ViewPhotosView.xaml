@@ -15,26 +15,15 @@
                     <DataTemplate>
                         <Border StrokeShape="RoundRectangle 12" Stroke="#E0E0E0" StrokeThickness="1" WidthRequest="160" HeightRequest="160" Margin="0,0,0,15" BackgroundColor="White">
                             <Grid>
-                                <Image Source="{Binding TamUrl}" Aspect="AspectFill" WidthRequest="160" HeightRequest="160">
+                                <Image Source="{Binding TamUrl, Mode=OneWay}" Aspect="AspectFill" WidthRequest="160" HeightRequest="160">
                                     <Image.GestureRecognizers>
-                                        <TapGestureRecognizer CommandParameter="{Binding TamUrl}" Tapped="OnPhotoTapped"/>
+                                        <TapGestureRecognizer CommandParameter="{Binding TamUrl, Mode=OneWay}" Tapped="OnPhotoTapped"/>
                                     </Image.GestureRecognizers>
                                 </Image>
 
-                                <Button Text="X" 
-                                        CommandParameter="{Binding .}" 
-                                        Clicked="OnDeletePhotoClicked" 
-                                        BackgroundColor="#EF4444" 
-                                        TextColor="White" 
-                                        WidthRequest="30" 
-                                        HeightRequest="30" 
-                                        CornerRadius="15" 
-                                        HorizontalOptions="End" 
-                                        VerticalOptions="Start" 
-                                        Margin="5" 
-                                        Padding="0" 
-                                        FontSize="12" 
-                                        FontAttributes="Bold"/>
+                                <Border BackgroundColor="#EF4444" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 15" WidthRequest="30" HeightRequest="30" HorizontalOptions="End" VerticalOptions="Start" Margin="5" Padding="0">
+                                    <Button Text="X" CommandParameter="{Binding .}" Clicked="OnDeletePhotoClicked" BackgroundColor="Transparent" TextColor="White" FontSize="12" FontAttributes="Bold" BorderWidth="0" Margin="0" Padding="0"/>
+                                </Border>
                             </Grid>
                         </Border>
                     </DataTemplate>

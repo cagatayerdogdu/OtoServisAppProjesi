@@ -12,13 +12,16 @@
         <Border Grid.Row="0" BackgroundColor="#FAFAFA" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="5" Margin="10,10,10,5" ZIndex="1">
             <HorizontalStackLayout Spacing="10" HorizontalOptions="FillAndExpand">
                 <Grid WidthRequest="200" VerticalOptions="Center" HorizontalOptions="Start">
-                    <SearchBar x:Name="AramaBar" Placeholder="Araç veya Hizmet..." TextChanged="OnFiltreDegisti" BackgroundColor="#FAFAFA" TextColor="#111111" Margin="30,0,0,0"/>
+                    <SearchBar x:Name="AramaBar" Placeholder="Araç veya Hizmet..." TextChanged="OnFiltreDegisti" BackgroundColor="#FAFAFA" TextColor="#111111" Margin="30,0,0,0" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False"/>
                     <Label Text="{x:Static helpers:IconFont.Search}" FontFamily="FASolid" FontSize="14" TextColor="#888888" HorizontalOptions="Start" VerticalOptions="Center" Margin="10,0,0,0"/>
                 </Grid>
 
                 <HorizontalStackLayout Spacing="5" VerticalOptions="Center" HorizontalOptions="EndAndExpand">
                     <Label Text="Durum:" VerticalOptions="Center" FontSize="13" FontAttributes="Bold" TextColor="#333333"/>
-                    <Button x:Name="SecilenDurumButonu" Text="Tümü" BackgroundColor="White" TextColor="#111111" BorderColor="#CCCCCC" BorderWidth="1" CornerRadius="15" HeightRequest="35" WidthRequest="110" FontSize="12" Padding="5,0" Clicked="OnFiltreAcKapat" />
+
+                    <Border BackgroundColor="White" Stroke="#CCCCCC" StrokeThickness="1" StrokeShape="RoundRectangle 15" HeightRequest="35" WidthRequest="110" Padding="0">
+                        <Button x:Name="SecilenDurumButonu" Text="Tümü" BackgroundColor="Transparent" TextColor="#111111" FontSize="12" Padding="5,0" Clicked="OnFiltreAcKapat" BorderWidth="0" Margin="0"/>
+                    </Border>
                 </HorizontalStackLayout>
             </HorizontalStackLayout>
         </Border>
@@ -100,13 +103,21 @@
                                         </HorizontalStackLayout>
                                         <Label Text="Bu talebe detaylı hasar fotoğrafları yüklediniz." TextColor="#F57C00" FontSize="11"/>
                                     </VerticalStackLayout>
-                                    <Button Grid.Column="1" Text="Fotoğrafları Gör" BackgroundColor="#FF9800" TextColor="White" CornerRadius="6" HeightRequest="35" FontSize="12" FontAttributes="Bold" Padding="15,0" CommandParameter="{Binding .}" Clicked="OnViewPhotosClicked" VerticalOptions="Center"/>
+
+                                    <Border Grid.Column="1" BackgroundColor="#FF9800" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 6" HeightRequest="35" VerticalOptions="Center" Padding="0">
+                                        <Button Text="Fotoğrafları Gör" BackgroundColor="Transparent" TextColor="White" FontSize="12" FontAttributes="Bold" Padding="15,0" CommandParameter="{Binding .}" Clicked="OnViewPhotosClicked" BorderWidth="0" Margin="0"/>
+                                    </Border>
                                 </Grid>
                             </Border>
 
                             <Grid ColumnDefinitions="*, *">
-                                <Button Grid.Column="0" Text="Düzenle" BackgroundColor="#00BCD4" TextColor="White" CornerRadius="8" Margin="0,0,5,0" Clicked="OnEditClicked" CommandParameter="{Binding .}"/>
-                                <Button Grid.Column="1" Text="İptal Et" BackgroundColor="#FFEBEE" TextColor="#D32F2F" CornerRadius="8" Margin="5,0,0,0" Clicked="OnCancelClicked" CommandParameter="{Binding .}"/>
+                                <Border Grid.Column="0" BackgroundColor="#00BCD4" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 8" Margin="0,0,5,0" Padding="0">
+                                    <Button Text="Düzenle" BackgroundColor="Transparent" TextColor="White" Clicked="OnEditClicked" CommandParameter="{Binding .}" BorderWidth="0" Margin="0" Padding="0"/>
+                                </Border>
+
+                                <Border Grid.Column="1" BackgroundColor="#FFEBEE" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 8" Margin="5,0,0,0" Padding="0">
+                                    <Button Text="İptal Et" BackgroundColor="Transparent" TextColor="#D32F2F" Clicked="OnCancelClicked" CommandParameter="{Binding .}" BorderWidth="0" Margin="0" Padding="0"/>
+                                </Border>
                             </Grid>
 
                         </VerticalStackLayout>

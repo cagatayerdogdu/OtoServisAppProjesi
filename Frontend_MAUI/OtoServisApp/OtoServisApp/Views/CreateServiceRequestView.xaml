@@ -19,16 +19,10 @@
                     <VerticalStackLayout Spacing="15">
 
                         <Label Text="Hangi Aracınız İçin?" TextColor="#666666" FontSize="13" FontAttributes="Bold" />
-                        <Button x:Name="SecilenAracButonu" 
-                                Text="Lütfen bir araç seçin..." 
-                                BackgroundColor="#FAFAFA" 
-                                TextColor="#666666" 
-                                BorderColor="#CCCCCC" 
-                                BorderWidth="1" 
-                                CornerRadius="8" 
-                                HeightRequest="45" 
-                                Clicked="OnAracSecimButonuClicked" 
-                                HorizontalOptions="FillAndExpand"/>
+
+                        <Border BackgroundColor="#FAFAFA" Stroke="#CCCCCC" StrokeThickness="1" StrokeShape="RoundRectangle 8" HeightRequest="45" HorizontalOptions="FillAndExpand" Padding="0">
+                            <Button x:Name="SecilenAracButonu" Text="Lütfen bir araç seçin..." BackgroundColor="Transparent" TextColor="#666666" BorderWidth="0" Clicked="OnAracSecimButonuClicked" Margin="0" Padding="0"/>
+                        </Border>
 
                         <Border x:Name="AracAramaKutusu" IsVisible="False" BackgroundColor="#FAFAFA" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10" Margin="0,5,0,10">
                             <VerticalStackLayout Spacing="5">
@@ -47,25 +41,14 @@
                         </Border>
 
                         <Label Text="Almak İstediğiniz Hizmet" TextColor="#666666" FontSize="13" FontAttributes="Bold" />
-                        <Button x:Name="SecilenHizmetButonu" 
-                                Text="Lütfen bir hizmet seçin..." 
-                                BackgroundColor="#FAFAFA" 
-                                TextColor="#666666" 
-                                BorderColor="#CCCCCC" 
-                                BorderWidth="1" 
-                                CornerRadius="8" 
-                                HeightRequest="45" 
-                                Clicked="OnHizmetSecimButonuClicked" 
-                                HorizontalOptions="FillAndExpand"/>
+
+                        <Border BackgroundColor="#FAFAFA" Stroke="#CCCCCC" StrokeThickness="1" StrokeShape="RoundRectangle 8" HeightRequest="45" HorizontalOptions="FillAndExpand" Padding="0">
+                            <Button x:Name="SecilenHizmetButonu" Text="Lütfen bir hizmet seçin..." BackgroundColor="Transparent" TextColor="#666666" BorderWidth="0" Clicked="OnHizmetSecimButonuClicked" Margin="0" Padding="0"/>
+                        </Border>
 
                         <Border x:Name="HizmetAramaKutusu" IsVisible="False" BackgroundColor="#FAFAFA" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10" Margin="0,5,0,10">
                             <VerticalStackLayout Spacing="5">
-                                <SearchBar x:Name="HizmetAramaBar" 
-                                           Placeholder="Hizmet ara... (Örn: Fren, Yağ)" 
-                                           TextChanged="OnHizmetAramaDegisti" 
-                                           BackgroundColor="#F9F9F9" 
-                                           TextColor="#111111" 
-                                           CancelButtonColor="#D32F2F" />
+                                <SearchBar x:Name="HizmetAramaBar" Placeholder="Hizmet ara... (Örn: Fren, Yağ)" TextChanged="OnHizmetAramaDegisti" BackgroundColor="#F9F9F9" TextColor="#111111" CancelButtonColor="#D32F2F" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False"/>
 
                                 <CollectionView x:Name="HizmetListesi" HeightRequest="200" SelectionMode="Single" SelectionChanged="OnHizmetSecildi">
                                     <CollectionView.ItemTemplate>
@@ -91,14 +74,14 @@
                         <VerticalStackLayout Spacing="5">
                             <Label Text="Araç Nereden Alınacak? (Adres)" TextColor="#666666" FontSize="13" FontAttributes="Bold" />
                             <Border Stroke="#CCCCCC" StrokeThickness="1.5" BackgroundColor="#FAFAFA" StrokeShape="RoundRectangle 8" Padding="15,5">
-                                <Editor x:Name="AddressEditor" Placeholder="Açık adresinizi giriniz..." PlaceholderColor="#888888" TextColor="#111111" BackgroundColor="Transparent" HeightRequest="80"/>
+                                <Editor x:Name="AddressEditor" Placeholder="Açık adresinizi giriniz..." PlaceholderColor="#888888" TextColor="#111111" BackgroundColor="Transparent" HeightRequest="80" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False"/>
                             </Border>
                         </VerticalStackLayout>
 
                         <VerticalStackLayout Spacing="5">
                             <Label Text="Ek Notlar (İsteğe Bağlı)" TextColor="#666666" FontSize="13" FontAttributes="Bold" />
                             <Border Stroke="#CCCCCC" StrokeThickness="1.5" BackgroundColor="#FAFAFA" StrokeShape="RoundRectangle 8" Padding="15,5">
-                                <Editor x:Name="NotesEditor" Placeholder="Ustaya iletmek istediğiniz detaylar..." PlaceholderColor="#888888" TextColor="#111111" BackgroundColor="Transparent" HeightRequest="60"/>
+                                <Editor x:Name="NotesEditor" Placeholder="Ustaya iletmek istediğiniz detaylar..." PlaceholderColor="#888888" TextColor="#111111" BackgroundColor="Transparent" HeightRequest="60" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False"/>
                             </Border>
                         </VerticalStackLayout>
 
@@ -108,37 +91,34 @@
                                 <Label Text="Hasar Fotoğrafları (Maks 4)" TextColor="#666666" FontSize="13" FontAttributes="Bold" VerticalOptions="Center"/>
                             </HorizontalStackLayout>
 
-                            <Button Text="+ Fotoğrafları Seç (Toplu)" Clicked="OnAddPhotoClicked" BackgroundColor="#E0F2F1" TextColor="#00796B" CornerRadius="8" HeightRequest="40" Margin="0,0,0,5"/>
+                            <Border BackgroundColor="#E0F2F1" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="40" Margin="0,0,0,5" Padding="0">
+                                <Button Text="+ Fotoğrafları Seç (Toplu)" Clicked="OnAddPhotoClicked" BackgroundColor="Transparent" TextColor="#00796B" BorderWidth="0" Margin="0" Padding="0"/>
+                            </Border>
 
                             <FlexLayout x:Name="PhotosContainer" BindableLayout.ItemsSource="{Binding SecilenFotograflar}" Wrap="Wrap" JustifyContent="Start">
                                 <BindableLayout.ItemTemplate>
                                     <DataTemplate>
                                         <Grid WidthRequest="80" HeightRequest="80" Margin="0,0,10,10">
                                             <Image Source="{Binding FullPath}" Aspect="AspectFill" WidthRequest="80" HeightRequest="80"/>
-                                            <Button Text="X" CommandParameter="{Binding .}" Clicked="OnRemovePhotoClicked" BackgroundColor="#EF4444" TextColor="White" WidthRequest="25" HeightRequest="25" CornerRadius="12" HorizontalOptions="End" VerticalOptions="Start" Margin="3" Padding="0" FontSize="10" FontAttributes="Bold"/>
+                                            <Border BackgroundColor="#EF4444" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 12" WidthRequest="25" HeightRequest="25" HorizontalOptions="End" VerticalOptions="Start" Margin="3" Padding="0">
+                                                <Button Text="X" CommandParameter="{Binding .}" Clicked="OnRemovePhotoClicked" BackgroundColor="Transparent" TextColor="White" BorderWidth="0" FontSize="10" FontAttributes="Bold" Margin="0" Padding="0"/>
+                                            </Border>
                                         </Grid>
                                     </DataTemplate>
                                 </BindableLayout.ItemTemplate>
                             </FlexLayout>
                         </VerticalStackLayout>
 
-                        <Button x:Name="SubmitButton" 
-                                Text="TALEBİ OLUŞTUR" 
-                                Clicked="OnSubmitClicked"
-                                BackgroundColor="#00BCD4" 
-                                TextColor="White" 
-                                CornerRadius="8"
-                                HeightRequest="50"
-                                FontSize="16"
-                                FontAttributes="Bold"
-                                Margin="0,15,0,0"/>
+                        <Border BackgroundColor="#00BCD4" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="50" Margin="0,15,0,0" Padding="0">
+                            <Button x:Name="SubmitButton" Text="TALEBİ OLUŞTUR" Clicked="OnSubmitClicked" BackgroundColor="Transparent" TextColor="White" FontSize="16" FontAttributes="Bold" BorderWidth="0" Margin="0" Padding="0"/>
+                        </Border>
+
                     </VerticalStackLayout>
                 </Border>
             </VerticalStackLayout>
         </ScrollView>
 
         <Grid x:Name="LoadingOverlay" BackgroundColor="#CCFFFFFF" IsVisible="False" InputTransparent="False">
-
             <Border BackgroundColor="White" Stroke="#E0E0E0" StrokeShape="RoundRectangle 15" Padding="30" HorizontalOptions="Center" VerticalOptions="Center">
                 <Border.Shadow>
                     <Shadow Brush="Black" Offset="0,5" Radius="15" Opacity="0.1" />
@@ -146,9 +126,7 @@
 
                 <VerticalStackLayout Spacing="15" HorizontalOptions="Center">
                     <ActivityIndicator IsRunning="{Binding Source={x:Reference LoadingOverlay}, Path=IsVisible}" Color="#00BCD4" WidthRequest="50" HeightRequest="50" HorizontalOptions="Center"/>
-
                     <Label x:Name="LoadingTitle" Text="Lütfen Bekleyiniz..." FontSize="16" FontAttributes="Bold" TextColor="#333333" HorizontalOptions="Center"/>
-
                     <Label x:Name="LoadingSubText" Text="İşleminiz gerçekleştiriliyor." FontSize="13" TextColor="#666666" HorizontalTextAlignment="Center" HorizontalOptions="Center"/>
                 </VerticalStackLayout>
             </Border>

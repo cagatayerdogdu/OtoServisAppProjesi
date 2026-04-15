@@ -92,11 +92,9 @@
                 </HorizontalStackLayout>
             </Border>
 
-            <Button Text="Sistem Logları (İzleme)" 
-                    ImageSource="{FontImage FontFamily=FASolid, Glyph={x:Static helpers:IconFont.Desktop}, Color=White, Size=20}"
-                    ContentLayout="Left, 10"
-                    Clicked="OnSistemLoglariClicked" 
-                    BackgroundColor="#34495E" TextColor="#FAFAFA" CornerRadius="10" HeightRequest="55" FontAttributes="Bold" FontSize="15" Margin="0,10,0,0"/>   
+            <Border BackgroundColor="#34495E" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 10" HeightRequest="55" Margin="0,10,0,0" Padding="0">
+                <Button Text="Sistem Logları (İzleme)" ImageSource="{FontImage FontFamily=FASolid, Glyph={x:Static helpers:IconFont.Desktop}, Color=White, Size=20}" ContentLayout="Left, 10" Clicked="OnSistemLoglariClicked" BackgroundColor="Transparent" TextColor="#FAFAFA" FontAttributes="Bold" FontSize="15" BorderWidth="0" Margin="0" Padding="0"/>
+            </Border>
 
         </VerticalStackLayout>
     </ScrollView>

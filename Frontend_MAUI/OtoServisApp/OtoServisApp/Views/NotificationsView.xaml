@@ -9,26 +9,17 @@
 
     <Grid RowDefinitions="Auto, *">
 
-        <!-- Üst bar: Hepsini seç checkbox ve seçilenleri sil butonu -->
         <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Padding="15" BackgroundColor="#F8FAFC">
             <HorizontalStackLayout Grid.Column="0" Spacing="10" VerticalOptions="Center">
                 <CheckBox x:Name="ChkSelectAll" CheckedChanged="OnSelectAllCheckedChanged" Color="#00BCD4"/>
                 <Label Text="Hepsini Seç" FontAttributes="Bold" VerticalOptions="Center" TextColor="#334155"/>
             </HorizontalStackLayout>
 
-            <Button x:Name="BtnDeleteSelected" 
-                Grid.Column="1" 
-                Text="Seçilenleri Sil" 
-                BackgroundColor="#00BCD4" 
-                TextColor="White" 
-                IsVisible="False" 
-                Clicked="OnDeleteSelectedClicked" 
-                CornerRadius="8" 
-                HeightRequest="35" 
-                Padding="10,0"/>
+            <Border Grid.Column="1" BackgroundColor="#00BCD4" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="35" Padding="0" IsVisible="{Binding Source={x:Reference BtnDeleteSelected}, Path=IsVisible}">
+                <Button x:Name="BtnDeleteSelected" Text="Seçilenleri Sil" Clicked="OnDeleteSelectedClicked" BackgroundColor="Transparent" TextColor="White" BorderWidth="0" Margin="0" Padding="10,0" IsVisible="False"/>
+            </Border>
         </Grid>
 
-        <!-- Bildirim listesi -->
         <CollectionView Grid.Row="1" x:Name="NotificationList" Margin="15">
             <CollectionView.EmptyView>
                 <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="10" Margin="0,100,0,0">
@@ -40,7 +31,6 @@
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:BildirimResponse">
                     <Grid Padding="0,0,0,10">
-                        <!-- Sola kaydırarak silme (SwipeView) - Kenarlık kaldırıldı -->
                         <SwipeView>
                             <SwipeView.RightItems>
                                 <SwipeItemView CommandParameter="{Binding .}" Invoked="OnSingleDeleteInvoked">
@@ -50,9 +40,7 @@
                                 </SwipeItemView>
                             </SwipeView.RightItems>
 
-                            <!-- Bildirim kartı -->
                             <Border x:Name="CardBorder" StrokeShape="RoundRectangle 12" Padding="15" StrokeThickness="1.5">
-                                <!-- Kısa tıklama ile okundu işaretleme -->
                                 <Border.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="OnNotificationTapped" NumberOfTapsRequired="1" />
                                 </Border.GestureRecognizers>
@@ -77,20 +65,17 @@
                                 </Border.Style>
 
                                 <Grid ColumnDefinitions="Auto, *">
-                                    <!-- Seçim CheckBox'u (TwoWay binding ile) -->
                                     <CheckBox Grid.Column="0" 
-                              IsChecked="{Binding IsSelected}" 
-                              Color="#00BCD4" 
-                              VerticalOptions="Center"
-                              CheckedChanged="OnItemCheckChanged"/>
+                                      IsChecked="{Binding IsSelected}" 
+                                      Color="#00BCD4" 
+                                      VerticalOptions="Center"
+                                      CheckedChanged="OnItemCheckChanged"/>
 
-                                    <!-- Bildirim içeriği -->
                                     <VerticalStackLayout Grid.Column="1" Spacing="5" Margin="10,0,0,0">
                                         <HorizontalStackLayout Spacing="10">
                                             <Label Text="{x:Static helpers:IconFont.Bell}" FontFamily="FASolid" FontSize="16" TextColor="#00BCD4" VerticalOptions="Center"/>
                                             <Label Text="{Binding baslik}" FontSize="15" TextColor="#111111" VerticalOptions="Center">
                                                 <Label.Triggers>
-                                                    <!-- Okunmamış başlık kalın ve renkli -->
                                                     <DataTrigger TargetType="Label" Binding="{Binding okundu_mu}" Value="False">
                                                         <Setter Property="FontAttributes" Value="Bold" />
                                                         <Setter Property="TextColor" Value="#0284C7" />
@@ -118,6 +103,6 @@
                 </VerticalStackLayout>
             </Border>
         </Grid>
-                
+
     </Grid>
 </ContentPage>

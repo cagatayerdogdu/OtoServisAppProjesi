@@ -12,13 +12,16 @@
         <Border Grid.Row="0" BackgroundColor="#FAFAFA" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="5" Margin="10,10,10,5" ZIndex="1">
             <HorizontalStackLayout Spacing="10" HorizontalOptions="FillAndExpand">
                 <Grid WidthRequest="220" VerticalOptions="Center" HorizontalOptions="Start">
-                    <SearchBar x:Name="AramaBar" Placeholder="Ad veya Araç..." TextChanged="OnFiltreDegisti" BackgroundColor="#FAFAFA" TextColor="#111111" Margin="30,0,0,0"/>
+                    <SearchBar x:Name="AramaBar" Placeholder="Ad veya Araç..." TextChanged="OnFiltreDegisti" BackgroundColor="#FAFAFA" TextColor="#111111" Margin="30,0,0,0" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False"/>
                     <Label Text="{x:Static helpers:IconFont.Search}" FontFamily="FASolid" FontSize="14" TextColor="#888888" HorizontalOptions="Start" VerticalOptions="Center" Margin="10,0,0,0"/>
                 </Grid>
 
                 <HorizontalStackLayout Spacing="5" VerticalOptions="Center" HorizontalOptions="EndAndExpand">
                     <Label Text="Durum:" VerticalOptions="Center" FontSize="13" FontAttributes="Bold" TextColor="#333333"/>
-                    <Button x:Name="SecilenDurumButonu" Text="Tümü" BackgroundColor="White" TextColor="#111111" BorderColor="#CCCCCC" BorderWidth="1" CornerRadius="15" HeightRequest="35" WidthRequest="110" FontSize="12" Padding="5,0" Clicked="OnFiltreDurumKutusuAcKapat" />
+
+                    <Border BackgroundColor="White" Stroke="#CCCCCC" StrokeThickness="1" StrokeShape="RoundRectangle 15" HeightRequest="35" WidthRequest="110" Padding="0">
+                        <Button x:Name="SecilenDurumButonu" Text="Tümü" BackgroundColor="Transparent" TextColor="#111111" FontSize="12" Padding="5,0" Clicked="OnFiltreDurumKutusuAcKapat" BorderWidth="0" Margin="0"/>
+                    </Border>
                 </HorizontalStackLayout>
             </HorizontalStackLayout>
         </Border>

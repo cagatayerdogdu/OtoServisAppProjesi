@@ -19,7 +19,7 @@
             </CarouselView.ItemTemplate>
         </CarouselView>
 
-        <Label Text="Yaknlaştırmak veya uzaklaştırmak için görsele çift dokunun"
+        <Label Text="Yakınlaştırmak veya uzaklaştırmak için görsele çift dokunun"
                TextColor="White"
                FontSize="12"
                Opacity="0.7"
@@ -27,17 +27,8 @@
                VerticalOptions="Start"
                Margin="0,80,0,0" />
 
-        <Button Text="X Kapat" 
-                Clicked="OnKapatClicked" 
-                BackgroundColor="#222222" 
-                TextColor="White" 
-                Opacity="0.8" 
-                HorizontalOptions="End" 
-                VerticalOptions="Start" 
-                Margin="20,40,20,0" 
-                CornerRadius="15"
-                HeightRequest="40"
-                Padding="15,0"
-                FontAttributes="Bold"/>
+        <Border BackgroundColor="#222222" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 15" Opacity="0.8" HorizontalOptions="End" VerticalOptions="Start" Margin="20,40,20,0" HeightRequest="40" Padding="0">
+            <Button Text="X Kapat" Clicked="OnKapatClicked" BackgroundColor="Transparent" TextColor="White" FontAttributes="Bold" Padding="15,0" BorderWidth="0" Margin="0"/>
+        </Border>
     </Grid>
 </ContentPage>

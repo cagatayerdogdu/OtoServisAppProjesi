@@ -19,9 +19,11 @@
                         <Grid ColumnDefinitions="Auto, *" ColumnSpacing="10">
                             <Label Grid.Column="0" Text="{x:Static helpers:IconFont.User}" FontFamily="FASolid" FontSize="18" VerticalOptions="Center" TextColor="#555555"/>
                             <Entry Grid.Column="1" x:Name="NameEntry" 
-                           Placeholder="Ad Soyad" 
-                           TextColor="#111111" 
-                           BackgroundColor="Transparent"/>
+                                   Placeholder="Ad Soyad" 
+                                   TextColor="#111111" 
+                                   BackgroundColor="Transparent"
+                                   IsSpellCheckEnabled="False"
+                                   IsTextPredictionEnabled="False"/>
                         </Grid>
                     </Border>
 
@@ -29,10 +31,12 @@
                         <Grid ColumnDefinitions="Auto, *" ColumnSpacing="10">
                             <Label Grid.Column="0" Text="{x:Static helpers:IconFont.Phone}" FontFamily="FASolid" FontSize="18" VerticalOptions="Center" TextColor="#555555"/>
                             <Entry Grid.Column="1" x:Name="PhoneEntry" 
-                           Placeholder="Telefon" 
-                           Keyboard="Telephone" 
-                           TextColor="#111111" 
-                           BackgroundColor="Transparent"/>
+                                   Placeholder="Telefon" 
+                                   Keyboard="Telephone" 
+                                   TextColor="#111111" 
+                                   BackgroundColor="Transparent"
+                                   IsSpellCheckEnabled="False"
+                                   IsTextPredictionEnabled="False"/>
                         </Grid>
                     </Border>
 
@@ -40,10 +44,12 @@
                         <Grid ColumnDefinitions="Auto, *" ColumnSpacing="10">
                             <Label Grid.Column="0" Text="{x:Static helpers:IconFont.Envelope}" FontFamily="FASolid" FontSize="18" VerticalOptions="Center" TextColor="#555555"/>
                             <Entry Grid.Column="1" x:Name="EmailEntry" 
-                           Placeholder="E-posta Adresi" 
-                           Keyboard="Email" 
-                           TextColor="#111111" 
-                           BackgroundColor="Transparent"/>
+                                   Placeholder="E-posta Adresi" 
+                                   Keyboard="Email" 
+                                   TextColor="#111111" 
+                                   BackgroundColor="Transparent"
+                                   IsSpellCheckEnabled="False"
+                                   IsTextPredictionEnabled="False"/>
                         </Grid>
                     </Border>
 
@@ -51,10 +57,12 @@
                         <Grid ColumnDefinitions="Auto, *" ColumnSpacing="10">
                             <Label Grid.Column="0" Text="{x:Static helpers:IconFont.Lock}" FontFamily="FASolid" FontSize="18" VerticalOptions="Center" TextColor="#555555"/>
                             <Entry Grid.Column="1" x:Name="PasswordEntry" 
-                           Placeholder="Şifre Belirleyin" 
-                           IsPassword="True" 
-                           TextColor="#111111" 
-                           BackgroundColor="Transparent"/>
+                                   Placeholder="Şifre Belirleyin" 
+                                   IsPassword="True" 
+                                   TextColor="#111111" 
+                                   BackgroundColor="Transparent"
+                                   IsSpellCheckEnabled="False"
+                                   IsTextPredictionEnabled="False"/>
                         </Grid>
                     </Border>
 
@@ -62,10 +70,12 @@
                         <Grid ColumnDefinitions="Auto, *" ColumnSpacing="10">
                             <Label Grid.Column="0" Text="{x:Static helpers:IconFont.Lock}" FontFamily="FASolid" FontSize="18" VerticalOptions="Center" TextColor="#555555"/>
                             <Entry Grid.Column="1" x:Name="SifreTekrarEntry" 
-                           Placeholder="Şifrenizi Tekrar Girin" 
-                           IsPassword="True" 
-                           TextColor="#111111" 
-                           BackgroundColor="Transparent"/>
+                                   Placeholder="Şifrenizi Tekrar Girin" 
+                                   IsPassword="True" 
+                                   TextColor="#111111" 
+                                   BackgroundColor="Transparent"
+                                   IsSpellCheckEnabled="False"
+                                   IsTextPredictionEnabled="False"/>
                         </Grid>
                     </Border>
 
@@ -78,7 +88,9 @@
                                LineBreakMode="WordWrap" />
                     </HorizontalStackLayout>
 
-                    <Button x:Name="RegisterButton" Text="KAYIT OL" Clicked="OnRegisterClicked" BackgroundColor="#00BCD4" TextColor="White" CornerRadius="8" HeightRequest="50" FontAttributes="Bold" Margin="0,5,0,0"/>
+                    <Border BackgroundColor="#00BCD4" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="50" Margin="0,5,0,0" Padding="0">
+                        <Button x:Name="RegisterButton" Text="KAYIT OL" Clicked="OnRegisterClicked" BackgroundColor="Transparent" TextColor="White" FontAttributes="Bold" BorderWidth="0" Margin="0" Padding="0"/>
+                    </Border>
 
                 </VerticalStackLayout>
             </Border>

@@ -1,5 +1,7 @@
 ﻿// Dosya Yolu: OtoServisApp/Extensions/ViewExtensions.cs
 
+// DeepSeek önermişti ama kullanmıyorum.
+
 using Microsoft.Maui.Controls;
 
 namespace OtoServisApp.Extensions

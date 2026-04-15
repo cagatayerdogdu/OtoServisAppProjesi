@@ -13,7 +13,7 @@
 
                 <HorizontalStackLayout Spacing="10" HorizontalOptions="FillAndExpand">
                     <Grid WidthRequest="200" VerticalOptions="Center">
-                        <SearchBar x:Name="AramaBar" Placeholder="Kelime ara..." TextChanged="OnAramaDegisti" BackgroundColor="#FAFAFA" TextColor="#111111" Margin="30,0,0,0"/>
+                        <SearchBar x:Name="AramaBar" Placeholder="Kelime ara..." TextChanged="OnAramaDegisti" BackgroundColor="#FAFAFA" TextColor="#111111" Margin="30,0,0,0" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False"/>
                         <Label Text="{x:Static helpers:IconFont.Search}" FontFamily="FASolid" FontSize="14" TextColor="#888888" HorizontalOptions="Start" VerticalOptions="Center" Margin="10,0,0,0"/>
                     </Grid>
 
@@ -40,7 +40,7 @@
                                 <x:String>Bugün</x:String>
                                 <x:String>Tek Tarih</x:String>
                                 <x:String>İki Tarih Arası</x:String>
-                                <x:String>Seçili Tarihten Sonra (>=)</x:String>
+                                <x:String>Seçili Tarihten Sonra (&gt;=)</x:String>
                                 <x:String>Seçili Tarihten Önce (&lt;=)</x:String>
                                 <x:String>Tüm Zamanlar</x:String>
                             </Picker.Items>
@@ -55,7 +55,9 @@
                         <DatePicker x:Name="BitisDatePicker" Format="dd.MM.yyyy" TextColor="#111111" BackgroundColor="Transparent" FontSize="12" VerticalOptions="Center"/>
                     </Border>
 
-                    <Button Grid.Column="3" Text="Sorgula" Clicked="OnSorgulaClicked" BackgroundColor="#00BCD4" TextColor="White" CornerRadius="8" FontAttributes="Bold" FontSize="12" HeightRequest="35" Padding="15,0"/>
+                    <Border Grid.Column="3" BackgroundColor="#00BCD4" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="35" Padding="0">
+                        <Button Text="Sorgula" Clicked="OnSorgulaClicked" BackgroundColor="Transparent" TextColor="White" FontAttributes="Bold" FontSize="12" Padding="15,0" BorderWidth="0" Margin="0"/>
+                    </Border>
                 </Grid>
 
             </VerticalStackLayout>
@@ -112,11 +114,15 @@
 
         <Border Grid.Row="3" BackgroundColor="White" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10" Margin="10,0,10,10">
             <Grid ColumnDefinitions="Auto, *, Auto">
-                <Button x:Name="OncekiSayfaBtn" Grid.Column="0" Text="◀ Önceki" Clicked="OnOncekiSayfaClicked" BackgroundColor="#EEEEEE" TextColor="#333333" CornerRadius="8" HeightRequest="35" FontSize="12" FontAttributes="Bold" WidthRequest="90"/>
+                <Border Grid.Column="0" BackgroundColor="#EEEEEE" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="35" WidthRequest="90" Padding="0">
+                    <Button x:Name="OncekiSayfaBtn" Text="◀ Önceki" Clicked="OnOncekiSayfaClicked" BackgroundColor="Transparent" TextColor="#333333" FontSize="12" FontAttributes="Bold" BorderWidth="0" Margin="0" Padding="0"/>
+                </Border>
 
                 <Label x:Name="SayfaBilgiLabel" Grid.Column="1" Text="Sayfa 1 / 1" HorizontalOptions="Center" VerticalOptions="Center" FontSize="12" FontAttributes="Bold" TextColor="#111111"/>
 
-                <Button x:Name="SonrakiSayfaBtn" Grid.Column="2" Text="Sonraki ▶" Clicked="OnSonrakiSayfaClicked" BackgroundColor="#00BCD4" TextColor="White" CornerRadius="8" HeightRequest="35" FontSize="12" FontAttributes="Bold" WidthRequest="90"/>
+                <Border Grid.Column="2" BackgroundColor="#00BCD4" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="35" WidthRequest="90" Padding="0">
+                    <Button x:Name="SonrakiSayfaBtn" Text="Sonraki ▶" Clicked="OnSonrakiSayfaClicked" BackgroundColor="Transparent" TextColor="White" FontSize="12" FontAttributes="Bold" BorderWidth="0" Margin="0" Padding="0"/>
+                </Border>
             </Grid>
         </Border>
 
