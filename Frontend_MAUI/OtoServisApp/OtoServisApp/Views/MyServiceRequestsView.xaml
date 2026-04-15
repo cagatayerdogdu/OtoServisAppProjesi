@@ -9,7 +9,7 @@
 
     <Grid RowDefinitions="Auto, *">
 
-        <Frame Grid.Row="0" BackgroundColor="#FAFAFA" BorderColor="#E0E0E0" CornerRadius="8" Padding="5" Margin="10,10,10,5" HasShadow="False" ZIndex="1">
+        <Border Grid.Row="0" BackgroundColor="#FAFAFA" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="5" Margin="10,10,10,5" ZIndex="1">
             <HorizontalStackLayout Spacing="10" HorizontalOptions="FillAndExpand">
                 <Grid WidthRequest="200" VerticalOptions="Center" HorizontalOptions="Start">
                     <SearchBar x:Name="AramaBar" Placeholder="Araç veya Hizmet..." TextChanged="OnFiltreDegisti" BackgroundColor="#FAFAFA" TextColor="#111111" Margin="30,0,0,0"/>
@@ -21,17 +21,17 @@
                     <Button x:Name="SecilenDurumButonu" Text="Tümü" BackgroundColor="White" TextColor="#111111" BorderColor="#CCCCCC" BorderWidth="1" CornerRadius="15" HeightRequest="35" WidthRequest="110" FontSize="12" Padding="5,0" Clicked="OnFiltreAcKapat" />
                 </HorizontalStackLayout>
             </HorizontalStackLayout>
-        </Frame>
+        </Border>
 
-        <Frame x:Name="DurumSecimKutusu" Grid.Row="0" Grid.RowSpan="2" IsVisible="False" BackgroundColor="White" BorderColor="#E0E0E0" CornerRadius="8" Padding="5" Margin="0,60,15,0" ZIndex="99" HasShadow="False" HorizontalOptions="End" VerticalOptions="Start">
+        <Border x:Name="DurumSecimKutusu" Grid.Row="0" Grid.RowSpan="2" IsVisible="False" BackgroundColor="White" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="5" Margin="0,60,15,0" ZIndex="99" HorizontalOptions="End" VerticalOptions="Start">
             <CollectionView x:Name="DurumListesi" HeightRequest="200" WidthRequest="110" SelectionMode="Single" SelectionChanged="OnFiltreSecildi">
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="x:String">
-                        <Label Text="{Binding .}" Padding="10" FontSize="12" TextColor="#111111"/>
+                        <Label Text="{Binding ., Mode=OneWay}" Padding="10" FontSize="12" TextColor="#111111"/>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
-        </Frame>
+        </Border>
 
         <CollectionView x:Name="RequestsList" Grid.Row="1" Margin="20">
             <CollectionView.EmptyView>
@@ -44,17 +44,17 @@
 
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:ServisTalebi">
-                    <Frame BackgroundColor="#FAFAFA" BorderColor="#E0E0E0" CornerRadius="12" Padding="20" Margin="0,0,0,15" HasShadow="False">
+                    <Border BackgroundColor="#FAFAFA" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 12" Padding="20" Margin="0,0,0,15">
                         <VerticalStackLayout Spacing="10">
 
                             <VerticalStackLayout Spacing="5" Margin="0,0,0,5">
                                 <HorizontalStackLayout Spacing="5">
                                     <Label Text="{x:Static helpers:IconFont.Wrench}" FontFamily="FASolid" FontSize="14" TextColor="#666666" VerticalOptions="Center"/>
-                                    <Label Text="{Binding hizmet_adi}" FontSize="16" FontAttributes="Bold" TextColor="#333333"/>
+                                    <Label Text="{Binding hizmet_adi, Mode=OneWay}" FontSize="16" FontAttributes="Bold" TextColor="#333333"/>
                                 </HorizontalStackLayout>
                                 <HorizontalStackLayout Spacing="5">
                                     <Label Text="{x:Static helpers:IconFont.Car}" FontFamily="FASolid" FontSize="14" TextColor="#666666" VerticalOptions="Center"/>
-                                    <Label Text="{Binding arac_adi}" FontSize="14" TextColor="#666666" FontAttributes="Bold" VerticalOptions="Center"/>
+                                    <Label Text="{Binding arac_adi, Mode=OneWay}" FontSize="14" TextColor="#666666" FontAttributes="Bold" VerticalOptions="Center"/>
                                 </HorizontalStackLayout>
                             </VerticalStackLayout>
 
@@ -62,36 +62,36 @@
 
                             <HorizontalStackLayout Spacing="10">
                                 <Label Text="Durum:" TextColor="#666666" FontAttributes="Bold"/>
-                                <Label Text="{Binding durum}" TextColor="#00BCD4" FontAttributes="Bold"/>
+                                <Label Text="{Binding durum, Mode=OneWay}" TextColor="#00BCD4" FontAttributes="Bold"/>
                             </HorizontalStackLayout>
 
-                            <Frame BackgroundColor="#E0F7FA" BorderColor="Transparent" CornerRadius="8" Padding="10" HasShadow="False">
+                            <Border BackgroundColor="#E0F7FA" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 8" Padding="10">
                                 <HorizontalStackLayout Spacing="5">
                                     <Label Text="Maliyet:" TextColor="#00796B" FontSize="14" FontAttributes="Bold" VerticalOptions="Center"/>
-                                    <Label Text="{Binding tahmini_tutar, StringFormat='{0} ₺'}" TextColor="#004D40" FontSize="16" FontAttributes="Bold" VerticalOptions="Center"/>
+                                    <Label Text="{Binding tahmini_tutar, StringFormat='{0} ₺', Mode=OneWay}" TextColor="#004D40" FontSize="16" FontAttributes="Bold" VerticalOptions="Center"/>
                                 </HorizontalStackLayout>
-                            </Frame>
+                            </Border>
 
                             <HorizontalStackLayout Spacing="5">
                                 <Label Text="{x:Static helpers:IconFont.CalendarAlt}" FontFamily="FASolid" FontSize="13" TextColor="#666666" VerticalOptions="Center"/>
                                 <Label Text="İstediğiniz Tarih:" TextColor="#666666" FontSize="13" VerticalOptions="Center"/>
-                                <Label Text="{Binding talep_tarihi}" TextColor="#111111" FontSize="13" FontAttributes="Bold" VerticalOptions="Center"/>
+                                <Label Text="{Binding talep_tarihi, Mode=OneWay}" TextColor="#111111" FontSize="13" FontAttributes="Bold" VerticalOptions="Center"/>
                             </HorizontalStackLayout>
 
-                            <HorizontalStackLayout Spacing="5" IsVisible="{Binding duzeltme_istendi_mi}" Margin="0,2,0,0">
+                            <HorizontalStackLayout Spacing="5" IsVisible="{Binding duzeltme_istendi_mi, Mode=OneWay}" Margin="0,2,0,0">
                                 <Label Text="{x:Static helpers:IconFont.ExclamationTriangle}" FontFamily="FASolid" FontSize="12" TextColor="#F57C00" VerticalOptions="Center"/>
                                 <Label Text="Bu talep için düzeltme isteğiniz inceleniyor." TextColor="#F57C00" FontSize="11" FontAttributes="Bold" VerticalOptions="Center"/>
                             </HorizontalStackLayout>
 
-                            <HorizontalStackLayout Spacing="5" IsVisible="{Binding onerilen_tarih_var_mi}" Margin="0,5,0,0">
+                            <HorizontalStackLayout Spacing="5" IsVisible="{Binding onerilen_tarih_var_mi, Mode=OneWay}" Margin="0,5,0,0">
                                 <Label Text="{x:Static helpers:IconFont.ExclamationTriangle}" FontFamily="FASolid" FontSize="13" TextColor="#E53935" VerticalOptions="Center"/>
                                 <Label Text="Önerilen Yeni Tarih:" TextColor="#E53935" FontSize="13" FontAttributes="Bold" VerticalOptions="Center"/>
-                                <Label Text="{Binding onerilen_tarih}" TextColor="#E53935" FontSize="13" FontAttributes="Bold" VerticalOptions="Center"/>
+                                <Label Text="{Binding onerilen_tarih, Mode=OneWay}" TextColor="#E53935" FontSize="13" FontAttributes="Bold" VerticalOptions="Center"/>
                             </HorizontalStackLayout>
 
                             <BoxView HeightRequest="1" Color="#EEEEEE" Margin="0,10"/>
 
-                            <Frame BackgroundColor="#FFF3E0" BorderColor="#FFCC80" CornerRadius="8" Padding="10" Margin="0,10,0,10" IsVisible="{Binding foto_var_mi}" HasShadow="False">
+                            <Border BackgroundColor="#FFF3E0" Stroke="#FFCC80" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10" Margin="0,10,0,10" IsVisible="{Binding foto_var_mi, Mode=OneWay}">
                                 <Grid ColumnDefinitions="*, Auto">
                                     <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="2">
                                         <HorizontalStackLayout Spacing="5">
@@ -102,7 +102,7 @@
                                     </VerticalStackLayout>
                                     <Button Grid.Column="1" Text="Fotoğrafları Gör" BackgroundColor="#FF9800" TextColor="White" CornerRadius="6" HeightRequest="35" FontSize="12" FontAttributes="Bold" Padding="15,0" CommandParameter="{Binding .}" Clicked="OnViewPhotosClicked" VerticalOptions="Center"/>
                                 </Grid>
-                            </Frame>
+                            </Border>
 
                             <Grid ColumnDefinitions="*, *">
                                 <Button Grid.Column="0" Text="Düzenle" BackgroundColor="#00BCD4" TextColor="White" CornerRadius="8" Margin="0,0,5,0" Clicked="OnEditClicked" CommandParameter="{Binding .}"/>
@@ -110,19 +110,19 @@
                             </Grid>
 
                         </VerticalStackLayout>
-                    </Frame>
+                    </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
 
         <Grid x:Name="LoadingOverlay" BackgroundColor="#CCFFFFFF" IsVisible="False" InputTransparent="False" Grid.RowSpan="2">
-            <Frame BackgroundColor="White" BorderColor="#E0E0E0" CornerRadius="15" Padding="30" HorizontalOptions="Center" VerticalOptions="Center" HasShadow="False">
+            <Border BackgroundColor="White" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 15" Padding="30" HorizontalOptions="Center" VerticalOptions="Center">
                 <VerticalStackLayout Spacing="15" HorizontalOptions="Center">
                     <ActivityIndicator IsRunning="{Binding Source={x:Reference LoadingOverlay}, Path=IsVisible}" Color="#00BCD4" WidthRequest="50" HeightRequest="50" HorizontalOptions="Center"/>
                     <Label x:Name="LoadingTitle" Text="Talepler Yükleniyor..." FontSize="16" FontAttributes="Bold" TextColor="#333333" HorizontalOptions="Center"/>
                     <Label x:Name="LoadingSubText" Text="Lütfen işlem bitene kadar bekleyiniz." FontSize="13" TextColor="#666666" HorizontalTextAlignment="Center" HorizontalOptions="Center"/>
                 </VerticalStackLayout>
-            </Frame>
+            </Border>
         </Grid>
 
     </Grid>

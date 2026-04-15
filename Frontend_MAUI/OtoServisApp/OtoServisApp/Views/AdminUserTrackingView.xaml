@@ -13,17 +13,18 @@
         <CollectionView Grid.Row="1" x:Name="TrackingList">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="views:TakipMusteri">
-                    <Frame BackgroundColor="White" BorderColor="#E0E0E0" CornerRadius="8" Padding="15" Margin="5,5,5,10" HasShadow="False">
+
+                    <Border BackgroundColor="White" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="15" Margin="5,5,5,10">
                         <Grid ColumnDefinitions="*, Auto" ColumnSpacing="15" VerticalOptions="Center">
 
                             <VerticalStackLayout Grid.Column="0" Spacing="4">
-                                <Label Text="{Binding ad_soyad}" FontSize="16" FontAttributes="Bold" TextColor="#333333"/>
-                                <Label Text="{Binding eposta}" FontSize="13" TextColor="#7F8C8D"/>
-                                <Label Text="{Binding SonGirisText}" FontSize="12" TextColor="#555555"/>
-                                <Label Text="{Binding KacGunText}" FontSize="12" TextColor="#E74C3C" FontAttributes="Bold"/>
-                                <Label Text="{Binding MailIzinDurum}" FontSize="11" TextColor="{Binding MailIzinRengi}" FontAttributes="Bold"/>
+                                <Label Text="{Binding ad_soyad, Mode=OneWay}" FontSize="16" FontAttributes="Bold" TextColor="#333333"/>
+                                <Label Text="{Binding eposta, Mode=OneWay}" FontSize="13" TextColor="#7F8C8D"/>
+                                <Label Text="{Binding SonGirisText, Mode=OneWay}" FontSize="12" TextColor="#555555"/>
+                                <Label Text="{Binding KacGunText, Mode=OneWay}" FontSize="12" TextColor="#E74C3C" FontAttributes="Bold"/>
+                                <Label Text="{Binding MailIzinDurum, Mode=OneWay}" FontSize="11" TextColor="{Binding MailIzinRengi, Mode=OneWay}" FontAttributes="Bold"/>
 
-                                <Label Text="{Binding SonHatirlatmaText}" FontSize="11" TextColor="{Binding HatirlatmaRenk}" FontAttributes="Bold" Margin="0,4,0,0"/>
+                                <Label Text="{Binding SonHatirlatmaText, Mode=OneWay}" FontSize="11" TextColor="{Binding HatirlatmaRenk, Mode=OneWay}" FontAttributes="Bold" Margin="0,4,0,0"/>
                             </VerticalStackLayout>
 
                             <Button Grid.Column="1" 
@@ -35,10 +36,10 @@
                                     HeightRequest="40" 
                                     Padding="15,0" 
                                     CornerRadius="8"
-                                    IsEnabled="{Binding mail_istiyor_mu}"
+                                    IsEnabled="{Binding mail_istiyor_mu, Mode=OneWay}"
                                     VerticalOptions="Center"/>
                         </Grid>
-                    </Frame>
+                    </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>

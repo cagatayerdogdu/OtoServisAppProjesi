@@ -13,12 +13,12 @@
             <Label Text="Uygulama içindeki hizmetlerin standart fiyatlarını buradan güncelleyebilirsiniz." FontSize="14" TextColor="#7F8C8D"/>
         </VerticalStackLayout>
 
-        <Frame Grid.Row="1" BackgroundColor="White" BorderColor="#CCCCCC" CornerRadius="8" Padding="15,0" Margin="15,0,15,10" HeightRequest="45" HasShadow="False">
+        <Border Grid.Row="1" BackgroundColor="White" Stroke="#CCCCCC" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="15,0" Margin="15,0,15,10" HeightRequest="45">
             <Grid ColumnDefinitions="Auto, *" ColumnSpacing="10">
                 <Label Grid.Column="0" Text="{x:Static helpers:IconFont.Search}" FontFamily="FASolid" FontSize="16" TextColor="#00BCD4" VerticalOptions="Center"/>
                 <Entry Grid.Column="1" x:Name="HizmetSearchEntry" Placeholder="Hizmet ara..." TextChanged="OnHizmetAraTextChanged" TextColor="#333333" PlaceholderColor="#7F8C8D" BackgroundColor="Transparent" ClearButtonVisibility="WhileEditing" VerticalOptions="Center"/>
             </Grid>
-        </Frame>
+        </Border>
 
         <CollectionView x:Name="HizmetlerListesi" Grid.Row="2" Margin="15,0,15,20">
             <CollectionView.EmptyView>
@@ -30,21 +30,21 @@
 
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:Hizmet">
-                    <Frame BackgroundColor="White" BorderColor="#E0E0E0" CornerRadius="8" Padding="15" Margin="0,5,0,5" HasShadow="False">
+                    <Border BackgroundColor="White" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="15" Margin="0,5,0,5">
                         <Grid ColumnDefinitions="*, Auto, Auto" ColumnSpacing="10" VerticalOptions="Center">
 
                             <Grid Grid.Column="0" ColumnDefinitions="Auto, *" ColumnSpacing="10" VerticalOptions="Center">
                                 <Label Grid.Column="0" Text="{x:Static helpers:IconFont.Wrench}" FontFamily="FASolid" FontSize="16" TextColor="#00BCD4" VerticalOptions="Center"/>
-                                <Label Grid.Column="1" Text="{Binding ad}" FontSize="16" FontAttributes="Bold" TextColor="#333333" VerticalOptions="Center" LineBreakMode="WordWrap"/>
+                                <Label Grid.Column="1" Text="{Binding ad, Mode=OneWay}" FontSize="16" FontAttributes="Bold" TextColor="#333333" VerticalOptions="Center" LineBreakMode="WordWrap"/>
                             </Grid>
 
-                            <Frame Grid.Column="1" Padding="0" BorderColor="#CCCCCC" CornerRadius="5" WidthRequest="90" HeightRequest="40" HasShadow="False" VerticalOptions="Center">
+                            <Border Grid.Column="1" Padding="0" Stroke="#CCCCCC" StrokeThickness="1" StrokeShape="RoundRectangle 5" WidthRequest="90" HeightRequest="40" VerticalOptions="Center">
                                 <Entry Text="{Binding varsayilan_fiyat, StringFormat='{0:F2}'}" Keyboard="Numeric" HorizontalTextAlignment="Center" VerticalOptions="Center" TextColor="#111111" FontSize="15" BackgroundColor="Transparent" ClearButtonVisibility="Never"/>
-                            </Frame>
+                            </Border>
 
                             <Button Grid.Column="2" Text="Kaydet" BackgroundColor="#00BCD4" TextColor="White" CornerRadius="5" HeightRequest="40" Padding="10,0" Clicked="OnFiyatGuncelleClicked" CommandParameter="{Binding .}" VerticalOptions="Center"/>
                         </Grid>
-                    </Frame>
+                    </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>

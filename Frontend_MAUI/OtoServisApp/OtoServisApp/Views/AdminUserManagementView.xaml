@@ -14,28 +14,29 @@
             <Label Text="Kullanıcı durumlarını ve rollerini buradan yönetin." FontSize="13" TextColor="#7F8C8D"/>
         </VerticalStackLayout>
 
-        <Frame Grid.Row="1" BackgroundColor="White" BorderColor="#DCDDE1" CornerRadius="8" Margin="15,0,15,10" Padding="10,0" HasShadow="False">
+        <Border Grid.Row="1" BackgroundColor="White" Stroke="#DCDDE1" StrokeThickness="1" StrokeShape="RoundRectangle 8" Margin="15,0,15,10" Padding="10,0">
             <Grid ColumnDefinitions="Auto, *">
                 <Label Grid.Column="0" Text="{x:Static helpers:IconFont.Search}" FontFamily="FASolid" TextColor="#3498DB" VerticalOptions="Center" Margin="5,0"/>
                 <Entry Grid.Column="1" x:Name="UserSearchBar" Placeholder="İsim veya E-posta ile ara..." TextChanged="OnSearchTextChanged" TextColor="#2F3640" PlaceholderColor="#A4B0BE" HeightRequest="45"/>
             </Grid>
-        </Frame>
+        </Border>
 
         <CollectionView Grid.Row="2" x:Name="UsersList" Margin="15,5">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="views:KullaniciSadelestirilmis">
-                    <Frame BackgroundColor="White" BorderColor="#DCDDE1" CornerRadius="10" Padding="15" Margin="0,5" HasShadow="False">
+
+                    <Border BackgroundColor="White" Stroke="#DCDDE1" StrokeThickness="1" StrokeShape="RoundRectangle 10" Padding="15" Margin="0,5">
                         <Grid RowDefinitions="Auto, Auto" RowSpacing="15">
 
                             <Grid Grid.Row="0" ColumnDefinitions="*, Auto">
                                 <VerticalStackLayout Grid.Column="0" Spacing="4">
-                                    <Label Text="{Binding eposta}" FontSize="14" TextColor="#7F8C8D" FontAttributes="Bold"/>
-                                    <Label Text="{Binding telefon, StringFormat='Tel: {0}'}" FontSize="13" TextColor="#95A5A6"/>
-                                    <Label Text="{Binding rol, StringFormat='Rol: {0}'}" FontSize="12" TextColor="#3498DB"/>
+                                    <Label Text="{Binding eposta, Mode=OneWay}" FontSize="14" TextColor="#7F8C8D" FontAttributes="Bold"/>
+                                    <Label Text="{Binding telefon, StringFormat='Tel: {0}', Mode=OneWay}" FontSize="13" TextColor="#95A5A6"/>
+                                    <Label Text="{Binding rol, StringFormat='Rol: {0}', Mode=OneWay}" FontSize="12" TextColor="#3498DB"/>
 
                                     <HorizontalStackLayout Spacing="10" Margin="0,5,0,0">
-                                        <Label Text="{Binding kayit_tarihi, StringFormat='Kayıt: {0}'}" FontSize="11" TextColor="#27AE60" FontAttributes="Bold"/>
-                                        <Label Text="{Binding silinme_tarihi, StringFormat='Silindi: {0}'}" FontSize="11" TextColor="#E74C3C" FontAttributes="Bold" IsVisible="{Binding IsSilinmis}"/>
+                                        <Label Text="{Binding kayit_tarihi, StringFormat='Kayıt: {0}', Mode=OneWay}" FontSize="11" TextColor="#27AE60" FontAttributes="Bold"/>
+                                        <Label Text="{Binding silinme_tarihi, StringFormat='Silindi: {0}', Mode=OneWay}" FontSize="11" TextColor="#E74C3C" FontAttributes="Bold" IsVisible="{Binding IsSilinmis, Mode=OneWay}"/>
                                     </HorizontalStackLayout>
                                 </VerticalStackLayout>
 
@@ -58,26 +59,26 @@
                             </Grid>
 
                             <Grid Grid.Row="1" ColumnDefinitions="*, Auto" ColumnSpacing="10" VerticalOptions="End">
-                                <Frame Grid.Column="0" Padding="10,0" BorderColor="#BDC3C7" CornerRadius="8" HeightRequest="45" HasShadow="False">
+                                <Border Grid.Column="0" Padding="10,0" Stroke="#BDC3C7" StrokeThickness="1" StrokeShape="RoundRectangle 8" HeightRequest="45" BackgroundColor="Transparent">
                                     <Entry Text="{Binding ad_soyad}" Placeholder="Kullanıcı Adı" TextColor="#2C3E50" VerticalOptions="Center" BackgroundColor="Transparent"/>
-                                </Frame>
+                                </Border>
 
                                 <Button Grid.Column="1" Text="Güncelle" Clicked="OnUpdateUserClicked" CommandParameter="{Binding .}" BackgroundColor="#00BCD4" TextColor="White" FontAttributes="Bold" CornerRadius="8" HeightRequest="45" Padding="20,0"/>
                             </Grid>
 
                         </Grid>
-                    </Frame>
+                    </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <Frame Grid.Row="3" BackgroundColor="White" BorderColor="#DCDDE1" Padding="10" HasShadow="False" CornerRadius="0">
+        <Border Grid.Row="3" BackgroundColor="White" Stroke="#DCDDE1" StrokeThickness="1" StrokeShape="Rectangle" Padding="10">
             <HorizontalStackLayout HorizontalOptions="Center" Spacing="20">
                 <Button x:Name="BtnGeri" Text="Geri" Clicked="OnPrevPageClicked" BackgroundColor="#EDF2F7" TextColor="#2C3E50" HeightRequest="40" CornerRadius="5"/>
                 <Label x:Name="PageInfoLabel" Text="Sayfa 1 / 1" VerticalOptions="Center" FontAttributes="Bold" TextColor="#2C3E50"/>
                 <Button x:Name="BtnIleri" Text="İleri" Clicked="OnNextPageClicked" BackgroundColor="#EDF2F7" TextColor="#2C3E50" HeightRequest="40" CornerRadius="5"/>
             </HorizontalStackLayout>
-        </Frame>
+        </Border>
 
     </Grid>
 </ContentPage>

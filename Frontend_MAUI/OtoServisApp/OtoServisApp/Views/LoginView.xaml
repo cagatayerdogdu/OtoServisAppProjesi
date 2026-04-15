@@ -28,13 +28,13 @@
                     <VerticalStackLayout Spacing="15">
                         <Label Text="Hesabınıza Giriş Yapın" FontSize="18" FontAttributes="Bold" TextColor="#334155" Margin="0,0,0,10" HorizontalOptions="Center"/>
 
-                        <Frame Padding="15,0" BorderColor="#E2E8F0" CornerRadius="10" HeightRequest="50" HasShadow="False" BackgroundColor="#F8FAFC">
+                        <Border Padding="15,0" Stroke="#E2E8F0" StrokeThickness="1" StrokeShape="RoundRectangle 10" HeightRequest="50" BackgroundColor="#F8FAFC">
                             <Entry x:Name="EmailEntry" Placeholder="E-posta adresiniz" Keyboard="Email" TextColor="#334155" BackgroundColor="Transparent"/>
-                        </Frame>
+                        </Border>
 
-                        <Frame Padding="15,0" BorderColor="#E2E8F0" CornerRadius="10" HeightRequest="50" HasShadow="False" BackgroundColor="#F8FAFC">
+                        <Border Padding="15,0" Stroke="#E2E8F0" StrokeThickness="1" StrokeShape="RoundRectangle 10" HeightRequest="50" BackgroundColor="#F8FAFC">
                             <Entry x:Name="PasswordEntry" Placeholder="Şifreniz" IsPassword="True" TextColor="#334155" BackgroundColor="Transparent"/>
-                        </Frame>
+                        </Border>
 
                         <Grid ColumnDefinitions="*, Auto" Margin="0,5,0,10">
                             <HorizontalStackLayout Grid.Column="0" Spacing="5" VerticalOptions="Center">

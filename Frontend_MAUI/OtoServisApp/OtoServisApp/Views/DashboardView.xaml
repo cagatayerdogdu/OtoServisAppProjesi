@@ -30,29 +30,29 @@
             </Grid>
 
             <Grid ColumnDefinitions="*, *, *" ColumnSpacing="10" Margin="0,0,0,10">
-                <Frame Grid.Column="0" BackgroundColor="#EFF6FF" BorderColor="Transparent" CornerRadius="12" Padding="10" HasShadow="False">
+                <Border Grid.Column="0" BackgroundColor="#EFF6FF" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 12" Padding="10">
                     <VerticalStackLayout HorizontalOptions="Center" Spacing="5">
                         <Label Text="{x:Static helpers:IconFont.Users}" FontFamily="FASolid" FontSize="20" TextColor="#3B82F6" HorizontalOptions="Center"/>
                         <Label x:Name="LblToplamMusteri" Text="0" FontSize="18" FontAttributes="Bold" TextColor="#1E293B" HorizontalOptions="Center"/>
                         <Label Text="Müşteri" FontSize="11" TextColor="#64748B" HorizontalOptions="Center"/>
                     </VerticalStackLayout>
-                </Frame>
+                </Border>
 
-                <Frame Grid.Column="1" BackgroundColor="#E0F7FA" BorderColor="Transparent" CornerRadius="12" Padding="10" HasShadow="False">
+                <Border Grid.Column="1" BackgroundColor="#E0F7FA" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 12" Padding="10">
                     <VerticalStackLayout HorizontalOptions="Center" Spacing="5">
                         <Label Text="{x:Static helpers:IconFont.Wrench}" FontFamily="FASolid" FontSize="20" TextColor="#00BCD4" HorizontalOptions="Center"/>
                         <Label x:Name="LblToplamTalep" Text="0" FontSize="18" FontAttributes="Bold" TextColor="#1E293B" HorizontalOptions="Center"/>
                         <Label Text="Talep" FontSize="11" TextColor="#64748B" HorizontalOptions="Center"/>
                     </VerticalStackLayout>
-                </Frame>
+                </Border>
 
-                <Frame Grid.Column="2" BackgroundColor="#F1F5F9" BorderColor="Transparent" CornerRadius="12" Padding="10" HasShadow="False">
+                <Border Grid.Column="2" BackgroundColor="#F1F5F9" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 12" Padding="10">
                     <VerticalStackLayout HorizontalOptions="Center" Spacing="5">
                         <Label Text="{x:Static helpers:IconFont.Car}" FontFamily="FASolid" FontSize="20" TextColor="#64748B" HorizontalOptions="Center"/>
                         <Label x:Name="LblToplamArac" Text="0" FontSize="18" FontAttributes="Bold" TextColor="#1E293B" HorizontalOptions="Center"/>
                         <Label Text="Araç" FontSize="11" TextColor="#64748B" HorizontalOptions="Center"/>
                     </VerticalStackLayout>
-                </Frame>
+                </Border>
             </Grid>
 
             <Label Text="Hızlı İşlemler" FontSize="16" FontAttributes="Bold" TextColor="#1E293B" Margin="5,10,0,5"/>
@@ -159,19 +159,19 @@
 
             <Label Text="Kurumsal" FontSize="16" FontAttributes="Bold" TextColor="#1E293B" Margin="5,5,0,0"/>
             <VerticalStackLayout Spacing="10" Margin="0,0,0,20">
-                <Frame BackgroundColor="White" BorderColor="#E2E8F0" CornerRadius="10" Padding="15" HasShadow="False">
+                <Border BackgroundColor="White" Stroke="#E2E8F0" StrokeThickness="1" StrokeShape="RoundRectangle 10" Padding="15">
                     <VerticalStackLayout Spacing="5">
                         <Label Text="Hakkımızda" FontAttributes="Bold" FontSize="14" TextColor="#334155"/>
                         <Label Text="Kapıdan Bakım, araç bakım süreçlerinizi kapınıza getirerek size zaman kazandıran yenilikçi bir platformdur." FontSize="12" TextColor="#64748B" LineBreakMode="WordWrap"/>
                     </VerticalStackLayout>
-                </Frame>
+                </Border>
 
-                <Frame BackgroundColor="White" BorderColor="#E2E8F0" CornerRadius="10" Padding="15" HasShadow="False">
+                <Border BackgroundColor="White" Stroke="#E2E8F0" StrokeThickness="1" StrokeShape="RoundRectangle 10" Padding="15">
                     <VerticalStackLayout Spacing="5">
                         <Label Text="Misyonumuz &amp; Vizyonumuz" FontAttributes="Bold" FontSize="14" TextColor="#334155"/>
                         <Label Text="Misyonumuz güvenilir ve şeffaf hizmet sunmak; vizyonumuz ise sektörde dijitalleşmenin öncüsü olmaktır." FontSize="12" TextColor="#64748B" LineBreakMode="WordWrap"/>
                     </VerticalStackLayout>
-                </Frame>
+                </Border>
             </VerticalStackLayout>
 
         </VerticalStackLayout>

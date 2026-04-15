@@ -27,7 +27,7 @@
                                         <CollectionView.ItemTemplate>
                                             <DataTemplate>
                                                 <VerticalStackLayout Padding="10">
-                                                    <Label Text="{Binding ad}" FontSize="14" FontAttributes="Bold" TextColor="#111111"/>
+                                                    <Label Text="{Binding ad, Mode=OneWay}" FontSize="14" FontAttributes="Bold" TextColor="#111111"/>
                                                     <BoxView HeightRequest="1" Color="#EEEEEE" Margin="0,5,0,0"/>
                                                 </VerticalStackLayout>
                                             </DataTemplate>
@@ -47,7 +47,7 @@
                                         <CollectionView.ItemTemplate>
                                             <DataTemplate>
                                                 <VerticalStackLayout Padding="10">
-                                                    <Label Text="{Binding ad}" FontSize="14" FontAttributes="Bold" TextColor="#111111"/>
+                                                    <Label Text="{Binding ad, Mode=OneWay}" FontSize="14" FontAttributes="Bold" TextColor="#111111"/>
                                                     <BoxView HeightRequest="1" Color="#EEEEEE" Margin="0,5,0,0"/>
                                                 </VerticalStackLayout>
                                             </DataTemplate>
@@ -65,7 +65,7 @@
                                     <CollectionView.ItemTemplate>
                                         <DataTemplate>
                                             <VerticalStackLayout Padding="10">
-                                                <Label Text="{Binding .}" FontSize="14" FontAttributes="Bold" TextColor="#111111"/>
+                                                <Label Text="{Binding ., Mode=OneWay}" FontSize="14" FontAttributes="Bold" TextColor="#111111"/>
                                                 <BoxView HeightRequest="1" Color="#EEEEEE" Margin="0,5,0,0"/>
                                             </VerticalStackLayout>
                                         </DataTemplate>
@@ -95,12 +95,15 @@
         </ScrollView>
 
         <Grid x:Name="ModernUyariEkrani" BackgroundColor="#80000000" IsVisible="False" ZIndex="999">
-            <Frame BorderColor="Transparent" BackgroundColor="#00BCD4" CornerRadius="20" Padding="20" HorizontalOptions="Center" VerticalOptions="Center" WidthRequest="300" HasShadow="True">
+            <Border BackgroundColor="#00BCD4" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 20" Padding="20" HorizontalOptions="Center" VerticalOptions="Center" WidthRequest="300">
+                <Border.Shadow>
+                    <Shadow Brush="Black" Offset="0,5" Radius="15" Opacity="0.3" />
+                </Border.Shadow>
                 <VerticalStackLayout Spacing="15">
                     <Label x:Name="UyariMesaji" Text="İşlem Başarılı!" TextColor="White" FontSize="16" FontAttributes="Bold" HorizontalTextAlignment="Center" />
                     <Button Text="Tamam" BackgroundColor="White" TextColor="#00BCD4" CornerRadius="10" FontAttributes="Bold" Clicked="ModernUyariKapat_Clicked" />
                 </VerticalStackLayout>
-            </Frame>
+            </Border>
         </Grid>
 
 
