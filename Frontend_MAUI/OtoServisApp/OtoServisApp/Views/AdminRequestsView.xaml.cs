@@ -224,66 +224,30 @@ public partial class AdminRequestsView : ContentPage
     }
 
     // =========================================================
-    // KART İÇİ DURUM SEÇİMİ
+    // KART İÇİ DURUM SEÇİMİ (PROFESYONEL NATIVE GÖRÜNÜM)
     // =========================================================
-    private void OnItemDurumKutusuAc(object sender, EventArgs e)
-    {
-        var btn = sender as Button;
-        var parentStack = btn?.Parent as VerticalStackLayout;
-
-        if (parentStack != null)
-        {
-            // Kart menüsü açıldığında, üstteki ana filtreyi güvenlice kapat
-            DurumSecimKutusu.IsVisible = false;
-
-            var dropdownBorder = parentStack.Children.OfType<Border>().FirstOrDefault();
-            if (dropdownBorder != null)
-            {
-                // Başka bir kartın menüsü zaten açıksa, onu kapat (Böylece ekranda hep tek menü açık kalır)
-                if (_acikOlanKartMenu != null && _acikOlanKartMenu != dropdownBorder)
-                {
-                    _acikOlanKartMenu.IsVisible = false;
-                }
-
-                // Tıklananı aç/kapat
-                dropdownBorder.IsVisible = !dropdownBorder.IsVisible;
-
-                // Şu anki durumu referansa kaydet
-                if (dropdownBorder.IsVisible)
-                    _acikOlanKartMenu = dropdownBorder;
-                else
-                    _acikOlanKartMenu = null;
-            }
-        }
-    }
-
-    private void OnItemDurumSecildi(object sender, EventArgs e)
+    private async void OnItemDurumKutusuAc(object sender, EventArgs e)
     {
         var btn = sender as Button;
         var secilenTalep = btn?.BindingContext as ServisTalebi;
 
-        if (secilenTalep != null && btn != null)
+        if (secilenTalep == null || btn == null) return;
+
+        // Üstteki ana arama filtresi açıksa güvenlice kapat
+        DurumSecimKutusu.IsVisible = false;
+
+        // İŞTE PROFESYONEL YÖNTEM: Ekranın altından açılan Native Mobil Menü!
+        string action = await DisplayActionSheet("Mevcut Durumu Değiştir", "Vazgeç", null,
+            "Bekliyor", "Onaylandı", "İşlemde", "Tamamlandı", "İptal Edildi");
+
+        // Kullanıcı bir seçim yaptıysa ve "Vazgeç" demediyse:
+        if (!string.IsNullOrEmpty(action) && action != "Vazgeç")
         {
-            var yeniDurum = btn.Text;
-            secilenTalep.durum = yeniDurum;
-
-            var verticalLayout = btn.Parent as VerticalStackLayout;
-            var dropdownBorder = verticalLayout?.Parent as Border;
-
-            if (dropdownBorder != null)
-            {
-                dropdownBorder.IsVisible = false;
-                _acikOlanKartMenu = null; // Menü kapandığı için referansı temizle									
-
-                var mainStack = dropdownBorder.Parent as VerticalStackLayout;
-                var mainButton = mainStack?.Children.OfType<Button>().FirstOrDefault();
-                if (mainButton != null)
-                {
-                    mainButton.Text = yeniDurum;
-                }
-            }
+            secilenTalep.durum = action;
+            btn.Text = action; // Ekranda görünen butonu anında güncelle
         }
     }
+
 
     // =========================================================
     // GÜNCELLEME İŞLEMİ

@@ -124,21 +124,9 @@
                                         <Label Text="Mevcut Durum" FontSize="10" TextColor="#888888" Margin="5,0,0,0"/>
 
                                         <Button Text="{Binding durum}" 
-                                                CommandParameter="{Binding .}"
-                                                Clicked="OnItemDurumKutusuAc" 
-                                                BackgroundColor="#FAFAFA" TextColor="#333333" BorderColor="#CCCCCC" BorderWidth="1" CornerRadius="15" FontSize="13" FontAttributes="Bold" HeightRequest="35" Padding="15,0" VerticalOptions="End"/>
-
-                                        <Border BackgroundColor="#FFFFFF" 
-        IsVisible="False" 
-        Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Margin="0,5,0,0" Padding="0">
-                                            <VerticalStackLayout Spacing="0">
-                                                <Button Text="Bekliyor" CommandParameter="{Binding .}" Clicked="OnItemDurumSecildi" BackgroundColor="Transparent" TextColor="#111111" FontSize="12" HeightRequest="30" Padding="0"/>
-                                                <Button Text="Onaylandı" CommandParameter="{Binding .}" Clicked="OnItemDurumSecildi" BackgroundColor="Transparent" TextColor="#111111" FontSize="12" HeightRequest="30" Padding="0"/>
-                                                <Button Text="İşlemde" CommandParameter="{Binding .}" Clicked="OnItemDurumSecildi" BackgroundColor="Transparent" TextColor="#111111" FontSize="12" HeightRequest="30" Padding="0"/>
-                                                <Button Text="Tamamlandı" CommandParameter="{Binding .}" Clicked="OnItemDurumSecildi" BackgroundColor="Transparent" TextColor="#111111" FontSize="12" HeightRequest="30" Padding="0"/>
-                                                <Button Text="İptal Edildi" CommandParameter="{Binding .}" Clicked="OnItemDurumSecildi" BackgroundColor="Transparent" TextColor="#111111" FontSize="12" HeightRequest="30" Padding="0"/>
-                                            </VerticalStackLayout>
-                                        </Border>
+                CommandParameter="{Binding .}"
+                Clicked="OnItemDurumKutusuAc" 
+                BackgroundColor="#FAFAFA" TextColor="#333333" BorderColor="#CCCCCC" BorderWidth="1" CornerRadius="15" FontSize="13" FontAttributes="Bold" HeightRequest="35" Padding="15,0" VerticalOptions="End"/>
                                     </VerticalStackLayout>
 
                                     <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="End">
