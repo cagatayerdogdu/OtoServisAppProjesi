@@ -1,4 +1,5 @@
-﻿using OtoServisApp.Models;
+﻿using System.Collections.Concurrent;
+using OtoServisApp.Models;
 using OtoServisApp.Services;
 
 namespace OtoServisApp.Views;
@@ -26,49 +27,71 @@ public partial class MyServiceRequestsView : ContentPage
     {
         base.OnAppearing();
 
-        // YENİ REVİZE: Arayüzün (UI) donmasını ve uygulamanın çökmesini engellemek için 
-        // veri çekme işlemine geçmeden önce çok kısa bir süre (100ms) bekleyip thread'i rahatlatıyoruz.
-        // await Task.Delay(20);
+        // EKRAN YAZISINI GÜVENÇE ALTINA ALIYORUZ
+        LoadingTitle.Text = "Talepler Yükleniyor...";
+        LoadingOverlay.IsVisible = true;
 
-        // Yükleme işlemini bu rahatlamadan sonra tetikliyoruz.
-        DurumListesi.ItemsSource = _durumFiltreleri;
-        await VerileriYukle();
+        // UI'ın çizilmesi için çok kısa bir nefes payı
+        await Task.Delay(5);
+
+        try
+        {
+            if (DurumListesi != null && DurumListesi.ItemsSource == null)
+                DurumListesi.ItemsSource = _durumFiltreleri;
+
+            await VerileriYukle();
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Hata", "Talep verileri yüklenirken bir sorun oluştu.", "Tamam");
+            System.Diagnostics.Debug.WriteLine($"Yükleme Hatası: {ex.Message}");
+        }
+        finally
+        {
+            LoadingOverlay.IsVisible = false;
+        }
     }
 
     private async Task VerileriYukle()
     {
+        // 1. Temel verileri çek
         _tumHizmetler = await _apiService.HizmetleriGetirAsync();
         _tumMarkalar = await _apiService.MarkalariGetirAsync();
-
         _orijinalTalepler = await _apiService.ServisTalepleriniGetirAsync(_aktifKullanici.id);
 
-        if (_orijinalTalepler != null)
+        if (_orijinalTalepler != null && _orijinalTalepler.Count > 0)
         {
-            foreach (var talep in _orijinalTalepler)
+            // 2. PARALEL İŞLEM İÇİN HAZIRLIK: Araçları hafızaya (RAM) alıyoruz.
+            // ConcurrentDictionary kullanıyoruz çünkü birden fazla işlem aynı anda buraya yazmaya çalışacak.
+            // Araç havuzu ve paralel işlemler (fotoğraf kontrolü hariç)														 
+            var aracHavuzu = new ConcurrentDictionary<int, Arac>(
+                _aktifKullanici.araclar?.ToDictionary(a => a.id) ?? new Dictionary<int, Arac>()
+            );
+
+            // 3. İŞLEMLERİ AYNI ANDA BAŞLAT (N+1 Probleminin Çözümü)											 
+            var gorevler = _orijinalTalepler.Select(async talep =>
             {
+                // Hizmet adı
                 var hizmet = _tumHizmetler?.FirstOrDefault(h => h.id == talep.hizmet_id);
                 if (hizmet != null) talep.hizmet_adi = hizmet.ad;
-                // Aracın Aktifler (A) listesinde olup olmadığına bak
-                var aracAktif = _aktifKullanici.araclar?.FirstOrDefault(a => a.id == talep.arac_id);
 
-                // Eğer araç listede yoksa (Yani Soft Delete 'X' yapılmışsa) API'den geçmiş kaydını bul!
-                if (aracAktif == null)
+                // Araç Bilgisini Getir (Sadece hafızada yoksa API'ye git)
+                if (!aracHavuzu.TryGetValue(talep.arac_id, out var arac))
                 {
-                    aracAktif = await _apiService.AracGetirAsync(talep.arac_id);
+                    arac = await _apiService.AracGetirAsync(talep.arac_id);
+                    if (arac != null)
+                        aracHavuzu.TryAdd(talep.arac_id, arac); // Bulduğumuz aracı havuza ekle ki bir daha çekmeyelim
                 }
 
-                var arac = await _apiService.AracGetirAsync(talep.arac_id);
+                // Aracın gösterim adını ayarla				   
                 if (arac != null)
                 {
                     string gosterimAd = "";
                     if (arac.marka_id != null && arac.model_id != null && _tumMarkalar != null)
                     {
                         var marka = _tumMarkalar.FirstOrDefault(m => m.id == arac.marka_id);
-                        if (marka != null)
-                        {
-                            var model = marka.modeller?.FirstOrDefault(m => m.id == arac.model_id);
-                            if (model != null) gosterimAd = $"{marka.ad} {model.ad}";
-                        }
+                        var model = marka?.modeller?.FirstOrDefault(m => m.id == arac.model_id);
+                        if (marka != null && model != null) gosterimAd = $"{marka.ad} {model.ad}";
                     }
 
                     if (string.IsNullOrWhiteSpace(gosterimAd) && !string.IsNullOrWhiteSpace(arac.ozel_marka))
@@ -77,8 +100,30 @@ public partial class MyServiceRequestsView : ContentPage
                     }
                     talep.arac_adi = string.IsNullOrWhiteSpace(gosterimAd) ? $"Araç ID: {arac.id}" : gosterimAd;
                 }
+
+                // Talebe ait fotoğraf var mı kontrolü (Aynı anda çalışır, sistemi bekletmez)
+                //var fotolar = await _apiService.TalepFotograflariniGetirAsync(talep.id);
+                //talep.foto_var_mi = fotolar != null && fotolar.Count > 0;
+            });
+
+            // Başlatılan tüm paralel görevlerin bitmesini bekle (Saniyeler süren işlemi milisaniyelere indirir)
+            await Task.WhenAll(gorevler);
+
+            // 4. Fotoğraf durumlarını TEK SEFERDE toplu olarak al
+            var talepIdleri = _orijinalTalepler.Select(t => t.id).ToList();
+            var fotoDurumlari = await _apiService.TopluFotografDurumuGetirAsync(talepIdleri);
+
+            foreach (var talep in _orijinalTalepler)
+            {
+                talep.foto_var_mi = fotoDurumlari.TryGetValue(talep.id, out var varMi) && varMi;
             }
+
+            // 4. Filtreleri uygula
             FiltreleriUygula();
+        }
+        else
+        {
+            RequestsList.ItemsSource = null;
         }
     }
 
@@ -88,9 +133,25 @@ public partial class MyServiceRequestsView : ContentPage
     }
 
     // Arama barı tetikleyicisi
+    private CancellationTokenSource _aramaCts;
     private void OnFiltreDegisti(object sender, TextChangedEventArgs e)
     {
-        FiltreleriUygula();
+        _aramaCts?.Cancel();
+        _aramaCts = new CancellationTokenSource();
+
+        Task.Delay(100, _aramaCts.Token)
+            .ContinueWith(t =>
+            {
+                if (!t.IsCanceled)
+                    MainThread.BeginInvokeOnMainThread(FiltreleriUygula);
+            });
+    }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        _aramaCts?.Cancel();
+        RequestsList.ItemsSource = null;
     }
 
     private void OnFiltreSecildi(object sender, SelectionChangedEventArgs e)
@@ -117,7 +178,6 @@ public partial class MyServiceRequestsView : ContentPage
             filtrelenmisListe = filtrelenmisListe.Where(t => t.durum == _secilenDurum);
         }
 
-        // YENİ EKLENEN ARAMA KONTROLÜ
         if (!string.IsNullOrWhiteSpace(AramaBar.Text))
         {
             var kelime = AramaBar.Text.ToLower();
@@ -139,8 +199,7 @@ public partial class MyServiceRequestsView : ContentPage
             })
             .ThenByDescending(t => t.id);
 
-        // YENİ KURAL (Madde 16): Talepleri ID'ye (veya tarihe) göre en yeniden en eskiye sırala
-        RequestsList.ItemsSource = null;
+        //RequestsList.ItemsSource = null;
         RequestsList.ItemsSource = filtrelenmisListe.ToList();
     }
 
@@ -167,7 +226,6 @@ public partial class MyServiceRequestsView : ContentPage
 
         if (secilenTalep != null)
         {
-            // YENİ KURAL: Sadece Bekliyor olanlar iptal edilebilir										
             if (secilenTalep.durum != "Bekliyor")
             {
                 await DisplayAlert("İşlem Engellendi", "Sadece 'Bekliyor' durumundaki talepler iptal edilebilir.", "Tamam");
@@ -175,20 +233,42 @@ public partial class MyServiceRequestsView : ContentPage
             }
 
             bool eminMisin = await DisplayAlert("Onay", "Bu servis talebini iptal etmek (silmek) istediğinize emin misiniz?", "Evet, İptal Et", "Vazgeç");
-
             if (eminMisin)
             {
-                bool basarili = await _apiService.ServisTalebiSilAsync(secilenTalep.id);
-                if (basarili)
+                LoadingTitle.Text = "Lütfen bekleyiniz...";
+                LoadingOverlay.IsVisible = true;
+                await Task.Delay(10);
+
+                try
                 {
-                    await DisplayAlert("Başarılı", "Talebiniz iptal edildi.", "Tamam");
-                    await VerileriYukle();
+                    bool basarili = await _apiService.ServisTalebiSilAsync(secilenTalep.id);
+                    if (basarili)
+                    {
+                        await DisplayAlert("Başarılı", "Talebiniz iptal edildi.", "Tamam");
+                        await VerileriYukle();
+                    }
+                    else
+                    {
+                        await DisplayAlert("Hata", "Talebiniz iptal edilirken bir sorun oluştu.", "Tamam");
+                    }
                 }
-                else
+                finally
                 {
-                    await DisplayAlert("Hata", "Talebiniz iptal edilirken bir sorun oluştu.", "Tamam");
+                    LoadingOverlay.IsVisible = false;
+                    LoadingTitle.Text = "Talepler Yükleniyor..."; // Yazıyı geri eski haline alıyoruz
                 }
             }
+        }
+    }
+
+    private async void OnViewPhotosClicked(object sender, EventArgs e)
+    {
+        var buton = sender as Button;
+        var secilenTalep = buton?.CommandParameter as ServisTalebi;
+
+        if (secilenTalep != null)
+        {
+            await Navigation.PushAsync(new ViewPhotosView(secilenTalep));
         }
     }
 }

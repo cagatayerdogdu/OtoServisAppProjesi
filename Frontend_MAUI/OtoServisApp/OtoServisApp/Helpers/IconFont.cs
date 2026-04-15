@@ -37,5 +37,6 @@
         public const string Trash = "\uf1f8";      // 🗑️ Çöp Kutusu (Madde 50 için)
         public const string CheckSquare = "\uf14a"; // ☑️ Seçili Kutu
         public const string Square = "\uf0c8";      // ⬜ Boş Kutu
+        public const string ExclamationCircle = "\uf06a";
     }
 }

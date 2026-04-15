@@ -17,17 +17,23 @@
                     </Border.Shadow>
 
                     <VerticalStackLayout Spacing="15">
+
                         <VerticalStackLayout Spacing="5">
                             <Label Text="Marka" TextColor="#666666" FontSize="13" FontAttributes="Bold"/>
-                            <Button x:Name="SecilenMarkaButonu" Text="Lütfen marka seçin..." BackgroundColor="#F9F9F9" TextColor="#888888" BorderColor="#CCCCCC" BorderWidth="1" CornerRadius="8" HeightRequest="45" Clicked="OnMarkaSecimButonuClicked" HorizontalOptions="FillAndExpand"/>
+
+                            <Border BackgroundColor="#F9F9F9" Stroke="#CCCCCC" StrokeThickness="1" StrokeShape="RoundRectangle 8" HeightRequest="45" HorizontalOptions="FillAndExpand" Padding="0">
+                                <Button x:Name="SecilenMarkaButonu" Text="Lütfen marka seçin..." BackgroundColor="Transparent" TextColor="#888888" BorderWidth="0" Clicked="OnMarkaSecimButonuClicked" Margin="0" Padding="0"/>
+                            </Border>
+
                             <Border x:Name="MarkaAramaKutusu" IsVisible="False" BackgroundColor="#F9F9F9" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10" Margin="0,5,0,0">
                                 <VerticalStackLayout Spacing="5">
-                                    <SearchBar x:Name="MarkaAramaBar" Placeholder="Marka ara..." TextChanged="OnMarkaAramaDegisti" BackgroundColor="#FAFAFA" TextColor="#111111" CancelButtonColor="#D32F2F" />
+                                    <SearchBar x:Name="MarkaAramaBar" Placeholder="Marka ara..." TextChanged="OnMarkaAramaDegisti" BackgroundColor="#FAFAFA" TextColor="#111111" CancelButtonColor="#D32F2F" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False"/>
+
                                     <CollectionView x:Name="MarkaListesi" HeightRequest="200" SelectionMode="Single" SelectionChanged="OnMarkaSecildi">
                                         <CollectionView.ItemTemplate>
                                             <DataTemplate>
                                                 <VerticalStackLayout Padding="10">
-                                                    <Label Text="{Binding ad}" FontSize="14" FontAttributes="Bold" TextColor="#111111"/>
+                                                    <Label Text="{Binding ad, Mode=OneWay}" FontSize="14" FontAttributes="Bold" TextColor="#111111"/>
                                                     <BoxView HeightRequest="1" Color="#EEEEEE" Margin="0,5,0,0"/>
                                                 </VerticalStackLayout>
                                             </DataTemplate>
@@ -39,15 +45,20 @@
 
                         <VerticalStackLayout Spacing="5">
                             <Label Text="Model" TextColor="#666666" FontSize="13" FontAttributes="Bold"/>
-                            <Button x:Name="SecilenModelButonu" Text="Önce marka seçmelisiniz" IsEnabled="False" BackgroundColor="#F9F9F9" TextColor="#888888" BorderColor="#CCCCCC" BorderWidth="1" CornerRadius="8" HeightRequest="45" Clicked="OnModelSecimButonuClicked" HorizontalOptions="FillAndExpand"/>
+
+                            <Border BackgroundColor="#F9F9F9" Stroke="#CCCCCC" StrokeThickness="1" StrokeShape="RoundRectangle 8" HeightRequest="45" HorizontalOptions="FillAndExpand" Padding="0">
+                                <Button x:Name="SecilenModelButonu" Text="Önce marka seçmelisiniz" IsEnabled="False" BackgroundColor="Transparent" TextColor="#888888" BorderWidth="0" Clicked="OnModelSecimButonuClicked" Margin="0" Padding="0"/>
+                            </Border>
+
                             <Border x:Name="ModelAramaKutusu" IsVisible="False" BackgroundColor="#F9F9F9" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10" Margin="0,5,0,0">
                                 <VerticalStackLayout Spacing="5">
-                                    <SearchBar x:Name="ModelAramaBar" Placeholder="Model ara..." TextChanged="OnModelAramaDegisti" BackgroundColor="#FAFAFA" TextColor="#111111" CancelButtonColor="#D32F2F" />
+                                    <SearchBar x:Name="ModelAramaBar" Placeholder="Model ara..." TextChanged="OnModelAramaDegisti" BackgroundColor="#FAFAFA" TextColor="#111111" CancelButtonColor="#D32F2F" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False"/>
+
                                     <CollectionView x:Name="ModelListesi" HeightRequest="200" SelectionMode="Single" SelectionChanged="OnModelSecildi">
                                         <CollectionView.ItemTemplate>
                                             <DataTemplate>
                                                 <VerticalStackLayout Padding="10">
-                                                    <Label Text="{Binding ad}" FontSize="14" FontAttributes="Bold" TextColor="#111111"/>
+                                                    <Label Text="{Binding ad, Mode=OneWay}" FontSize="14" FontAttributes="Bold" TextColor="#111111"/>
                                                     <BoxView HeightRequest="1" Color="#EEEEEE" Margin="0,5,0,0"/>
                                                 </VerticalStackLayout>
                                             </DataTemplate>
@@ -59,13 +70,17 @@
 
                         <VerticalStackLayout Spacing="5">
                             <Label Text="Yakıt Tipi" TextColor="#666666" FontSize="13" FontAttributes="Bold"/>
-                            <Button x:Name="SecilenYakitButonu" Text="Lütfen yakıt tipi seçin..." BackgroundColor="#F9F9F9" TextColor="#888888" BorderColor="#CCCCCC" BorderWidth="1" CornerRadius="8" HeightRequest="45" Clicked="OnYakitSecimButonuClicked" HorizontalOptions="FillAndExpand"/>
+
+                            <Border BackgroundColor="#F9F9F9" Stroke="#CCCCCC" StrokeThickness="1" StrokeShape="RoundRectangle 8" HeightRequest="45" HorizontalOptions="FillAndExpand" Padding="0">
+                                <Button x:Name="SecilenYakitButonu" Text="Lütfen yakıt tipi seçin..." BackgroundColor="Transparent" TextColor="#888888" BorderWidth="0" Clicked="OnYakitSecimButonuClicked" Margin="0" Padding="0"/>
+                            </Border>
+
                             <Border x:Name="YakitSecimKutusu" IsVisible="False" BackgroundColor="#F9F9F9" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10" Margin="0,5,0,0">
                                 <CollectionView x:Name="YakitListesi" HeightRequest="170" SelectionMode="Single" SelectionChanged="OnYakitSecildi">
                                     <CollectionView.ItemTemplate>
                                         <DataTemplate>
                                             <VerticalStackLayout Padding="10">
-                                                <Label Text="{Binding .}" FontSize="14" FontAttributes="Bold" TextColor="#111111"/>
+                                                <Label Text="{Binding ., Mode=OneWay}" FontSize="14" FontAttributes="Bold" TextColor="#111111"/>
                                                 <BoxView HeightRequest="1" Color="#EEEEEE" Margin="0,5,0,0"/>
                                             </VerticalStackLayout>
                                         </DataTemplate>
@@ -77,30 +92,50 @@
                         <VerticalStackLayout Spacing="5">
                             <Label Text="Üretim Yılı" TextColor="#666666" FontSize="13" FontAttributes="Bold"/>
                             <Border Stroke="#CCCCCC" StrokeThickness="1.5" BackgroundColor="#F9F9F9" StrokeShape="RoundRectangle 8" Padding="15,5">
-                                <Entry x:Name="YearEntry" Keyboard="Numeric" MaxLength="4" Placeholder="Örn: 2020" PlaceholderColor="#888888" TextColor="#111111" BackgroundColor="Transparent"/>
+                                <Entry x:Name="YearEntry" Keyboard="Numeric" MaxLength="4" Placeholder="Örn: 2020" PlaceholderColor="#888888" TextColor="#111111" BackgroundColor="Transparent" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False"/>
                             </Border>
                         </VerticalStackLayout>
 
                         <VerticalStackLayout Spacing="5">
                             <Label Text="Kilometre" TextColor="#666666" FontSize="13" FontAttributes="Bold"/>
                             <Border Stroke="#CCCCCC" StrokeThickness="1.5" BackgroundColor="#F9F9F9" StrokeShape="RoundRectangle 8" Padding="15,5">
-                                <Entry x:Name="KmEntry" Keyboard="Numeric" Placeholder="Örn: 45000" PlaceholderColor="#888888" TextColor="#111111" BackgroundColor="Transparent"/>
+                                <Entry x:Name="KmEntry" Keyboard="Numeric" Placeholder="Örn: 45000" PlaceholderColor="#888888" TextColor="#111111" BackgroundColor="Transparent" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False"/>
                             </Border>
                         </VerticalStackLayout>
 
-                        <Button x:Name="SaveButton" Text="ARACI KAYDET" Clicked="OnSaveClicked" BackgroundColor="#00BCD4" TextColor="White" CornerRadius="8" HeightRequest="50" FontSize="16" FontAttributes="Bold" Margin="0,15,0,0"/>
+                        <Border BackgroundColor="#00BCD4" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="50" Margin="0,15,0,0" Padding="0">
+                            <Button x:Name="SaveButton" Text="ARACI KAYDET" Clicked="OnSaveClicked" BackgroundColor="Transparent" TextColor="White" BorderWidth="0" FontSize="16" FontAttributes="Bold" Margin="0" Padding="0"/>
+                        </Border>
+
                     </VerticalStackLayout>
                 </Border>
             </VerticalStackLayout>
         </ScrollView>
 
         <Grid x:Name="ModernUyariEkrani" BackgroundColor="#80000000" IsVisible="False" ZIndex="999">
-            <Frame BorderColor="Transparent" BackgroundColor="#00BCD4" CornerRadius="20" Padding="20" HorizontalOptions="Center" VerticalOptions="Center" WidthRequest="300" HasShadow="True">
+            <Border BackgroundColor="#00BCD4" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 20" Padding="20" HorizontalOptions="Center" VerticalOptions="Center" WidthRequest="300">
+                <Border.Shadow>
+                    <Shadow Brush="Black" Offset="0,5" Radius="15" Opacity="0.3" />
+                </Border.Shadow>
                 <VerticalStackLayout Spacing="15">
                     <Label x:Name="UyariMesaji" Text="İşlem Başarılı!" TextColor="White" FontSize="16" FontAttributes="Bold" HorizontalTextAlignment="Center" />
-                    <Button Text="Tamam" BackgroundColor="White" TextColor="#00BCD4" CornerRadius="10" FontAttributes="Bold" Clicked="ModernUyariKapat_Clicked" />
+
+                    <Border BackgroundColor="White" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 10" Padding="0">
+                        <Button Text="Tamam" BackgroundColor="Transparent" TextColor="#00BCD4" BorderWidth="0" FontAttributes="Bold" Clicked="ModernUyariKapat_Clicked" Margin="0" Padding="0"/>
+                    </Border>
+
                 </VerticalStackLayout>
-            </Frame>
+            </Border>
+        </Grid>
+
+        <Grid x:Name="LoadingOverlay" BackgroundColor="#CCFFFFFF" IsVisible="False" InputTransparent="False" Grid.RowSpan="2">
+            <Border BackgroundColor="White" Stroke="#E0E0E0" StrokeShape="RoundRectangle 15" Padding="30" HorizontalOptions="Center" VerticalOptions="Center">
+                <VerticalStackLayout Spacing="15" HorizontalOptions="Center">
+                    <ActivityIndicator IsRunning="{Binding Source={x:Reference LoadingOverlay}, Path=IsVisible}" Color="#00BCD4" WidthRequest="50" HeightRequest="50" HorizontalOptions="Center"/>
+                    <Label x:Name="LoadingTitle" Text="Veriler Yükleniyor..." FontSize="16" FontAttributes="Bold" TextColor="#333333" HorizontalOptions="Center"/>
+                    <Label x:Name="LoadingSubText" Text="Lütfen işlem bitene kadar bekleyiniz." FontSize="13" TextColor="#666666" HorizontalTextAlignment="Center" HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </Border>
         </Grid>
 
     </Grid>

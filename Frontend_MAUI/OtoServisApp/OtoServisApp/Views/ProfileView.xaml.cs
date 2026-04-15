@@ -151,6 +151,20 @@ public partial class ProfileView : ContentPage
         {
             AdminPanelButton.IsVisible = false;
         }
+
+        // ==============================================================
+        // --- YENİ REVİZE: Şalterin DB ile Eşitlenmesi Buraya Taşındı ---
+        // ==============================================================
+        if (_aktifKullanici != null)
+        {
+            // API'ye gereksiz istek gitmesin diye kilidi kapatıyoruz
+            _isMailSwitchProgrammaticChange = true;
+            // Veritabanındaki güncel durumu (1 ise True, 0 ise False) UI'a yansıtıyoruz
+            MailIzniSwitch.IsToggled = _aktifKullanici.mail_istiyor_mu;
+            // Kullanıcı kendi eliyle değiştirirse API'ye gitsin diye kilidi geri açıyoruz
+            _isMailSwitchProgrammaticChange = false;
+        }
+        // ==============================================================
     }
 
     // Butona tıklanınca Admin sayfasına gidecek (Sayfayı birazdan yapacağız)

@@ -3,6 +3,7 @@ using System.Text.Json;
 using OtoServisApp.Models;
 using Plugin.Firebase.CloudMessaging;
 using System.Diagnostics;
+using System.Text;
 
 namespace OtoServisApp.Services
 {
@@ -753,6 +754,54 @@ namespace OtoServisApp.Services
             {
                 return false;
             }
+        }
+        
+        // Python'a yazdığımız API ucuna bağlanmak için:
+        public async Task<List<ServisTalebiFotograf>> TalepFotograflariniGetirAsync(int talepId)
+        {
+            try
+            {
+                return await _httpClient.GetFromJsonAsync<List<ServisTalebiFotograf>>($"/servis-talepleri/{talepId}/fotograflar").ConfigureAwait(false) ?? new List<ServisTalebiFotograf>();
+            }
+            catch
+            {
+                return new List<ServisTalebiFotograf>();
+            }
+        }
+
+        // YENİ REVİZE: Tek bir fotoğrafı silme metodu
+        public async Task<bool> FotografSilAsync(int fotoId)
+        {
+            try
+            {
+                var response = await _httpClient.DeleteAsync($"/fotograflar/{fotoId}").ConfigureAwait(false);
+                return response.IsSuccessStatusCode;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<Dictionary<int, bool>> TopluFotografDurumuGetirAsync(List<int> talepIdleri)
+        {
+            try
+            {
+                var json = JsonSerializer.Serialize(new { talep_idleri = talepIdleri });
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync($"/servis-talepleri/toplu-fotograf-durumu", content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonResponse = await response.Content.ReadAsStringAsync();
+                    return JsonSerializer.Deserialize<Dictionary<int, bool>>(jsonResponse);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Toplu fotoğraf durumu alınamadı: {ex.Message}");
+            }
+            return new Dictionary<int, bool>();
         }
 
     }

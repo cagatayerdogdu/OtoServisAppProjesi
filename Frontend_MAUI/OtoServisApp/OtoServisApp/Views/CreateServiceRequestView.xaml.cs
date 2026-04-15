@@ -13,7 +13,7 @@ public partial class CreateServiceRequestView : ContentPage
     private dynamic _secilenArac;
 
     // Hasar Resimleri için Parametrik değişkenimiz
-    private int MaksimumFotoSayisi = 5;
+    private int MaksimumFotoSayisi = 4;
     public System.Collections.ObjectModel.ObservableCollection<FileResult> SecilenFotograflar { get; set; } = new();
 
     public CreateServiceRequestView(Kullanici kullanici)
@@ -34,6 +34,11 @@ public partial class CreateServiceRequestView : ContentPage
     {
         base.OnAppearing();
 
+        // MADDE 80 (YENİ REVİZE): Sadece bilgi ver, sayfadan atma!
+        if (_aktifKullanici.araclar == null || !_aktifKullanici.araclar.Any())
+        {
+            await DisplayAlert("Bilgilendirme", "Servis talebi oluşturabilmek için sisteme kayıtlı bir aracınız olması gerekir. Şu an ekranı inceleyebilirsiniz ancak talep oluşturmadan önce lütfen bir araç ekleyin.", "Anladım");
+        }
 
         // YENİ REVİZE: Arayüzün (UI) donmasını ve uygulamanın çökmesini engellemek için 
         // veri çekme işlemine geçmeden önce çok kısa bir süre (100ms) bekleyip thread'i rahatlatıyoruz.
@@ -149,6 +154,15 @@ public partial class CreateServiceRequestView : ContentPage
     private async void OnSubmitClicked(object sender, EventArgs e)
     {
         // --- 1. KONTROLLER ---
+
+        // Önce aracın sistemde var olup olmadığına bakalım (Hiç aracı yoksa)
+        if (_aktifKullanici.araclar == null || !_aktifKullanici.araclar.Any())
+        {
+            await DisplayAlert("İşlem Başarısız", "Sisteme kayıtlı aracınız bulunmadığı için servis talebi oluşturamazsınız. Lütfen 'Araçlarım' sekmesinden bir araç ekleyip tekrar deneyin.", "Tamam");
+            return; // İşlemi burada kes
+        }
+
+        // Aracı var ama listeden seçmeyi unuttuysa veya diğer alanlar boşsa
         if (_secilenArac == null || _secilenHizmet == null || string.IsNullOrEmpty(AddressEditor.Text))
         {
             await DisplayAlert("Uyarı", "Lütfen araç, hizmet ve adres alanlarını eksiksiz doldurun.", "Tamam");
@@ -208,7 +222,7 @@ public partial class CreateServiceRequestView : ContentPage
                     string uzanti = Path.GetExtension(foto.FileName);
                     if (string.IsNullOrEmpty(uzanti)) uzanti = ".jpg";
 
-                    string ozelDosyaAdi = $"{temizAdSoyad}-{olusturulanTalepId}-{DateTime.Now.ToString("yyyyMMddHHmmssfff")}{uzanti}";
+                    string ozelDosyaAdi = $"{temizAdSoyad}-{olusturulanTalepId}-{DateTime.Now.ToString("yyyy_MM_dd_HHmm_ssfff")}{uzanti}";
 
                     string uploadSonuc = await _apiService.UploadHasarFotografAsync(olusturulanTalepId, stream, ozelDosyaAdi);
 

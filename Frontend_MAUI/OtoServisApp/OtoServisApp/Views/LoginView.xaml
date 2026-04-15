@@ -28,17 +28,17 @@
                     <VerticalStackLayout Spacing="15">
                         <Label Text="Hesabınıza Giriş Yapın" FontSize="18" FontAttributes="Bold" TextColor="#334155" Margin="0,0,0,10" HorizontalOptions="Center"/>
 
-                        <Frame Padding="15,0" BorderColor="#E2E8F0" CornerRadius="10" HeightRequest="50" HasShadow="False" BackgroundColor="#F8FAFC">
-                            <Entry x:Name="EmailEntry" Placeholder="E-posta adresiniz" Keyboard="Email" TextColor="#334155" BackgroundColor="Transparent"/>
-                        </Frame>
+                        <Border Padding="15,0" Stroke="#E2E8F0" StrokeThickness="1" StrokeShape="RoundRectangle 10" HeightRequest="50" BackgroundColor="#F8FAFC">
+                            <Entry x:Name="EmailEntry" Placeholder="E-posta adresiniz" Keyboard="Email" TextColor="#334155" BackgroundColor="Transparent" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False"/>
+                        </Border>
 
-                        <Frame Padding="15,0" BorderColor="#E2E8F0" CornerRadius="10" HeightRequest="50" HasShadow="False" BackgroundColor="#F8FAFC">
-                            <Entry x:Name="PasswordEntry" Placeholder="Şifreniz" IsPassword="True" TextColor="#334155" BackgroundColor="Transparent"/>
-                        </Frame>
+                        <Border Padding="15,0" Stroke="#E2E8F0" StrokeThickness="1" StrokeShape="RoundRectangle 10" HeightRequest="50" BackgroundColor="#F8FAFC">
+                            <Entry x:Name="PasswordEntry" Placeholder="Şifreniz" IsPassword="True" TextColor="#334155" BackgroundColor="Transparent" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False"/>
+                        </Border>
 
                         <Grid ColumnDefinitions="*, Auto" Margin="0,5,0,10">
                             <HorizontalStackLayout Grid.Column="0" Spacing="5" VerticalOptions="Center">
-                                <CheckBox x:Name="BeniHatirlaCheckBox" Color="#0EA5E9" Scale="0.8"/>
+                                <CheckBox x:Name="BeniHatirlaCheckBox" IsChecked="True" Color="#0EA5E9" Scale="0.8"/>
                                 <Label Text="Beni Hatırla" VerticalOptions="Center" FontSize="13" TextColor="#64748B"/>
                             </HorizontalStackLayout>
 
@@ -49,7 +49,9 @@
                             </Label>
                         </Grid>
 
-                        <Button x:Name="LoginButton" Text="Giriş Yap" Clicked="OnLoginClicked" BackgroundColor="#0EA5E9" TextColor="White" HeightRequest="50" CornerRadius="10" FontSize="16" FontAttributes="Bold"/>
+                        <Border BackgroundColor="#0EA5E9" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 10" HeightRequest="50" Padding="0">
+                            <Button x:Name="LoginButton" Text="Giriş Yap" Clicked="OnLoginClicked" BackgroundColor="Transparent" TextColor="White" BorderWidth="0" FontSize="16" FontAttributes="Bold" Margin="0" Padding="0"/>
+                        </Border>
 
                         <Label Text="Üye olmadan devam et" TextColor="Green" TextDecorations="Underline" HorizontalOptions="Center" FontSize="14" FontAttributes="Bold" Margin="0,15,0,0">
                             <Label.GestureRecognizers>

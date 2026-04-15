@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:OtoServisApp.Controls"
+             x:Class="OtoServisApp.Views.FullScreenPhotoView"
+             BackgroundColor="Black"
+             NavigationPage.HasNavigationBar="False">
+
+    <Grid>
+        <CarouselView x:Name="FotoCarousel" Loop="True">
+            <CarouselView.ItemTemplate>
+                <DataTemplate>
+                    <controls:PinchToZoomContainer ZoomStateChanged="OnZoomStateChanged">
+                        <Image Source="{Binding TamUrl}" 
+                               Aspect="AspectFit"
+                               InputTransparent="True" />
+                    </controls:PinchToZoomContainer>
+                </DataTemplate>
+            </CarouselView.ItemTemplate>
+        </CarouselView>
+
+        <Label Text="Yakınlaştırmak veya uzaklaştırmak için görsele çift dokunun"
+               TextColor="White"
+               FontSize="12"
+               Opacity="0.7"
+               HorizontalOptions="Center"
+               VerticalOptions="Start"
+               Margin="0,80,0,0" />
+
+        <Border BackgroundColor="#222222" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 15" Opacity="0.8" HorizontalOptions="End" VerticalOptions="Start" Margin="20,40,20,0" HeightRequest="40" Padding="0">
+            <Button Text="X Kapat" Clicked="OnKapatClicked" BackgroundColor="Transparent" TextColor="White" FontAttributes="Bold" Padding="15,0" BorderWidth="0" Margin="0"/>
+        </Border>
+    </Grid>
+</ContentPage>

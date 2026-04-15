@@ -29,15 +29,35 @@ public partial class AddVehicleView : ContentPage
     {
         base.OnAppearing();
 
-        // 1. Markaları Yükle
-        _tumMarkalar = await _apiService.MarkalariGetirAsync();
-        if (_tumMarkalar != null)
-        {
-            MarkaListesi.ItemsSource = _tumMarkalar;
-        }
+        // 1. AŞAMA: Kullanıcıya donma hissi vermemek için Loading ekranını anında aç
+        LoadingOverlay.IsVisible = true;
 
-        // 2. Yakıt Tiplerini Yükle (Sabit Liste)
-        YakitListesi.ItemsSource = _tumYakitTipleri;
+        // YENİ REVİZE: Arayüzün (UI) donmasını ve uygulamanın çökmesini engellemek ve Loading animasyonunu başlatması için 
+        // veri çekme işlemine geçmeden önce çok kısa bir süre (20ms) bekleyip thread'i rahatlatıyoruz.
+        await Task.Delay(1);
+
+        try
+        {
+            // 1. Markaları Yükle
+            _tumMarkalar = await _apiService.MarkalariGetirAsync();
+            if (_tumMarkalar != null)
+            {
+                MarkaListesi.ItemsSource = _tumMarkalar;
+            }
+
+            // 2. Yakıt Tiplerini Yükle (Sabit Liste)
+            YakitListesi.ItemsSource = _tumYakitTipleri;
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Hata", "Listeler yüklenirken bir sorun oluştu.", "Tamam");
+            System.Diagnostics.Debug.WriteLine($"Yükleme Hatası: {ex.Message}");
+        }
+        finally
+        {
+            // 4. AŞAMA: Veri gelse de, hata da verse Loading ekranını KESİNLİKLE kapat
+            LoadingOverlay.IsVisible = false;
+        }
     }
 
     // --- MARKA SEÇİMİ ---
@@ -154,6 +174,22 @@ public partial class AddVehicleView : ContentPage
     // --- KAYDETME ---
     private async void OnSaveClicked(object sender, EventArgs e)
     {
+        // MADDE 83: Misafir kullanıcı kontrolü (ID = 0 ise engelle ve yönlendir)
+        if (_aktifKullanici.id == 0)
+        {
+            bool cevap = await DisplayAlert("Üyelik Gerekli",
+                "Misafir kullanıcı olarak araç kaydedemezsiniz. Avantajlardan yararlanmak ve aracınızı takip edebilmek için lütfen üye olun veya giriş yapın.",
+                "Giriş Yap / Kayıt Ol",
+                "Vazgeç");
+
+            if (cevap)
+            {
+                // Kullanıcıyı en başa, yani Login (Giriş) ekranına fırlatıyoruz
+                await Navigation.PopToRootAsync();
+            }
+            return; // İşlemi burada kesiyoruz, API'ye gitmiyoruz.
+        }
+
         if (_secilenMarka == null || _secilenModel == null || _secilenYakit == null ||
             string.IsNullOrEmpty(YearEntry.Text) || string.IsNullOrEmpty(KmEntry.Text))
         {

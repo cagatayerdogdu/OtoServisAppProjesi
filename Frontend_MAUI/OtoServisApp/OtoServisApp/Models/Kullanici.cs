@@ -32,6 +32,8 @@ namespace OtoServisApp.Models
         public bool aktif_mi { get; set; }
         public DateTime kayit_tarihi { get; set; }
         public string rol { get; set; } // YENİ EKLENEN SATIR
+        public bool mail_istiyor_mu { get; set; }
+        public DateTime? son_hatirlatma_tarihi { get; set; }
 
         // Kullanıcının araçlarını tutacak liste
         public List<Arac> araclar { get; set; }

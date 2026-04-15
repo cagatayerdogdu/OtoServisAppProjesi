@@ -56,14 +56,28 @@ public partial class VehiclesView : ContentPage
     {
         base.OnAppearing();
 
-        // YENİ REVİZE: Arayüzün (UI) donmasını ve uygulamanın çökmesini engellemek için 
-        // veri çekme işlemine geçmeden önce çok kısa bir süre (100ms) bekleyip thread'i rahatlatıyoruz.
-        // await Task.Delay(20);
+        // 1. AŞAMA: Kullanıcıya donma hissi vermemek için Loading ekranını anında aç
+        //LoadingOverlay.IsVisible = true;  XAML DEN KALDIRDIM
 
-        // Yükleme işlemini bu rahatlamadan sonra tetikliyoruz.
+        // YENİ REVİZE: Arayüzün (UI) donmasını ve uygulamanın çökmesini engellemek ve Loading animasyonunu başlatması için 
+        // veri çekme işlemine geçmeden önce çok kısa bir süre (20ms) bekleyip thread'i rahatlatıyoruz.
+        await Task.Delay(1);
 
-        // Artık kod kalabalığı yok, sadece yükleme metodunu çağırıyoruz
-        await VerileriYukle();
+        try
+        {
+            // 3. AŞAMA: Asıl veriyi (API İsteklerini) şimdi çekiyoruz
+            await VerileriYukle();
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Hata", "Araç verileri yüklenirken bir sorun oluştu.", "Tamam");
+            System.Diagnostics.Debug.WriteLine($"Yükleme Hatası: {ex.Message}");
+        }
+        //finally
+        //{
+        //    // 4. AŞAMA: Veri gelse de, hata da verse Loading ekranını KESİNLİKLE kapat
+        //    //LoadingOverlay.IsVisible = false;
+        //}
     }
 
     // Her yerde çağırabileceğimiz eşleştirme (Mapping) metodumuz

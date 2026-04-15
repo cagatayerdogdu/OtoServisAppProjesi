@@ -24,7 +24,29 @@ public partial class NotificationsView : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        await BildirimleriYukle();
+
+        // 1. AŞAMA: Kullanıcıya donma hissi vermemek için Loading ekranını anında aç
+        LoadingOverlay.IsVisible = true;
+
+        // YENİ REVİZE: Arayüzün (UI) donmasını ve uygulamanın çökmesini engellemek ve Loading animasyonunu başlatması için 
+        // veri çekme işlemine geçmeden önce çok kısa bir süre (20ms) bekleyip thread'i rahatlatıyoruz..
+        await Task.Delay(10);
+
+        try
+        {
+            // 3. AŞAMA: Asıl veriyi (API İsteklerini) şimdi çekiyoruz
+            await BildirimleriYukle();
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Hata", "Bildirimler yüklenirken bir sorun oluştu.", "Tamam");
+            System.Diagnostics.Debug.WriteLine($"Yükleme Hatası: {ex.Message}");
+        }
+        finally
+        {
+            // 4. AŞAMA: Veri gelse de, hata da verse Loading ekranını KESİNLİKLE kapat
+            LoadingOverlay.IsVisible = false;
+        }
     }
 
     private async Task<int?> GetCurrentUserIdAsync()
@@ -66,10 +88,24 @@ public partial class NotificationsView : ContentPage
         if (bildirim != null && !bildirim.okundu_mu)
         {
             bool basarili = await _apiService.BildirimOkunduIsaretleAsync(bildirim.id);
-            if (basarili)
+            try
             {
-                bildirim.okundu_mu = true;
-                await BildirimleriYukle();
+                if (basarili)
+                {
+                    bildirim.okundu_mu = true;
+                    await BildirimleriYukle();
+                    // Listeyi yeniden yükle (Artık donmayacak çünkü Loading çalışıyor)
+                }
+                else
+                {
+                    await DisplayAlert("Hata", "Liste yeniden yüklenirken bir sorun oluştu.", "Tamam");
+                }
+            }
+            finally
+            {
+                // İşlem bitti, ekranı serbest bırak
+                LoadingOverlay.IsVisible = false;
+                LoadingTitle.Text = "Bildirimler Yükleniyor..."; // Sonraki kullanımlar için varsayılana çevir
             }
         }
     }

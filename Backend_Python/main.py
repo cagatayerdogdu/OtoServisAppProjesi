@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, APIRouter
 from sqlalchemy.orm import Session
 import models, schemas
 from database import engine, get_db
-from typing import List
+from typing import List, Dict
 import logging
 from logging.handlers import RotatingFileHandler
 from fastapi import Request
@@ -35,6 +35,7 @@ import uuid
 from PIL import Image
 from fastapi import UploadFile, File
 from fastapi.staticfiles import StaticFiles
+
 ##########
 
 models.Base.metadata.create_all(bind=engine)
@@ -43,7 +44,7 @@ app = FastAPI(title="Oto Bakım Servisi API", version="1.0.0")
 
 # hasarlı resim ekleme kodları
 os.makedirs("HasarImg", exist_ok=True) # Klasör yoksa otomatik oluşturur
-app.mount("/HasarImg", StaticFiles(directory="HasarImg"), name="HasarImg") # Klasörü dışa açar
+app.mount("/HasarImg", StaticFiles(directory="HasarImg"), name="HasarImg") # Klasörü dışa açar # Fotoğrafları internetten (URL üzerinden) erişilebilir hale getiriyoruz
 #################
 
 # Firebase Başlatma (Eğer yoksa main.py'nin üst kısımlarına ekle)
@@ -494,7 +495,7 @@ def giris_yap(giris_bilgileri: schemas.KullaniciGiris, db: Session = Depends(get
         
     # YENİ REVİZE: kayit_durumu iptal olduğu için "soft_delete" ve "askıya alma" burada birleşti.
     if not kullanici.aktif_mi:
-        raise HTTPException(status_code=403, detail="Hesabiniz askiya alinmistir")
+        raise HTTPException(status_code=403, detail=f"Hesabınız pasif durumdadır.\nLütfen profil ekranından aktif ederek tekrar giriş yapmayı deneyiniz.")
         
     # YENİ: Son giriş tarihini güncelliyoruz
     kullanici.son_giris_tarihi = datetime.now()
@@ -1969,7 +1970,7 @@ def log_client_error(error: ClientErrorLog, db: Session = Depends(get_db)):
 #################################################################
 ##################### HASARLI RESİM EKLEME ######################
 #################################################################
-MaksimumFotoSayisi = 5
+MaksimumFotoSayisi = 4
 @app.post("/servis-talepleri/{talep_id}/fotograf")
 async def fotograf_yukle(talep_id: int, db: Session = Depends(get_db), file: UploadFile = File(...)):
     talep = db.query(models.ServisTalebi).filter(models.ServisTalebi.id == talep_id).first()
@@ -2031,3 +2032,49 @@ def fotograflari_temizle(talep_id: int, db: Session = Depends(get_db)):
         
     db.commit()
     return {"mesaj": "Eski fotoğraflar başarıyla temizlendi."}
+
+
+# --- TALEBE AİT FOTOĞRAFLARI GETİRME ---
+@app.get("/servis-talepleri/{talep_id}/fotograflar")
+def get_fotograflar(talep_id: int, db: Session = Depends(get_db)):
+    return db.query(models.ServisTalebiFotograf).filter(models.ServisTalebiFotograf.talep_id == talep_id).all()
+
+# --- YENİ REVİZE: TEK BİR FOTOĞRAFI FİZİKSEL VE DB'DEN SİLME ---
+@app.delete("/fotograflar/{foto_id}")
+def fotograf_sil(foto_id: int, db: Session = Depends(get_db)):
+    foto = db.query(models.ServisTalebiFotograf).filter(models.ServisTalebiFotograf.id == foto_id).first()
+    if not foto:
+        raise HTTPException(status_code=404, detail="Fotoğraf bulunamadı")
+    
+    # Dosyayı sunucudan fiziksel olarak uçuruyoruz
+    try:
+        if os.path.exists(foto.dosya_yolu):
+            os.remove(foto.dosya_yolu)
+    except:
+        pass # Dosya diskte bulunamazsa bile veritabanından silmek için devam et
+        
+    db.delete(foto)
+    db.commit()
+    return {"mesaj": "Fotoğraf başarıyla silindi"}
+
+
+class TopluFotografDurumuIstek(BaseModel):
+    talep_idleri: List[int]
+
+@app.post("/servis-talepleri/toplu-fotograf-durumu")
+def toplu_fotograf_durumu(
+    istek: TopluFotografDurumuIstek,
+    db: Session = Depends(get_db)
+) -> Dict[int, bool]:
+    """
+    Gönderilen talep ID'leri için fotoğraf var mı bilgisini döner.
+    Yanıt: { talep_id: bool, ... }
+    """
+    sonuc = {}
+    for talep_id in istek.talep_idleri:
+        # Veritabanında o talebe ait en az bir fotoğraf kaydı var mı kontrol et
+        var_mi = db.query(models.ServisTalebiFotograf).filter(
+            models.ServisTalebiFotograf.talep_id == talep_id
+        ).first() is not None
+        sonuc[talep_id] = var_mi
+    return sonuc

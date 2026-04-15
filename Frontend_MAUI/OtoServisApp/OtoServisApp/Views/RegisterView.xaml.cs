@@ -20,9 +20,8 @@ public partial class RegisterView : ContentPage
         string telefon = PhoneEntry.Text?.Trim();
         string eposta = EmailEntry.Text?.Trim().ToLower();
         string sifre = PasswordEntry.Text?.Trim();
-        string sifreTekrar = SifreTekrarEntry.Text?.Trim(); // YENİ: Tekrar alanı okundu
+        string sifreTekrar = SifreTekrarEntry.Text?.Trim(); 
 
-        // --- YENİ REVİZE BAŞLANGICI: Şifre Uzunluk Kontrolü (Madde 71) ---
         if (!string.IsNullOrEmpty(sifre) && sifre.Length < 6)
         {
             await DisplayAlert("Uyarı", "Güvenliğiniz için şifreniz en az 6 karakterden oluşmalıdır.", "Tamam");
@@ -32,7 +31,6 @@ public partial class RegisterView : ContentPage
             return;
         }
 
-        // --- YENİ REVİZE BAŞLANGICI: Email Doğrulama (Madde 51) ---
         try
         {
             var addr = new System.Net.Mail.MailAddress(EmailEntry.Text);
@@ -47,21 +45,16 @@ public partial class RegisterView : ContentPage
             await DisplayAlert("Hata", "Lütfen geçerli bir e-posta adresi giriniz.", "Tamam");
             return;
         }
-        // --- YENİ REVİZE BİTİŞİ ---
 
-        // 1. BOŞLUK KONTROLÜ (Tekrar alanı da eklendi)
         if (string.IsNullOrEmpty(adSoyad) || string.IsNullOrEmpty(telefon) || string.IsNullOrEmpty(eposta) || string.IsNullOrEmpty(sifre) || string.IsNullOrEmpty(sifreTekrar))
         {
             await DisplayAlert("Hata", "Lütfen tüm alanları doldurun.", "Tamam");
             return;
         }
 
-        // 2. ŞİFRE EŞLEŞME KONTROLÜ (MADDE 24)
         if (sifre != sifreTekrar)
         {
             await DisplayAlert("Hata", "Girdiğiniz şifreler birbiriyle eşleşmiyor. Lütfen kontrol edin.", "Tamam");
-
-            // Yanlışsa sadece tekrar kutusunu silip oraya odaklansın (Kullanıcı dostu UX)
             SifreTekrarEntry.Text = string.Empty;
             SifreTekrarEntry.Focus();
             return;
@@ -70,28 +63,30 @@ public partial class RegisterView : ContentPage
         RegisterButton.IsEnabled = false;
         RegisterButton.Text = "KAYDEDİLİYOR...";
 
-        // API'ye gönderilecek veriyi hazırlıyoruz (KullaniciCreate şemasına uygun)
+        // YENİ EKLENEN: Checkbox durumunu oku
+        bool mailIstiyorMu = MailIzniCheckBox.IsChecked;
+
+        // API'ye gönderilecek veriye ekle
         var yeniKullanici = new
         {
             ad_soyad = adSoyad,
             telefon = telefon,
             eposta = eposta,
-            sifre = sifre
+            sifre = sifre,
+            mail_istiyor_mu = mailIstiyorMu // YENİ EKLENDİ
         };
 
         try
         {
-            // Yazdığımız güvenli metodu çağırıyoruz
             string sonuc = await _apiService.KullaniciKayitAsync(yeniKullanici);
 
             if (sonuc == "OK")
             {
                 await DisplayAlert("Başarılı", "Hesabınız oluşturuldu. Şimdi giriş yapabilirsiniz.", "Harika!");
-                await Navigation.PopAsync(); // Login ekranına geri döner
+                await Navigation.PopAsync(); 
             }
             else
             {
-                // API'den dönen hatayı ekrana bas
                 await DisplayAlert("Kayıt İşlemi Durduruldu", sonuc, "Tamam");
             }
         }

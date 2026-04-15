@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:OtoServisApp.Models" 
+             xmlns:views="clr-namespace:OtoServisApp.Views"
              x:Class="OtoServisApp.Views.AdminUserTrackingView"
              Title="Müşteri Takibi"
              BackgroundColor="#F5F6FA">
@@ -10,31 +12,25 @@
 
         <CollectionView Grid.Row="1" x:Name="TrackingList">
             <CollectionView.ItemTemplate>
-                <DataTemplate>
+                <DataTemplate x:DataType="views:TakipMusteri">
+
                     <Border BackgroundColor="White" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="15" Margin="5,5,5,10">
                         <Grid ColumnDefinitions="*, Auto" ColumnSpacing="15" VerticalOptions="Center">
 
                             <VerticalStackLayout Grid.Column="0" Spacing="4">
-                                <Label Text="{Binding ad_soyad}" FontSize="16" FontAttributes="Bold" TextColor="#333333"/>
-                                <Label Text="{Binding eposta}" FontSize="13" TextColor="#7F8C8D"/>
-                                <Label Text="{Binding SonGirisText}" FontSize="12" TextColor="#555555"/>
-                                <Label Text="{Binding KacGunText}" FontSize="12" TextColor="#E74C3C" FontAttributes="Bold"/>
-                                <Label Text="{Binding MailIzinDurum}" FontSize="11" TextColor="{Binding MailIzinRengi}" FontAttributes="Bold"/>
+                                <Label Text="{Binding ad_soyad, Mode=OneWay}" FontSize="16" FontAttributes="Bold" TextColor="#333333"/>
+                                <Label Text="{Binding eposta, Mode=OneWay}" FontSize="13" TextColor="#7F8C8D"/>
+                                <Label Text="{Binding SonGirisText, Mode=OneWay}" FontSize="12" TextColor="#555555"/>
+                                <Label Text="{Binding KacGunText, Mode=OneWay}" FontSize="12" TextColor="#E74C3C" FontAttributes="Bold"/>
+                                <Label Text="{Binding MailIzinDurum, Mode=OneWay}" FontSize="11" TextColor="{Binding MailIzinRengi, Mode=OneWay}" FontAttributes="Bold"/>
 
-                                <Label Text="{Binding SonHatirlatmaText}" FontSize="11" TextColor="{Binding HatirlatmaRenk}" FontAttributes="Bold" Margin="0,4,0,0"/>
+                                <Label Text="{Binding SonHatirlatmaText, Mode=OneWay}" FontSize="11" TextColor="{Binding HatirlatmaRenk, Mode=OneWay}" FontAttributes="Bold" Margin="0,4,0,0"/>
                             </VerticalStackLayout>
 
-                            <Button Grid.Column="1" 
-                                    Text="Hatırlat" 
-                                    Clicked="OnSendReminderClicked" 
-                                    CommandParameter="{Binding .}" 
-                                    BackgroundColor="#00BCD4"
-                                    TextColor="White" 
-                                    HeightRequest="40" 
-                                    Padding="15,0" 
-                                    CornerRadius="8"
-                                    IsEnabled="{Binding mail_istiyor_mu}"
-                                    VerticalOptions="Center"/>
+                            <Border Grid.Column="1" BackgroundColor="#00BCD4" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="40" VerticalOptions="Center" Padding="0">
+                                <Button Text="Hatırlat" Clicked="OnSendReminderClicked" CommandParameter="{Binding .}" BackgroundColor="Transparent" TextColor="White" Padding="15,0" BorderWidth="0" IsEnabled="{Binding mail_istiyor_mu, Mode=OneWay}" Margin="0"/>
+                            </Border>
+
                         </Grid>
                     </Border>
                 </DataTemplate>
@@ -42,9 +38,15 @@
         </CollectionView>
 
         <HorizontalStackLayout Grid.Row="2" HorizontalOptions="Center" Spacing="20" Padding="10,20">
-            <Button x:Name="BtnGeri" Text="&lt; Geri" Clicked="OnPrev" BackgroundColor="#E0E6ED" TextColor="#2C3E50" FontAttributes="Bold" CornerRadius="8"/>
+            <Border BackgroundColor="#E0E6ED" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="40" Padding="0">
+                <Button x:Name="BtnGeri" Text="&lt; Geri" Clicked="OnPrev" BackgroundColor="Transparent" TextColor="#2C3E50" FontAttributes="Bold" BorderWidth="0" Margin="0" Padding="15,0"/>
+            </Border>
+
             <Label x:Name="PageInfo" Text="1 / 1" VerticalOptions="Center" TextColor="#2C3E50" FontAttributes="Bold"/>
-            <Button x:Name="BtnIleri" Text="İleri &gt;" Clicked="OnNext" BackgroundColor="#E0E6ED" TextColor="#2C3E50" FontAttributes="Bold" CornerRadius="8"/>
+
+            <Border BackgroundColor="#E0E6ED" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="40" Padding="0">
+                <Button x:Name="BtnIleri" Text="İleri &gt;" Clicked="OnNext" BackgroundColor="Transparent" TextColor="#2C3E50" FontAttributes="Bold" BorderWidth="0" Margin="0" Padding="15,0"/>
+            </Border>
         </HorizontalStackLayout>
     </Grid>
 </ContentPage>

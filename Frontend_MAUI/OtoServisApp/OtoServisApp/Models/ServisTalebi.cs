@@ -40,6 +40,9 @@ namespace OtoServisApp.Models
         public string hizmet_adi { get; set; } = "Yükleniyor...";
         public string arac_adi { get; set; } = "Yükleniyor...";
 
+        // Fotoğraf olup olmadığını UI tarafında kontrol etmek için
+        public bool foto_var_mi { get; set; }
+
         // --- YENİ EKLENEN KISIM (MADDE 46 - DROPDOWN KONTROLÜ) ---
         private bool _dropdownAcikMi = false;
         public bool DropdownAcikMi
