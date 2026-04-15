@@ -235,7 +235,7 @@ public partial class AdminRequestsView : ContentPage
         _secilenButon = null;
     }
 
-    private async void OnItemDurumKutusuAc(object sender, EventArgs e)
+    private void OnItemDurumKutusuAc(object sender, EventArgs e)
     {
         var btn = sender as Button;
         var talep = btn?.BindingContext as ServisTalebi;
@@ -249,40 +249,43 @@ public partial class AdminRequestsView : ContentPage
         _secilenTalep = talep;
         _secilenButon = btn;
 
-        // Menüyü görünür yapıp hiyerarşiyi tırmanmasını sağla																					 
+        // Menüyü görünür yapıp hiyerarşiyi tırmanmasını sağla
         FloatingMenuOverlay.IsVisible = true;
 
-        // Native platform API'leriyle butonun koordinatlarını hesapla
-        double buton_Y = 0;
         double buton_X = 0;
+        double buton_Y = 0;
 
 #if IOS
-        // iOS: UIKit koordinat sistemini kullan
-        var iosView = btn.Handler?.PlatformView as UIView;
-        if (iosView != null && iosView.Window != null)
+        var iosBtn = btn.Handler?.PlatformView as UIKit.UIView;
+        var iosOverlay = FloatingMenuOverlay.Handler?.PlatformView as UIKit.UIView;
+        if (iosBtn != null && iosOverlay != null)
         {
-            var globalPoint = iosView.ConvertPointToView(iosView.Bounds.Location, null);
-            buton_Y = globalPoint.Y;
-            buton_X = globalPoint.X;
+            var rect = iosBtn.ConvertRectToView(iosBtn.Bounds, iosOverlay);
+            buton_X = rect.X;
+            buton_Y = rect.Y + btn.Height;
         }
 #elif ANDROID
-        // Android: View'un koordinatlarını ekran üzerinden al
-        var androidView = btn.Handler?.PlatformView as Android.Views.View;
-        if (androidView != null)
+        var androidBtn = btn.Handler?.PlatformView as Android.Views.View;
+        var androidOverlay = FloatingMenuOverlay.Handler?.PlatformView as Android.Views.View;
+        if (androidBtn != null && androidOverlay != null)
         {
-            var location = new int[2];
-            androidView.GetLocationOnScreen(location);
+            // Hem butonun hem de ekranın koordinatlarını al
+            int[] locBtn = new int[2];
+            androidBtn.GetLocationOnScreen(locBtn);
+            
+            int[] locOverlay = new int[2];
+            androidOverlay.GetLocationOnScreen(locOverlay);
 
-            // Android koordinatlarını MAUI Density ile çevir
             double density = DeviceDisplay.MainDisplayInfo.Density;
-            buton_Y = location[1] / density;
-            buton_X = location[0] / density;
+            
+            // İkisini birbirinden çıkararak Status Bar (Üst çubuk) sapmasını %100 sıfırla
+            buton_X = (locBtn[0] - locOverlay[0]) / density;
+            buton_Y = ((locBtn[1] - locOverlay[1]) / density) + btn.Height;
         }
 #endif
 
-        // Menüyü dinamik olarak butonun tam altına konumlandır
-        // (40 birim offset, butonu kapatmasın diye)
-        AbsoluteLayout.SetLayoutBounds(FloatingItemDurumMenusu, new Microsoft.Maui.Graphics.Rect(buton_X, buton_Y + 40, 130, 160));
+        // CS0104 Ambiguous Rect Hatasının Çözümü: MAUI kütüphanesini açıkça belirttik.
+        AbsoluteLayout.SetLayoutBounds(FloatingItemDurumMenusu, new Microsoft.Maui.Graphics.Rect(buton_X, buton_Y, 130, 160));
     }
 
     private void OnFloatingItemDurumSecildi(object sender, EventArgs e)
