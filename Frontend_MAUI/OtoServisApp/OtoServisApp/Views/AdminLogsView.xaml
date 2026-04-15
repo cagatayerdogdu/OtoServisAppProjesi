@@ -20,14 +20,14 @@
                     <HorizontalStackLayout Spacing="5" VerticalOptions="Center" HorizontalOptions="EndAndExpand">
                         <Label Text="Seviye:" VerticalOptions="Center" FontAttributes="Bold" TextColor="#333333" FontSize="12"/>
                         <Border BackgroundColor="White" Stroke="#CCCCCC" StrokeThickness="1" StrokeShape="RoundRectangle 15" HeightRequest="35" WidthRequest="110" Padding="0">
-                            <Button x:Name="SecilenSeviyeButonu" Text="Tümü" BackgroundColor="Transparent" TextColor="#111111" FontSize="12" Clicked="OnSeviyeKutusuAcKapat" BorderWidth="0" Margin="0"/>
+                            <Button x:Name="SecilenSeviyeButonu" Text="Tümü" BackgroundColor="Transparent" TextColor="#111111" FontSize="12" Clicked="OnSeviyeKutusuAcKapat" BorderWidth="0" Margin="0" Padding="0"/>
                         </Border>
                     </HorizontalStackLayout>
                 </HorizontalStackLayout>
 
                 <Grid ColumnDefinitions="*, Auto, Auto, Auto" ColumnSpacing="8">
                     <Border Grid.Column="0" Stroke="#CCCCCC" StrokeThickness="1" BackgroundColor="White" StrokeShape="RoundRectangle 8" HeightRequest="35" Padding="0">
-                        <Button x:Name="SecilenTarihKriteriButonu" Text="Bugün" BackgroundColor="Transparent" TextColor="#111111" FontSize="11" Clicked="OnTarihKriteriKutusuAcKapat" BorderWidth="0" Margin="0"/>
+                        <Button x:Name="SecilenTarihKriteriButonu" Text="Bugün" BackgroundColor="Transparent" TextColor="#111111" FontSize="11" Clicked="OnTarihKriteriKutusuAcKapat" BorderWidth="0" Margin="0" Padding="0"/>
                     </Border>
 
                     <Border Grid.Column="1" x:Name="BaslangicKutusu" IsVisible="False" Stroke="#CCCCCC" StrokeThickness="1" BackgroundColor="White" StrokeShape="RoundRectangle 8" HeightRequest="35" Padding="5,0">
@@ -109,12 +109,14 @@
 
         <Border Grid.Row="3" BackgroundColor="White" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10" Margin="10,0,10,10">
             <Grid ColumnDefinitions="Auto, *, Auto">
-                <Border BackgroundColor="#EEEEEE" StrokeShape="RoundRectangle 8" HeightRequest="35" WidthRequest="90">
-                    <Button x:Name="OncekiSayfaBtn" Text="◀ Önceki" Clicked="OnOncekiSayfaClicked" BackgroundColor="Transparent" TextColor="#333333" FontSize="12" FontAttributes="Bold"/>
+                <Border Grid.Column="0" BackgroundColor="#EEEEEE" Stroke="Transparent" StrokeShape="RoundRectangle 8" HeightRequest="35" WidthRequest="90" Padding="0">
+                    <Button x:Name="OncekiSayfaBtn" Text="◀ Önceki" Clicked="OnOncekiSayfaClicked" BackgroundColor="Transparent" TextColor="#333333" FontSize="12" FontAttributes="Bold" BorderWidth="0" Margin="0"/>
                 </Border>
+
                 <Label x:Name="SayfaBilgiLabel" Grid.Column="1" Text="Sayfa 1 / 1" HorizontalOptions="Center" VerticalOptions="Center" FontSize="12" FontAttributes="Bold" TextColor="#111111"/>
-                <Border BackgroundColor="#00BCD4" StrokeShape="RoundRectangle 8" HeightRequest="35" WidthRequest="90">
-                    <Button x:Name="SonrakiSayfaBtn" Text="Sonraki ▶" Clicked="OnSonrakiSayfaClicked" BackgroundColor="Transparent" TextColor="White" FontSize="12" FontAttributes="Bold"/>
+
+                <Border Grid.Column="2" BackgroundColor="#00BCD4" Stroke="Transparent" StrokeShape="RoundRectangle 8" HeightRequest="35" WidthRequest="90" Padding="0">
+                    <Button x:Name="SonrakiSayfaBtn" Text="Sonraki ▶" Clicked="OnSonrakiSayfaClicked" BackgroundColor="Transparent" TextColor="White" FontSize="12" FontAttributes="Bold" BorderWidth="0" Margin="0"/>
                 </Border>
             </Grid>
         </Border>

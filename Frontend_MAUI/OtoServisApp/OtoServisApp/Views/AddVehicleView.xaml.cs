@@ -174,6 +174,22 @@ public partial class AddVehicleView : ContentPage
     // --- KAYDETME ---
     private async void OnSaveClicked(object sender, EventArgs e)
     {
+        // MADDE 83: Misafir kullanıcı kontrolü (ID = 0 ise engelle ve yönlendir)
+        if (_aktifKullanici.id == 0)
+        {
+            bool cevap = await DisplayAlert("Üyelik Gerekli",
+                "Misafir kullanıcı olarak araç kaydedemezsiniz. Avantajlardan yararlanmak ve aracınızı takip edebilmek için lütfen üye olun veya giriş yapın.",
+                "Giriş Yap / Kayıt Ol",
+                "Vazgeç");
+
+            if (cevap)
+            {
+                // Kullanıcıyı en başa, yani Login (Giriş) ekranına fırlatıyoruz
+                await Navigation.PopToRootAsync();
+            }
+            return; // İşlemi burada kesiyoruz, API'ye gitmiyoruz.
+        }
+
         if (_secilenMarka == null || _secilenModel == null || _secilenYakit == null ||
             string.IsNullOrEmpty(YearEntry.Text) || string.IsNullOrEmpty(KmEntry.Text))
         {
