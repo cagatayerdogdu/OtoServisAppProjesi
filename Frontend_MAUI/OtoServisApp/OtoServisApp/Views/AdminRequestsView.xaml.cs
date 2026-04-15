@@ -226,44 +226,40 @@ public partial class AdminRequestsView : ContentPage
     private void OnItemDurumKutusuAc(object sender, EventArgs e)
     {
         var btn = sender as Button;
-        var secilenTalep = btn?.BindingContext as ServisTalebi;
+        var parentStack = btn?.Parent as VerticalStackLayout;
 
-        if (secilenTalep != null)
+        if (parentStack != null)
         {
+            // Üstteki ana filtre açıksa güvenlik için kapat
             DurumSecimKutusu.IsVisible = false;
 
-            if (_orijinalTalepler != null)
+            var dropdownBorder = parentStack.Children.OfType<Border>().FirstOrDefault();
+            if (dropdownBorder != null)
             {
-                foreach (var talep in _orijinalTalepler.Where(t => t.DropdownAcikMi && t != secilenTalep))
-                {
-                    talep.DropdownAcikMi = false;
-                }
+                dropdownBorder.IsVisible = !dropdownBorder.IsVisible;
             }
-
-            // Model üzerinden görünürlüğü tetikliyoruz (Bu sayede UI otomatik güncelleniyor)
-            secilenTalep.DropdownAcikMi = !secilenTalep.DropdownAcikMi;
         }
     }
 
     private void OnItemDurumSecildi(object sender, EventArgs e)
     {
         var btn = sender as Button;
-        var yeniDurum = btn?.Text;
         var secilenTalep = btn?.BindingContext as ServisTalebi;
 
-        if (secilenTalep != null && !string.IsNullOrEmpty(yeniDurum))
+        if (secilenTalep != null && btn != null)
         {
+            var yeniDurum = btn.Text;
             secilenTalep.durum = yeniDurum;
-            secilenTalep.DropdownAcikMi = false; // Menüyü kapat
 
-            // Hiyerarşik ağaçtan ana butonu bulup yazısını güncelliyoruz (Anlık yenileme hissi için)
             var verticalLayout = btn.Parent as VerticalStackLayout;
             var dropdownBorder = verticalLayout?.Parent as Border;
-            var grid = dropdownBorder?.Parent as Grid;
 
-            if (grid != null)
+            if (dropdownBorder != null)
             {
-                var mainButton = grid.Children.OfType<Button>().FirstOrDefault();
+                dropdownBorder.IsVisible = false;
+
+                var mainStack = dropdownBorder.Parent as VerticalStackLayout;
+                var mainButton = mainStack?.Children.OfType<Button>().FirstOrDefault();
                 if (mainButton != null)
                 {
                     mainButton.Text = yeniDurum;
