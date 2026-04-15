@@ -126,10 +126,12 @@
                                             <Button Text="{Binding durum}" 
                                                     CommandParameter="{Binding .}"
                                                     Clicked="OnItemDurumKutusuAc" 
-                                                    BackgroundColor="#FAFAFA" TextColor="#333333" BorderColor="#CCCCCC" BorderWidth="1" CornerRadius="15" FontSize="13" FontAttributes="Bold" HeightRequest="35" Padding="15,0" VerticalOptions="End"/>
+                                                    BackgroundColor="#FAFAFA" TextColor="#333333" BorderColor="#CCCCCC" 
+                                                    BorderWidth="1" CornerRadius="15" FontSize="13" FontAttributes="Bold" 
+                                                    HeightRequest="35" Padding="15,0" VerticalOptions="End"/>
 
                                             <Border BackgroundColor="#FFFFFF" 
-                                                    IsVisible="{Binding DropdownAcikMi}" 
+                                                    IsVisible="False" 
                                                     Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" 
                                                     Margin="0,40,0,-120" Padding="0" ZIndex="999">
                                                 <VerticalStackLayout Spacing="0">

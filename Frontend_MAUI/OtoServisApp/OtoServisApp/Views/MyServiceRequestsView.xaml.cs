@@ -154,7 +154,6 @@ public partial class MyServiceRequestsView : ContentPage
         RequestsList.ItemsSource = null;
     }
 
-
     private void OnFiltreSecildi(object sender, SelectionChangedEventArgs e)
     {
         var secilen = e.CurrentSelection.FirstOrDefault() as string;

@@ -49,6 +49,7 @@ public partial class AdminRequestsView : ContentPage
 
     private async Task VerileriYukle()
     {
+        // 1. PARALEL ÇEKİM: Ana verileri aynı anda ateşleyip zaman kazanıyoruz
         var hizmetTask = _apiService.HizmetleriGetirAsync();
         var talepTask = _apiService.AdminAktifTalepleriGetirAsync();
         var markaTask = _apiService.MarkalariGetirAsync();
@@ -61,16 +62,22 @@ public partial class AdminRequestsView : ContentPage
 
         if (_orijinalTalepler != null && _orijinalTalepler.Count > 0)
         {
+            // 2. CACHE (ÖNBELLEK) MEKANİZMASI: Aynı aracı tekrar tekrar API'den çekmemek için
+
             var aracHavuzu = new ConcurrentDictionary<int, Arac>();
+
+            // 3. N+1 PROBLEMİNİN ÇÖZÜMÜ: Tüm taleplerin detaylarını paralel olarak doldur
 
             var gorevler = _orijinalTalepler.Select(async talep =>
             {
+                // Hizmet Eşleştirme
                 if (_tumHizmetler != null)
                 {
                     var h = _tumHizmetler.FirstOrDefault(x => x.id == talep.hizmet_id);
                     if (h != null) talep.hizmet_adi = h.ad;
                 }
 
+                // Araç Bilgilerini Detaylandırma (Hafızada yoksa API'den çekip havuza at)
                 if (!aracHavuzu.TryGetValue(talep.arac_id, out var arac))
                 {
                     arac = await _apiService.AracGetirAsync(talep.arac_id);
@@ -102,11 +109,20 @@ public partial class AdminRequestsView : ContentPage
                     talep.arac_adi_tam = "Sistemden Silinmiş Araç";
                 }
 
-                var fotolar = await _apiService.TalepFotograflariniGetirAsync(talep.id);
-                talep.foto_var_mi = fotolar != null && fotolar.Count > 0;
+                //var fotolar = await _apiService.TalepFotograflariniGetirAsync(talep.id);
+                //talep.foto_var_mi = fotolar != null && fotolar.Count > 0;
             });
-
+            // Başlatılan tüm asenkron görevleri bekle
             await Task.WhenAll(gorevler);
+
+            // Fotoğraf durumlarını TEK SEFERDE toplu olarak al
+            var talepIdleri = _orijinalTalepler.Select(t => t.id).ToList();
+            var fotoDurumlari = await _apiService.TopluFotografDurumuGetirAsync(talepIdleri);
+
+            foreach (var talep in _orijinalTalepler)
+            {
+                talep.foto_var_mi = fotoDurumlari.TryGetValue(talep.id, out var varMi) && varMi;
+            }
 
             FiltreleriUygula();
         }
@@ -116,9 +132,28 @@ public partial class AdminRequestsView : ContentPage
         }
     }
 
+    // =========================================================
+    // FİLTRELEME SİSTEMİ (Arama Barı)
+    // =========================================================
+    private CancellationTokenSource _aramaCts;
     private void OnFiltreDegisti(object sender, TextChangedEventArgs e)
     {
-        FiltreleriUygula();
+        _aramaCts?.Cancel();
+        _aramaCts = new CancellationTokenSource();
+
+        Task.Delay(100, _aramaCts.Token)
+            .ContinueWith(t =>
+            {
+                if (!t.IsCanceled)
+                    MainThread.BeginInvokeOnMainThread(FiltreleriUygula);
+            });
+    }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        _aramaCts?.Cancel();
+        RequestsList.ItemsSource = null;
     }
 
     private void FiltreleriUygula()
@@ -147,6 +182,8 @@ public partial class AdminRequestsView : ContentPage
                 "Bekliyor" => 1,
                 "Onaylandı" => 2,
                 "İşlemde" => 3,
+                // "Tamamlandı" => 4,
+                // "İptal Edildi" => 5,
                 _ => 4
             })
             .ThenBy(t => t.id);
@@ -154,6 +191,9 @@ public partial class AdminRequestsView : ContentPage
         RequestsList.ItemsSource = filtrelenmisListe.ToList();
     }
 
+    // =========================================================
+    // ÜST TARAF FİLTRE DROPDOWN KONTROLLERİ
+    // =========================================================
     private void OnFiltreDurumKutusuAcKapat(object sender, EventArgs e)
     {
         DurumSecimKutusu.IsVisible = !DurumSecimKutusu.IsVisible;
@@ -180,24 +220,26 @@ public partial class AdminRequestsView : ContentPage
         }
     }
 
+    // =========================================================
+    // KART İÇİ DURUM SEÇİMİ
+    // =========================================================
     private void OnItemDurumKutusuAc(object sender, EventArgs e)
     {
         var btn = sender as Button;
-        var secilenTalep = btn?.BindingContext as ServisTalebi;
+        var grid = btn?.Parent as Grid; // Artık tasarımı Grid'in içinde arıyoruz
 
-        if (secilenTalep != null)
+        if (grid != null)
         {
+            // Üstteki ana filtre açıksa kapatıyoruz
             DurumSecimKutusu.IsVisible = false;
 
-            if (_orijinalTalepler != null)
+            // Tıkladığımız butona ait açılır menüyü (Border) buluyoruz
+            var dropdownBorder = grid.Children.OfType<Border>().FirstOrDefault();
+            if (dropdownBorder != null)
             {
-                foreach (var talep in _orijinalTalepler.Where(t => t.DropdownAcikMi && t != secilenTalep))
-                {
-                    talep.DropdownAcikMi = false;
-                }
+                // Görünürlüğünü tersine çevir (Açıksa kapat, kapalıysa aç)
+                dropdownBorder.IsVisible = !dropdownBorder.IsVisible;
             }
-
-            secilenTalep.DropdownAcikMi = !secilenTalep.DropdownAcikMi;
         }
     }
 
@@ -209,24 +251,32 @@ public partial class AdminRequestsView : ContentPage
 
         if (secilenTalep != null && !string.IsNullOrEmpty(yeniDurum))
         {
-            secilenTalep.durum = yeniDurum;
-            secilenTalep.DropdownAcikMi = false;
+            secilenTalep.durum = yeniDurum; // Arka planda veriyi güncelle
 
+            // Hiyerarşiyi tırmanarak ilgili elementleri buluyoruz
             var verticalLayout = btn.Parent as VerticalStackLayout;
             var dropdownBorder = verticalLayout?.Parent as Border;
             var grid = dropdownBorder?.Parent as Grid;
+
+            if (dropdownBorder != null)
+            {
+                dropdownBorder.IsVisible = false; // Seçim yapıldıktan sonra menüyü kapat
+            }
 
             if (grid != null)
             {
                 var mainButton = grid.Children.OfType<Button>().FirstOrDefault();
                 if (mainButton != null)
                 {
-                    mainButton.Text = yeniDurum;
+                    mainButton.Text = yeniDurum; // Karttaki ana butonun metnini yeni durumla değiştir
                 }
             }
         }
     }
 
+    // =========================================================
+    // GÜNCELLEME İŞLEMİ
+    // =========================================================
     private async void OnUpdateClicked(object sender, EventArgs e)
     {
         var button = sender as Button;
