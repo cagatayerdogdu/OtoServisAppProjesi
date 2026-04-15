@@ -6,16 +6,21 @@ namespace OtoServisApp.Views;
 public partial class AdminLogsView : ContentPage
 {
     private readonly ApiService _apiService;
-    private List<SistemLog> _sonCekilenLoglar;
+    private List<SistemLog> _hamCekilenLoglar; // API'den gelen ham veri
+    private List<SistemLog> _filtrelenmisLoglar; // Yerel arama sonrası liste
 
     // SAYFALAMA DEĞİŞKENLERİ
     private int _mevcutSayfa = 1;
     private int _toplamSayfa = 1;
+    private int _sayfaBasinaKayit = 50;
 
     public AdminLogsView()
     {
         InitializeComponent();
         _apiService = new ApiService();
+
+        // MADDE 81: Yeni Dropdown listesi
+        SeviyeListesi.ItemsSource = new List<string> { "Tümü", "ERROR", "WARNING", "INFO" };
     }
 
     protected override async void OnAppearing()
@@ -23,11 +28,28 @@ public partial class AdminLogsView : ContentPage
         base.OnAppearing();
 
         TarihKriteriPicker.SelectedIndex = 0; // Bugün
-        SeviyePicker.SelectedIndex = 1; // ERROR
+        SecilenSeviyeButonu.Text = "Tümü"; // Varsayılan Dropdown Text
         AramaBar.Text = string.Empty;
 
         _mevcutSayfa = 1;
         await SorgulamaYap();
+    }
+
+    // --- MADDE 81: YENİ SEVİYE DROPDOWN KODLARI ---
+    private void OnSeviyeKutusuAcKapat(object sender, EventArgs e)
+    {
+        SeviyeSecimKutusu.IsVisible = !SeviyeSecimKutusu.IsVisible;
+    }
+
+    private void OnSeviyeSecildi(object sender, SelectionChangedEventArgs e)
+    {
+        var secilen = e.CurrentSelection.FirstOrDefault() as string;
+        if (secilen != null)
+        {
+            SecilenSeviyeButonu.Text = secilen;
+            SeviyeSecimKutusu.IsVisible = false;
+            SeviyeListesi.SelectedItem = null; // Seçimi temizle ki tekrar seçilebilsin
+        }
     }
 
     private void OnTarihKriteriDegisti(object sender, EventArgs e)
@@ -44,32 +66,28 @@ public partial class AdminLogsView : ContentPage
     }
 
     // --- SAYFALAMA BUTONLARI ---
-    private async void OnOncekiSayfaClicked(object sender, EventArgs e)
+    private void OnOncekiSayfaClicked(object sender, EventArgs e)
     {
         if (_mevcutSayfa > 1)
         {
             _mevcutSayfa--;
-            await SorgulamaYap();
+            SayfayiCiz(); // Artık API'ye gitmiyoruz, yerel listeyi kaydırıyoruz
         }
     }
 
-    private async void OnSonrakiSayfaClicked(object sender, EventArgs e)
+    private void OnSonrakiSayfaClicked(object sender, EventArgs e)
     {
         if (_mevcutSayfa < _toplamSayfa)
         {
             _mevcutSayfa++;
-            await SorgulamaYap();
+            SayfayiCiz(); // Artık API'ye gitmiyoruz, yerel listeyi kaydırıyoruz
         }
     }
 
     // --- ANA SORGULAMA MOTORU ---
     private async Task SorgulamaYap()
     {
-        string seviye = "Tümü";
-        if (SeviyePicker.SelectedIndex >= 0)
-        {
-            seviye = SeviyePicker.Items[SeviyePicker.SelectedIndex];
-        }
+        string seviye = SecilenSeviyeButonu.Text; // Yeni yapıdan alıyoruz
 
         DateTime? baslangic = null;
         DateTime? bitis = null;
@@ -85,38 +103,30 @@ public partial class AdminLogsView : ContentPage
         SonrakiSayfaBtn.IsEnabled = false;
 
         // API'YE GİT VE PAKETİ ÇEK
-        var response = await _apiService.AdminLoglariGetirAsync(seviye, baslangic, bitis, _mevcutSayfa, 50);
+        var response = await _apiService.AdminLoglariGetirAsync(seviye, baslangic, bitis, 1, 9999); // API limit eziyorsa biz de hepsini isteriz
 
-        if (response != null)
+        if (response != null && response.loglar != null)
         {
-            _sonCekilenLoglar = response.loglar;
-            _toplamSayfa = response.toplam_sayfa;
-            _mevcutSayfa = response.mevcut_sayfa;
-
-            KayitBilgiLabel.Text = $"DB Toplam Kayıt: {response.toplam_kayit} | Filtrelenen: {response.filtreli_kayit}";
-            SayfaBilgiLabel.Text = $"Sayfa {_mevcutSayfa} / {_toplamSayfa}";
-
-            OncekiSayfaBtn.IsEnabled = _mevcutSayfa > 1;
-            SonrakiSayfaBtn.IsEnabled = _mevcutSayfa < _toplamSayfa;
-
-            YerelAramaUygula();
+            _hamCekilenLoglar = response.loglar;
+            YerelAramaUygula(); // Bu metod sayfalamayı da halledecek
         }
     }
 
     private void OnAramaDegisti(object sender, TextChangedEventArgs e)
     {
+        _mevcutSayfa = 1; // Arama değiştiğinde ilk sayfaya dön
         YerelAramaUygula();
     }
 
+    // MADDE 82: FİLTRELEME VE ZORUNLU YEREL SAYFALAMA
     private void YerelAramaUygula()
     {
-        if (_sonCekilenLoglar == null) return;
+        if (_hamCekilenLoglar == null) return;
 
-        var liste = _sonCekilenLoglar.AsEnumerable();
+        var liste = _hamCekilenLoglar.AsEnumerable();
 
         if (!string.IsNullOrWhiteSpace(AramaBar.Text))
         {
-            // .NET 8 Standart Arama Yapısı (Hatasız)
             var metin = AramaBar.Text;
             liste = liste.Where(l =>
                 (l.kullanici_ad_soyad != null && l.kullanici_ad_soyad.Contains(metin, StringComparison.OrdinalIgnoreCase)) ||
@@ -125,6 +135,31 @@ public partial class AdminLogsView : ContentPage
             );
         }
 
-        LogsList.ItemsSource = liste.ToList();
+        _filtrelenmisLoglar = liste.ToList();
+
+        // Backend'in yapamadığı sayfalamayı biz manuel hesaplıyoruz
+        _toplamSayfa = (int)Math.Ceiling((double)_filtrelenmisLoglar.Count / _sayfaBasinaKayit);
+        if (_toplamSayfa == 0) _toplamSayfa = 1;
+
+        SayfayiCiz();
+    }
+
+    // Veriyi 50'şer 50'şer kesip arayüze basan yama metodumuz
+    private void SayfayiCiz()
+    {
+        if (_filtrelenmisLoglar == null) return;
+
+        var gosterilecekListe = _filtrelenmisLoglar
+                                .Skip((_mevcutSayfa - 1) * _sayfaBasinaKayit)
+                                .Take(_sayfaBasinaKayit)
+                                .ToList();
+
+        LogsList.ItemsSource = gosterilecekListe;
+
+        KayitBilgiLabel.Text = $"Bulunan Toplam Kayıt: {_filtrelenmisLoglar.Count}";
+        SayfaBilgiLabel.Text = $"Sayfa {_mevcutSayfa} / {_toplamSayfa}";
+
+        OncekiSayfaBtn.IsEnabled = _mevcutSayfa > 1;
+        SonrakiSayfaBtn.IsEnabled = _mevcutSayfa < _toplamSayfa;
     }
 }
