@@ -2,6 +2,13 @@
 using OtoServisApp.Models;
 using OtoServisApp.Services;
 
+#if IOS
+using UIKit;
+using CoreGraphics;
+#elif ANDROID
+using Android.Views;
+using Android.Graphics;
+#endif  
 namespace OtoServisApp.Views;
 
 public partial class AdminRequestsView : ContentPage
@@ -11,9 +18,10 @@ public partial class AdminRequestsView : ContentPage
     private List<ServisTalebi> _orijinalTalepler;
     private List<string> _durumFiltreleri = new List<string> { "Tümü", "Bekliyor", "Onaylandı", "İşlemde" }; // , "Tamamlandı", "İptal Edildi"
     private string _secilenDurum = "Tümü";
-    // 2. DÜZELTME: Açık olan kart menüsünü takip eden referans
-    private Border _acikOlanKartMenu;
 
+    // Açık olan kartın referansını tutar (C# tarafında hangi talebin seçildiğini bilmek için)
+    private ServisTalebi _secilenTalep;
+    private Button _secilenButon;
     public AdminRequestsView()
     {
         InitializeComponent();
@@ -159,8 +167,6 @@ public partial class AdminRequestsView : ContentPage
 
     private void FiltreleriUygula()
     {
-        _acikOlanKartMenu = null; // Listeler yenilendiğinde eski açık menü referansını temizle
-
         if (_orijinalTalepler == null) return;
 
         var filtrelenmisListe = _orijinalTalepler.AsEnumerable();
@@ -201,14 +207,9 @@ public partial class AdminRequestsView : ContentPage
     {
         DurumSecimKutusu.IsVisible = !DurumSecimKutusu.IsVisible;
 
-        // Üstteki ana filtre açıldığında, eğer altta açık kalan bir kart menüsü varsa onu kapat
-        if (DurumSecimKutusu.IsVisible && _acikOlanKartMenu != null)
-        {
-            _acikOlanKartMenu.IsVisible = false;
-            _acikOlanKartMenu = null;
-        }
+        // Üstteki menü açılırken, alttaki yüzen menüyü güvenlice kapat										
+        FloatingMenuOverlay.IsVisible = false;
     }
-
 
     private void OnFiltreDurumSecildi(object sender, SelectionChangedEventArgs e)
     {
@@ -224,30 +225,81 @@ public partial class AdminRequestsView : ContentPage
     }
 
     // =========================================================
-    // KART İÇİ DURUM SEÇİMİ (PROFESYONEL NATIVE GÖRÜNÜM)
+    // KART İÇİ DURUM SEÇİMİ PROFESSIONAL ÇÖZÜM: YÜZEN KART MENÜSÜ KONTROLLERİ
     // =========================================================
+    private void OnFloatingMenuClose(object sender, EventArgs e)
+    {
+        // Kapama Grid'ine veya "Tamamlandı" seçimine tıklayınca menüyü kapat
+        FloatingMenuOverlay.IsVisible = false;
+        _secilenTalep = null;
+        _secilenButon = null;
+    }
+
     private async void OnItemDurumKutusuAc(object sender, EventArgs e)
     {
         var btn = sender as Button;
-        var secilenTalep = btn?.BindingContext as ServisTalebi;
+        var talep = btn?.BindingContext as ServisTalebi;
 
-        if (secilenTalep == null || btn == null) return;
+        if (talep == null || btn == null) return;
 
-        // Üstteki ana arama filtresi açıksa güvenlice kapat
+        // Üstteki ana filtreyi güvenlice kapat
         DurumSecimKutusu.IsVisible = false;
 
-        // İŞTE PROFESYONEL YÖNTEM: Ekranın altından açılan Native Mobil Menü!
-        string action = await DisplayActionSheet("Mevcut Durumu Değiştir", "Vazgeç", null,
-            "Bekliyor", "Onaylandı", "İşlemde", "Tamamlandı", "İptal Edildi");
+        // Çakışmayı önlemek için referansları kaydet
+        _secilenTalep = talep;
+        _secilenButon = btn;
 
-        // Kullanıcı bir seçim yaptıysa ve "Vazgeç" demediyse:
-        if (!string.IsNullOrEmpty(action) && action != "Vazgeç")
+        // Menüyü görünür yapıp hiyerarşiyi tırmanmasını sağla																					 
+        FloatingMenuOverlay.IsVisible = true;
+
+        // Native platform API'leriyle butonun koordinatlarını hesapla
+        double buton_Y = 0;
+        double buton_X = 0;
+
+#if IOS
+        // iOS: UIKit koordinat sistemini kullan
+        var iosView = btn.Handler?.PlatformView as UIView;
+        if (iosView != null && iosView.Window != null)
         {
-            secilenTalep.durum = action;
-            btn.Text = action; // Ekranda görünen butonu anında güncelle
+            var globalPoint = iosView.ConvertPointToView(iosView.Bounds.Location, null);
+            buton_Y = globalPoint.Y;
+            buton_X = globalPoint.X;
         }
+#elif ANDROID
+        // Android: View'un koordinatlarını ekran üzerinden al
+        var androidView = btn.Handler?.PlatformView as Android.Views.View;
+        if (androidView != null)
+        {
+            var location = new int[2];
+            androidView.GetLocationOnScreen(location);
+
+            // Android koordinatlarını MAUI Density ile çevir
+            double density = DeviceDisplay.MainDisplayInfo.Density;
+            buton_Y = location[1] / density;
+            buton_X = location[0] / density;
+        }
+#endif
+
+        // Menüyü dinamik olarak butonun tam altına konumlandır
+        // (40 birim offset, butonu kapatmasın diye)
+        AbsoluteLayout.SetLayoutBounds(FloatingItemDurumMenusu, new Rect(buton_X, buton_Y + 40, 130, 160));
     }
 
+    private void OnFloatingItemDurumSecildi(object sender, EventArgs e)
+    {
+        var btn = sender as Button;
+        var yeniDurum = btn?.Text;
+
+        // Tıklanan durum bilgisini referanslarımız üzerinden güncelle
+        if (_secilenTalep != null && _secilenButon != null && !string.IsNullOrEmpty(yeniDurum))
+        {
+            _secilenTalep.durum = yeniDurum; // Arka plandaki modeli güncelle
+            _secilenButon.Text = yeniDurum; // Ekrandaki butonu anında güncelle
+        }
+
+        // Seçim yapıldıktan sonra yüzen menüyü kapat
+        OnFloatingMenuClose(sender, e);
+    }
 
     // =========================================================
     // GÜNCELLEME İŞLEMİ

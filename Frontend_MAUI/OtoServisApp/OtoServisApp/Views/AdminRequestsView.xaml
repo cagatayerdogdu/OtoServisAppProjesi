@@ -123,10 +123,10 @@
                                     <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="End">
                                         <Label Text="Mevcut Durum" FontSize="10" TextColor="#888888" Margin="5,0,0,0"/>
 
-                                        <Button Text="{Binding durum}" 
-                CommandParameter="{Binding .}"
-                Clicked="OnItemDurumKutusuAc" 
-                BackgroundColor="#FAFAFA" TextColor="#333333" BorderColor="#CCCCCC" BorderWidth="1" CornerRadius="15" FontSize="13" FontAttributes="Bold" HeightRequest="35" Padding="15,0" VerticalOptions="End"/>
+                                        <Button x:Name="KartDurumButonu" Text="{Binding durum}" 
+                                                CommandParameter="{Binding .}"
+                                                Clicked="OnItemDurumKutusuAc" 
+                                                BackgroundColor="#FAFAFA" TextColor="#333333" BorderColor="#CCCCCC" BorderWidth="1" CornerRadius="15" FontSize="13" FontAttributes="Bold" HeightRequest="35" Padding="15,0" VerticalOptions="End"/>
                                     </VerticalStackLayout>
 
                                     <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="End">
@@ -168,6 +168,20 @@
                 </VerticalStackLayout>
             </Border>
         </Grid>
+
+        <AbsoluteLayout x:Name="FloatingMenuOverlay" IsVisible="False" BackgroundColor="Transparent" ZIndex="999" InputTransparent="False">
+            <Grid AbsoluteLayout.LayoutBounds="0,0,1,1" AbsoluteLayout.LayoutFlags="All" Tapped="OnFloatingMenuClose" />
+
+            <Border x:Name="FloatingItemDurumMenusu" BackgroundColor="White" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="0" ZIndex="1" AbsoluteLayout.LayoutBounds="0,0,130,160" AbsoluteLayout.LayoutFlags="None">
+                <VerticalStackLayout Spacing="0">
+                    <Button Text="Bekliyor" Clicked="OnFloatingItemDurumSecildi" BackgroundColor="Transparent" TextColor="#111111" FontSize="12" HeightRequest="32" Padding="0"/>
+                    <Button Text="Onaylandı" Clicked="OnFloatingItemDurumSecildi" BackgroundColor="Transparent" TextColor="#111111" FontSize="12" HeightRequest="32" Padding="0"/>
+                    <Button Text="İşlemde" Clicked="OnFloatingItemDurumSecildi" BackgroundColor="Transparent" TextColor="#111111" FontSize="12" HeightRequest="32" Padding="0"/>
+                    <Button Text="Tamamlandı" Clicked="OnFloatingItemDurumSecildi" BackgroundColor="Transparent" TextColor="#111111" FontSize="12" HeightRequest="32" Padding="0"/>
+                    <Button Text="İptal Edildi" Clicked="OnFloatingItemDurumSecildi" BackgroundColor="Transparent" TextColor="#111111" FontSize="12" HeightRequest="32" Padding="0"/>
+                </VerticalStackLayout>
+            </Border>
+        </AbsoluteLayout>
 
     </Grid>
 </ContentPage>
