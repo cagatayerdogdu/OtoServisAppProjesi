@@ -226,20 +226,22 @@ public partial class AdminRequestsView : ContentPage
     private void OnItemDurumKutusuAc(object sender, EventArgs e)
     {
         var btn = sender as Button;
-        var grid = btn?.Parent as Grid; // Artık tasarımı Grid'in içinde arıyoruz
+        var secilenTalep = btn?.BindingContext as ServisTalebi;
 
-        if (grid != null)
+        if (secilenTalep != null)
         {
-            // Üstteki ana filtre açıksa kapatıyoruz
             DurumSecimKutusu.IsVisible = false;
 
-            // Tıkladığımız butona ait açılır menüyü (Border) buluyoruz
-            var dropdownBorder = grid.Children.OfType<Border>().FirstOrDefault();
-            if (dropdownBorder != null)
+            if (_orijinalTalepler != null)
             {
-                // Görünürlüğünü tersine çevir (Açıksa kapat, kapalıysa aç)
-                dropdownBorder.IsVisible = !dropdownBorder.IsVisible;
+                foreach (var talep in _orijinalTalepler.Where(t => t.DropdownAcikMi && t != secilenTalep))
+                {
+                    talep.DropdownAcikMi = false;
+                }
             }
+
+            // Model üzerinden görünürlüğü tetikliyoruz (Bu sayede UI otomatik güncelleniyor)
+            secilenTalep.DropdownAcikMi = !secilenTalep.DropdownAcikMi;
         }
     }
 
@@ -251,24 +253,20 @@ public partial class AdminRequestsView : ContentPage
 
         if (secilenTalep != null && !string.IsNullOrEmpty(yeniDurum))
         {
-            secilenTalep.durum = yeniDurum; // Arka planda veriyi güncelle
+            secilenTalep.durum = yeniDurum;
+            secilenTalep.DropdownAcikMi = false; // Menüyü kapat
 
-            // Hiyerarşiyi tırmanarak ilgili elementleri buluyoruz
+            // Hiyerarşik ağaçtan ana butonu bulup yazısını güncelliyoruz (Anlık yenileme hissi için)
             var verticalLayout = btn.Parent as VerticalStackLayout;
             var dropdownBorder = verticalLayout?.Parent as Border;
             var grid = dropdownBorder?.Parent as Grid;
-
-            if (dropdownBorder != null)
-            {
-                dropdownBorder.IsVisible = false; // Seçim yapıldıktan sonra menüyü kapat
-            }
 
             if (grid != null)
             {
                 var mainButton = grid.Children.OfType<Button>().FirstOrDefault();
                 if (mainButton != null)
                 {
-                    mainButton.Text = yeniDurum; // Karttaki ana butonun metnini yeni durumla değiştir
+                    mainButton.Text = yeniDurum;
                 }
             }
         }
