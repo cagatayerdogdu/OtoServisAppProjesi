@@ -9,9 +9,10 @@ public partial class AdminRequestsView : ContentPage
     private readonly ApiService _apiService;
     private List<Hizmet> _tumHizmetler;
     private List<ServisTalebi> _orijinalTalepler;
-
-    private List<string> _durumFiltreleri = new List<string> { "Tümü", "Bekliyor", "Onaylandı", "İşlemde" };
+    private List<string> _durumFiltreleri = new List<string> { "Tümü", "Bekliyor", "Onaylandı", "İşlemde" }; // , "Tamamlandı", "İptal Edildi"
     private string _secilenDurum = "Tümü";
+    // 2. DÜZELTME: Açık olan kart menüsünü takip eden referans
+    private Border _acikOlanKartMenu;
 
     public AdminRequestsView()
     {
@@ -158,6 +159,8 @@ public partial class AdminRequestsView : ContentPage
 
     private void FiltreleriUygula()
     {
+        _acikOlanKartMenu = null; // Listeler yenilendiğinde eski açık menü referansını temizle
+
         if (_orijinalTalepler == null) return;
 
         var filtrelenmisListe = _orijinalTalepler.AsEnumerable();
@@ -182,8 +185,8 @@ public partial class AdminRequestsView : ContentPage
                 "Bekliyor" => 1,
                 "Onaylandı" => 2,
                 "İşlemde" => 3,
-                // "Tamamlandı" => 4,
-                // "İptal Edildi" => 5,
+                //"Tamamlandı" => 4,
+                //"İptal Edildi" => 5,
                 _ => 4
             })
             .ThenBy(t => t.id);
@@ -198,14 +201,14 @@ public partial class AdminRequestsView : ContentPage
     {
         DurumSecimKutusu.IsVisible = !DurumSecimKutusu.IsVisible;
 
-        if (DurumSecimKutusu.IsVisible && _orijinalTalepler != null)
+        // Üstteki ana filtre açıldığında, eğer altta açık kalan bir kart menüsü varsa onu kapat
+        if (DurumSecimKutusu.IsVisible && _acikOlanKartMenu != null)
         {
-            foreach (var talep in _orijinalTalepler.Where(t => t.DropdownAcikMi))
-            {
-                talep.DropdownAcikMi = false;
-            }
+            _acikOlanKartMenu.IsVisible = false;
+            _acikOlanKartMenu = null;
         }
     }
+
 
     private void OnFiltreDurumSecildi(object sender, SelectionChangedEventArgs e)
     {
@@ -230,13 +233,26 @@ public partial class AdminRequestsView : ContentPage
 
         if (parentStack != null)
         {
-            // Üstteki ana filtre açıksa güvenlik için kapat
+            // Kart menüsü açıldığında, üstteki ana filtreyi güvenlice kapat
             DurumSecimKutusu.IsVisible = false;
 
             var dropdownBorder = parentStack.Children.OfType<Border>().FirstOrDefault();
             if (dropdownBorder != null)
             {
+                // Başka bir kartın menüsü zaten açıksa, onu kapat (Böylece ekranda hep tek menü açık kalır)
+                if (_acikOlanKartMenu != null && _acikOlanKartMenu != dropdownBorder)
+                {
+                    _acikOlanKartMenu.IsVisible = false;
+                }
+
+                // Tıklananı aç/kapat
                 dropdownBorder.IsVisible = !dropdownBorder.IsVisible;
+
+                // Şu anki durumu referansa kaydet
+                if (dropdownBorder.IsVisible)
+                    _acikOlanKartMenu = dropdownBorder;
+                else
+                    _acikOlanKartMenu = null;
             }
         }
     }
@@ -257,6 +273,7 @@ public partial class AdminRequestsView : ContentPage
             if (dropdownBorder != null)
             {
                 dropdownBorder.IsVisible = false;
+                _acikOlanKartMenu = null; // Menü kapandığı için referansı temizle									
 
                 var mainStack = dropdownBorder.Parent as VerticalStackLayout;
                 var mainButton = mainStack?.Children.OfType<Button>().FirstOrDefault();
