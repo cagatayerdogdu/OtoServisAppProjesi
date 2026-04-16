@@ -9,19 +9,32 @@ using CoreGraphics;
 using Android.Views;
 using Android.Graphics;
 #endif  
+
 namespace OtoServisApp.Views;
 
 public partial class AdminRequestsView : ContentPage
 {
     private readonly ApiService _apiService;
     private List<Hizmet> _tumHizmetler;
+    private List<Marka> _tumMarkalar;
     private List<ServisTalebi> _orijinalTalepler;
-    private List<string> _durumFiltreleri = new List<string> { "Tümü", "Bekliyor", "Onaylandı", "İşlemde" }; // , "Tamamlandı", "İptal Edildi"
+    private List<string> _durumFiltreleri = new List<string> { "Tümü", "Bekliyor", "Onaylandı", "İşlemde" };
     private string _secilenDurum = "Tümü";
 
-    // Açık olan kartın referansını tutar (C# tarafında hangi talebin seçildiğini bilmek için)
+    // Açık olan kartın referansını tutar (yüzen menü için)
     private ServisTalebi _secilenTalep;
-    private Button _secilenButon;
+
+    // Lazy loading değişkenleri
+    private const int SayfaBoyutu = 20;
+    private int _mevcutSkip = 0;
+    private bool _dahaFazlaVar = true;
+    private bool _yukleniyor = false;
+    private bool _ilkYukleme = true;
+    private string _aktifArama = "";
+
+    // Arama debounce için
+    private CancellationTokenSource _aramaCts;
+
     public AdminRequestsView()
     {
         InitializeComponent();
@@ -32,18 +45,21 @@ public partial class AdminRequestsView : ContentPage
     {
         base.OnAppearing();
 
-        LoadingTitle.Text = "Talepler Yükleniyor...";
-        LoadingSubText.Text = "Lütfen bekleyiniz.";
-        LoadingOverlay.IsVisible = true;
-
-        await Task.Delay(5);
+        if (_ilkYukleme)
+        {
+            LoadingOverlay.IsVisible = true;
+            LoadingTitle.Text = "Talepler Yükleniyor...";
+            LoadingSubText.Text = "Lütfen bekleyiniz.";
+            await Task.Delay(5);
+        }
 
         try
         {
             if (DurumListesi != null && DurumListesi.ItemsSource == null)
                 DurumListesi.ItemsSource = _durumFiltreleri;
 
-            await VerileriYukle();
+            if (_ilkYukleme)
+                await TalepleriYukle(reset: true);
         }
         catch (Exception ex)
         {
@@ -52,163 +68,188 @@ public partial class AdminRequestsView : ContentPage
         }
         finally
         {
+            if (_ilkYukleme)
+                LoadingOverlay.IsVisible = false;
+        }
+    }
+
+    /// <summary>
+    /// Talepleri sayfalı olarak yükler. reset=true ise listeyi sıfırlar.
+    /// </summary>
+    private async Task TalepleriYukle(bool reset = true)
+    {
+        if (_yukleniyor) return;
+        if (!reset && !_dahaFazlaVar) return;
+
+        _yukleniyor = true;
+
+        if (reset)
+        {
+            _mevcutSkip = 0;
+            _dahaFazlaVar = true;
+            _orijinalTalepler?.Clear();
+        }
+
+        if (_ilkYukleme)
+        {
+            LoadingOverlay.IsVisible = true;
+            LoadingTitle.Text = "Talepler Yükleniyor...";
+        }
+
+        try
+        {
+            // İlk yüklemede referans verileri bir kez al
+            if (_ilkYukleme)
+            {
+                _tumHizmetler = await _apiService.HizmetleriGetirAsync();
+                _tumMarkalar = await _apiService.MarkalariGetirAsync();
+                _ilkYukleme = false;
+            }
+
+            // Sayfalı admin talepleri endpoint'ini kullan
+            var (yeniTalepler, toplamKayit) = await _apiService.AdminTalepleriniSayfaliGetirAsync(
+                skip: _mevcutSkip,
+                limit: SayfaBoyutu,
+                durum: _secilenDurum,
+                arama: _aktifArama
+            );
+
+            if (yeniTalepler != null && yeniTalepler.Any())
+            {
+                if (_orijinalTalepler == null)
+                    _orijinalTalepler = new List<ServisTalebi>();
+
+                // Gelen talepleri zenginleştir (araç adı, hizmet adı, foto durumu)
+                await TalepleriZenginlestir(yeniTalepler);
+
+                _orijinalTalepler.AddRange(yeniTalepler);
+                _mevcutSkip += yeniTalepler.Count;
+                _dahaFazlaVar = _orijinalTalepler.Count < toplamKayit;
+            }
+            else
+            {
+                _dahaFazlaVar = false;
+            }
+
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                RequestsList.ItemsSource = _orijinalTalepler?.ToList();
+            });
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Hata", "Veriler yüklenirken bir sorun oluştu.", "Tamam");
+            System.Diagnostics.Debug.WriteLine($"Admin talepler yükleme hatası: {ex.Message}");
+        }
+        finally
+        {
+            _yukleniyor = false;
             LoadingOverlay.IsVisible = false;
         }
     }
 
-    private async Task VerileriYukle()
+    /// <summary>
+    /// Yeni yüklenen talepleri zenginleştirir: hizmet adı, araç adı ve fotoğraf var mı bilgisi ekler.
+    /// </summary>
+    private async Task TalepleriZenginlestir(List<ServisTalebi> talepler)
     {
-        // 1. PARALEL ÇEKİM: Ana verileri aynı anda ateşleyip zaman kazanıyoruz
-        var hizmetTask = _apiService.HizmetleriGetirAsync();
-        var talepTask = _apiService.AdminAktifTalepleriGetirAsync();
-        var markaTask = _apiService.MarkalariGetirAsync();
+        if (talepler == null || talepler.Count == 0) return;
 
-        await Task.WhenAll(hizmetTask, talepTask, markaTask);
+        // Araç havuzu (cache) – aynı aracı tekrar API'den çekmemek için
+        var aracHavuzu = new ConcurrentDictionary<int, Arac>();
 
-        _tumHizmetler = await hizmetTask;
-        _orijinalTalepler = await talepTask;
-        var markalar = await markaTask;
-
-        if (_orijinalTalepler != null && _orijinalTalepler.Count > 0)
+        // Her talep için paralel olarak hizmet adı ve araç adı doldur
+        var detayGorevleri = talepler.Select(async talep =>
         {
-            // 2. CACHE (ÖNBELLEK) MEKANİZMASI: Aynı aracı tekrar tekrar API'den çekmemek için
+            // Hizmet adı (önceden alınan _tumHizmetler listesinden)
+            var hizmet = _tumHizmetler?.FirstOrDefault(h => h.id == talep.hizmet_id);
+            if (hizmet != null)
+                talep.hizmet_adi = hizmet.ad;
 
-            var aracHavuzu = new ConcurrentDictionary<int, Arac>();
-
-            // 3. N+1 PROBLEMİNİN ÇÖZÜMÜ: Tüm taleplerin detaylarını paralel olarak doldur
-
-            var gorevler = _orijinalTalepler.Select(async talep =>
+            // Araç bilgisi (cache'de yoksa API'den al)
+            if (!aracHavuzu.TryGetValue(talep.arac_id, out var arac))
             {
-                // Hizmet Eşleştirme
-                if (_tumHizmetler != null)
-                {
-                    var h = _tumHizmetler.FirstOrDefault(x => x.id == talep.hizmet_id);
-                    if (h != null) talep.hizmet_adi = h.ad;
-                }
-
-                // Araç Bilgilerini Detaylandırma (Hafızada yoksa API'den çekip havuza at)
-                if (!aracHavuzu.TryGetValue(talep.arac_id, out var arac))
-                {
-                    arac = await _apiService.AracGetirAsync(talep.arac_id);
-                    if (arac != null)
-                    {
-                        aracHavuzu.TryAdd(talep.arac_id, arac);
-                    }
-                }
-
+                arac = await _apiService.AracGetirAsync(talep.arac_id);
                 if (arac != null)
-                {
-                    string gosterimAd = "";
-                    if (arac.marka_id != null && arac.model_id != null && markalar != null)
-                    {
-                        var marka = markalar.FirstOrDefault(m => m.id == arac.marka_id);
-                        var model = marka?.modeller?.FirstOrDefault(m => m.id == arac.model_id);
-                        if (marka != null && model != null) gosterimAd = $"{marka.ad} {model.ad}";
-                    }
-
-                    if (string.IsNullOrWhiteSpace(gosterimAd) && !string.IsNullOrWhiteSpace(arac.ozel_marka))
-                    {
-                        gosterimAd = $"{arac.ozel_marka} {arac.ozel_model}";
-                    }
-
-                    talep.arac_adi_tam = string.IsNullOrWhiteSpace(gosterimAd) ? $"Araç ID: {arac.id}" : gosterimAd;
-                }
-                else
-                {
-                    talep.arac_adi_tam = "Sistemden Silinmiş Araç";
-                }
-
-                //var fotolar = await _apiService.TalepFotograflariniGetirAsync(talep.id);
-                //talep.foto_var_mi = fotolar != null && fotolar.Count > 0;
-            });
-            // Başlatılan tüm asenkron görevleri bekle
-            await Task.WhenAll(gorevler);
-
-            // Fotoğraf durumlarını TEK SEFERDE toplu olarak al
-            var talepIdleri = _orijinalTalepler.Select(t => t.id).ToList();
-            var fotoDurumlari = await _apiService.TopluFotografDurumuGetirAsync(talepIdleri);
-
-            foreach (var talep in _orijinalTalepler)
-            {
-                talep.foto_var_mi = fotoDurumlari.TryGetValue(talep.id, out var varMi) && varMi;
+                    aracHavuzu.TryAdd(talep.arac_id, arac);
             }
 
-            FiltreleriUygula();
-        }
-        else
+            if (arac != null)
+            {
+                string gosterimAd = "";
+                if (arac.marka_id != null && arac.model_id != null && _tumMarkalar != null)
+                {
+                    var marka = _tumMarkalar.FirstOrDefault(m => m.id == arac.marka_id);
+                    var model = marka?.modeller?.FirstOrDefault(m => m.id == arac.model_id);
+                    if (marka != null && model != null)
+                        gosterimAd = $"{marka.ad} {model.ad}";
+                }
+
+                if (string.IsNullOrWhiteSpace(gosterimAd) && !string.IsNullOrWhiteSpace(arac.ozel_marka))
+                    gosterimAd = $"{arac.ozel_marka} {arac.ozel_model}";
+
+                talep.arac_adi_tam = string.IsNullOrWhiteSpace(gosterimAd) ? $"Araç ID: {arac.id}" : gosterimAd;
+            }
+            else
+            {
+                talep.arac_adi_tam = "Sistemden Silinmiş Araç";
+            }
+        });
+
+        await Task.WhenAll(detayGorevleri);
+
+        // Toplu fotoğraf durumu sorgusu (sadece bu sayfadaki talepler için)
+        var talepIdleri = talepler.Select(t => t.id).ToList();
+        var fotoDurumlari = await _apiService.TopluFotografDurumuGetirAsync(talepIdleri);
+
+        foreach (var talep in talepler)
         {
-            RequestsList.ItemsSource = null;
+            talep.foto_var_mi = fotoDurumlari.TryGetValue(talep.id, out var varMi) && varMi;
         }
     }
 
-    // =========================================================
-    // FİLTRELEME SİSTEMİ (Arama Barı)
-    // =========================================================
-    private CancellationTokenSource _aramaCts;
+    /// <summary>
+    /// Koleksiyon görünümü sona yaklaştığında tetiklenir, yeni sayfa yükler.
+    /// </summary>
+    private async void OnThresholdReached(object sender, EventArgs e)
+    {
+        if (!_yukleniyor && _dahaFazlaVar)
+            await TalepleriYukle(reset: false);
+    }
+
+    /// <summary>
+    /// Arama çubuğu değiştiğinde debounce ile filtreleme yapar.
+    /// </summary>
     private void OnFiltreDegisti(object sender, TextChangedEventArgs e)
     {
         _aramaCts?.Cancel();
         _aramaCts = new CancellationTokenSource();
 
-        Task.Delay(100, _aramaCts.Token)
-            .ContinueWith(t =>
+        Task.Delay(300, _aramaCts.Token).ContinueWith(t =>
+        {
+            if (!t.IsCanceled)
             {
-                if (!t.IsCanceled)
-                    MainThread.BeginInvokeOnMainThread(FiltreleriUygula);
-            });
+                _aktifArama = AramaBar.Text;
+                MainThread.BeginInvokeOnMainThread(async () => await TalepleriYukle(reset: true));
+            }
+        });
     }
 
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
         _aramaCts?.Cancel();
-        RequestsList.ItemsSource = null;
-    }
-
-    private void FiltreleriUygula()
-    {
-        if (_orijinalTalepler == null) return;
-
-        var filtrelenmisListe = _orijinalTalepler.AsEnumerable();
-
-        if (_secilenDurum != "Tümü")
-        {
-            filtrelenmisListe = filtrelenmisListe.Where(t => t.durum == _secilenDurum);
-        }
-
-        if (!string.IsNullOrWhiteSpace(AramaBar.Text))
-        {
-            var kelime = AramaBar.Text.ToLower();
-            filtrelenmisListe = filtrelenmisListe.Where(t =>
-                (t.kullanici_ad_soyad != null && t.kullanici_ad_soyad.ToLower().Contains(kelime)) ||
-                (t.arac_adi_tam != null && t.arac_adi_tam.ToLower().Contains(kelime))
-            );
-        }
-
-        filtrelenmisListe = filtrelenmisListe
-            .OrderBy(t => t.durum switch
-            {
-                "Bekliyor" => 1,
-                "Onaylandı" => 2,
-                "İşlemde" => 3,
-                //"Tamamlandı" => 4,
-                //"İptal Edildi" => 5,
-                _ => 4
-            })
-            .ThenBy(t => t.id);
-
-        RequestsList.ItemsSource = filtrelenmisListe.ToList();
+        // ItemsSource = null YAPMIYORUZ, sayfa geri gelince liste boş kalmasın.
     }
 
     // =========================================================
-    // ÜST TARAF FİLTRE DROPDOWN KONTROLLERİ
+    // ÜST FİLTRE DROPDOWN KONTROLLERİ
     // =========================================================
-    private void OnFiltreDurumKutusuAcKapat(object sender, EventArgs e)
+
+    private void OnFiltreDurumKutusuAcKapatTapped(object sender, TappedEventArgs e)
     {
         DurumSecimKutusu.IsVisible = !DurumSecimKutusu.IsVisible;
-
-        // Üstteki menü açılırken, alttaki yüzen menüyü güvenlice kapat										
-        FloatingMenuOverlay.IsVisible = false;
+        FloatingMenuOverlay.IsVisible = false; // Yüzen menüyü kapat
     }
 
     private void OnFiltreDurumSecildi(object sender, SelectionChangedEventArgs e)
@@ -217,100 +258,92 @@ public partial class AdminRequestsView : ContentPage
         if (secilen != null)
         {
             _secilenDurum = secilen;
-            SecilenDurumButonu.Text = secilen;
+            SecilenDurumLabel.Text = secilen;
             DurumSecimKutusu.IsVisible = false;
             DurumListesi.SelectedItem = null;
-            FiltreleriUygula();
+            _ = TalepleriYukle(reset: true);
         }
     }
 
     // =========================================================
-    // KART İÇİ DURUM SEÇİMİ PROFESSIONAL ÇÖZÜM: YÜZEN KART MENÜSÜ KONTROLLERİ
+    // YÜZEN DURUM MENÜSÜ KONTROLLERİ
     // =========================================================
+
     private void OnFloatingMenuClose(object sender, EventArgs e)
     {
-        // Kapama Grid'ine veya "Tamamlandı" seçimine tıklayınca menüyü kapat
         FloatingMenuOverlay.IsVisible = false;
         _secilenTalep = null;
-        _secilenButon = null;
     }
 
-    private void OnItemDurumKutusuAc(object sender, EventArgs e)
+    /// <summary>
+    /// Kart içindeki "Mevcut Durum" alanına tıklandığında yüzen durum menüsünü açar.
+    /// </summary>
+    private void OnItemDurumKutusuAcTapped(object sender, TappedEventArgs e)
     {
-        var btn = sender as Button;
-        var talep = btn?.BindingContext as ServisTalebi;
+        var border = sender as Border;
+        var talep = e.Parameter as ServisTalebi;
 
-        if (talep == null || btn == null) return;
+        if (talep == null || border == null) return;
 
-        // Üstteki ana filtreyi güvenlice kapat
         DurumSecimKutusu.IsVisible = false;
-
-        // Çakışmayı önlemek için referansları kaydet
         _secilenTalep = talep;
-        _secilenButon = btn;
-
-        // Menüyü görünür yapıp hiyerarşiyi tırmanmasını sağla
         FloatingMenuOverlay.IsVisible = true;
 
         double buton_X = 0;
         double buton_Y = 0;
 
 #if IOS
-        var iosBtn = btn.Handler?.PlatformView as UIKit.UIView;
+        var iosBorder = border.Handler?.PlatformView as UIKit.UIView;
         var iosOverlay = FloatingMenuOverlay.Handler?.PlatformView as UIKit.UIView;
-        if (iosBtn != null && iosOverlay != null)
+        if (iosBorder != null && iosOverlay != null)
         {
-            var rect = iosBtn.ConvertRectToView(iosBtn.Bounds, iosOverlay);
+            var rect = iosBorder.ConvertRectToView(iosBorder.Bounds, iosOverlay);
             buton_X = rect.X;
-            buton_Y = rect.Y + btn.Height;
+            buton_Y = rect.Y + border.Height;
         }
 #elif ANDROID
-        var androidBtn = btn.Handler?.PlatformView as Android.Views.View;
+        var androidBorder = border.Handler?.PlatformView as Android.Views.View;
         var androidOverlay = FloatingMenuOverlay.Handler?.PlatformView as Android.Views.View;
-        if (androidBtn != null && androidOverlay != null)
+        if (androidBorder != null && androidOverlay != null)
         {
-            // Hem butonun hem de ekranın koordinatlarını al
-            int[] locBtn = new int[2];
-            androidBtn.GetLocationOnScreen(locBtn);
-            
+            int[] locBorder = new int[2];
+            androidBorder.GetLocationOnScreen(locBorder);
+
             int[] locOverlay = new int[2];
             androidOverlay.GetLocationOnScreen(locOverlay);
 
             double density = DeviceDisplay.MainDisplayInfo.Density;
-            
-            // İkisini birbirinden çıkararak Status Bar (Üst çubuk) sapmasını %100 sıfırla
-            buton_X = (locBtn[0] - locOverlay[0]) / density;
-            buton_Y = ((locBtn[1] - locOverlay[1]) / density) + btn.Height;
+
+            buton_X = (locBorder[0] - locOverlay[0]) / density;
+            buton_Y = ((locBorder[1] - locOverlay[1]) / density) + border.Height;
         }
 #endif
 
-        // CS0104 Ambiguous Rect Hatasının Çözümü: MAUI kütüphanesini açıkça belirttik.
         AbsoluteLayout.SetLayoutBounds(FloatingItemDurumMenusu, new Microsoft.Maui.Graphics.Rect(buton_X, buton_Y, 130, 160));
     }
 
-    private void OnFloatingItemDurumSecildi(object sender, EventArgs e)
+    /// <summary>
+    /// Yüzen menüden bir durum seçildiğinde talebin durumunu günceller.
+    /// </summary>
+    private void OnFloatingItemDurumSecildi(object sender, TappedEventArgs e)
     {
-        var btn = sender as Button;
-        var yeniDurum = btn?.Text;
-
-        // Tıklanan durum bilgisini referanslarımız üzerinden güncelle
-        if (_secilenTalep != null && _secilenButon != null && !string.IsNullOrEmpty(yeniDurum))
+        var yeniDurum = e.Parameter as string;
+        if (_secilenTalep != null && !string.IsNullOrEmpty(yeniDurum))
         {
-            _secilenTalep.durum = yeniDurum; // Arka plandaki modeli güncelle
-            _secilenButon.Text = yeniDurum; // Ekrandaki butonu anında güncelle
+            _secilenTalep.durum = yeniDurum;
         }
 
-        // Seçim yapıldıktan sonra yüzen menüyü kapat
-        OnFloatingMenuClose(sender, e);
+        FloatingMenuOverlay.IsVisible = false;
+        _secilenTalep = null;
     }
 
     // =========================================================
     // GÜNCELLEME İŞLEMİ
     // =========================================================
-    private async void OnUpdateClicked(object sender, EventArgs e)
+
+    private async void OnUpdateTapped(object sender, TappedEventArgs e)
     {
-        var button = sender as Button;
-        var talep = button?.CommandParameter as ServisTalebi;
+        var talep = e.Parameter as ServisTalebi;
 
         if (talep != null)
         {
@@ -328,7 +361,7 @@ public partial class AdminRequestsView : ContentPage
                 if (basarili)
                 {
                     await DisplayAlert("Başarılı", "Talep güncellendi.", "Tamam");
-                    await VerileriYukle();
+                    await TalepleriYukle(reset: true);
                 }
                 else
                 {
@@ -343,6 +376,10 @@ public partial class AdminRequestsView : ContentPage
         }
     }
 
+    // =========================================================
+    // ADRES KOPYALAMA
+    // =========================================================
+
     private async void OnCopyTapped(object sender, EventArgs e)
     {
         var label = sender as Label;
@@ -356,22 +393,22 @@ public partial class AdminRequestsView : ContentPage
         }
     }
 
-    private async void OnViewPhotosClicked(object sender, EventArgs e)
-    {
-        var buton = sender as Button;
-        var secilenTalep = buton?.CommandParameter as ServisTalebi;
+    // =========================================================
+    // FOTOĞRAF İŞLEMLERİ
+    // =========================================================
 
+    private async void OnViewPhotosTapped(object sender, TappedEventArgs e)
+    {
+        var secilenTalep = e.Parameter as ServisTalebi;
         if (secilenTalep != null)
         {
             await Navigation.PushAsync(new ViewPhotosView(secilenTalep));
         }
     }
 
-    private async void OnAddPhotoClicked(object sender, EventArgs e)
+    private async void OnAddPhotoTapped(object sender, TappedEventArgs e)
     {
-        var button = sender as Button;
-        var talep = button?.CommandParameter as ServisTalebi;
-
+        var talep = e.Parameter as ServisTalebi;
         if (talep == null) return;
 
         try
@@ -417,7 +454,7 @@ public partial class AdminRequestsView : ContentPage
                 await DisplayAlert("Başarılı", "Tüm fotoğraflar talebe başarıyla eklendi.", "Tamam");
             }
 
-            await VerileriYukle();
+            await TalepleriYukle(reset: true);
         }
         catch (Exception ex)
         {
@@ -428,6 +465,10 @@ public partial class AdminRequestsView : ContentPage
             LoadingOverlay.IsVisible = false;
         }
     }
+
+    // =========================================================
+    // TELEFON ARAMA
+    // =========================================================
 
     private void OnPhoneTapped(object sender, TappedEventArgs e)
     {

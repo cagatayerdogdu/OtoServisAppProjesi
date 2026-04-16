@@ -10,6 +10,7 @@
         <ScrollView>
             <VerticalStackLayout Padding="20" Spacing="15">
 
+                <!-- Mevcut Durum -->
                 <Border BackgroundColor="#E0F7FA" Stroke="#00BCD4" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="15">
                     <HorizontalStackLayout Spacing="10">
                         <Label Text="Mevcut Durum:" FontAttributes="Bold" TextColor="#006064" VerticalOptions="Center"/>
@@ -19,18 +20,20 @@
 
                 <Label x:Name="ReadOnlyWarningLabel" Text="Bu talep sonlandığı için üzerinde değişiklik yapılamaz." TextColor="#D32F2F" FontAttributes="Bold" IsVisible="False" HorizontalOptions="Center"/>
 
+                <!-- Standart Düzenleme Formu -->
                 <VerticalStackLayout x:Name="StandartDuzenlemeFormu" Spacing="15">
 
                     <Label Text="Hizmet Seçimi" FontSize="14" FontAttributes="Bold" TextColor="#333333"/>
 
+                    <!-- Hizmet Seçim Butonu (Border tıklanabilir) -->
                     <Border BackgroundColor="#FAFAFA" Stroke="#CCCCCC" StrokeThickness="1" StrokeShape="RoundRectangle 8" HeightRequest="45" HorizontalOptions="FillAndExpand" Padding="0">
-                        <Label x:Name="SecilenHizmetLabel" Text="Lütfen bir hizmet seçin..." TextColor="#666666" VerticalOptions="Center" HorizontalOptions="Center">
-                            <Label.GestureRecognizers>
-                                <TapGestureRecognizer Tapped="OnHizmetSecimTapped" />
-                            </Label.GestureRecognizers>
-                        </Label>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnHizmetSecimTapped" />
+                        </Border.GestureRecognizers>
+                        <Label x:Name="SecilenHizmetLabel" Text="Lütfen bir hizmet seçin..." TextColor="#666666" VerticalOptions="Center" HorizontalOptions="Center" InputTransparent="True" />
                     </Border>
 
+                    <!-- Hizmet Arama Kutusu -->
                     <Border x:Name="HizmetAramaKutusu" IsVisible="False" BackgroundColor="#FAFAFA" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10" Margin="0,5,0,10">
                         <VerticalStackLayout Spacing="5">
                             <SearchBar x:Name="HizmetAramaBar" Placeholder="Hizmet ara... (Örn: Fren, Yağ)" TextChanged="OnHizmetAramaDegisti" BackgroundColor="#F9F9F9" TextColor="#111111" CancelButtonColor="#D32F2F" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False"/>
@@ -51,14 +54,15 @@
 
                     <Label Text="Araç Seçimi" FontSize="14" FontAttributes="Bold" TextColor="#333333"/>
 
+                    <!-- Araç Seçim Butonu (Border tıklanabilir) -->
                     <Border BackgroundColor="#FAFAFA" Stroke="#CCCCCC" StrokeThickness="1" StrokeShape="RoundRectangle 8" HeightRequest="45" HorizontalOptions="FillAndExpand" Padding="0">
-                        <Label x:Name="SecilenAracLabel" Text="Lütfen bir araç seçin..." TextColor="#666666" VerticalOptions="Center" HorizontalOptions="Center">
-                            <Label.GestureRecognizers>
-                                <TapGestureRecognizer Tapped="OnAracSecimTapped" />
-                            </Label.GestureRecognizers>
-                        </Label>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnAracSecimTapped" />
+                        </Border.GestureRecognizers>
+                        <Label x:Name="SecilenAracLabel" Text="Lütfen bir araç seçin..." TextColor="#666666" VerticalOptions="Center" HorizontalOptions="Center" InputTransparent="True" />
                     </Border>
 
+                    <!-- Araç Seçim Kutusu -->
                     <Border x:Name="AracAramaKutusu" IsVisible="False" BackgroundColor="#FAFAFA" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10" Margin="0,5,0,10">
                         <VerticalStackLayout Spacing="5">
                             <CollectionView x:Name="AracListesi" HeightRequest="150" SelectionMode="Single" SelectionChanged="OnAracSecildi">
@@ -85,31 +89,33 @@
                     <Editor x:Name="NotlarEditor" HeightRequest="80" BackgroundColor="#FAFAFA" TextColor="#111111" PlaceholderColor="#888888" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False"/>
                 </VerticalStackLayout>
 
+                <!-- Fotoğraf Ekleme Alanı -->
                 <VerticalStackLayout Spacing="10" Margin="0,15,0,0">
                     <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
                         <Label Text="{x:Static helpers:IconFont.Camera}" FontFamily="FASolid" FontSize="16" TextColor="#666666" VerticalOptions="Center"/>
                         <Label Text="Yeni Hasar Fotoğrafı Ekle (Maks 4)" TextColor="#666666" FontSize="13" FontAttributes="Bold" VerticalOptions="Center"/>
                     </HorizontalStackLayout>
 
+                    <!-- Fotoğraf Seç Butonu (Border tıklanabilir) -->
                     <Border BackgroundColor="#E0F2F1" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="40" Margin="0,0,0,5" Padding="0">
-                        <Label Text="+ Fotoğrafları Seç (Toplu)" TextColor="#00796B" VerticalOptions="Center" HorizontalOptions="Center">
-                            <Label.GestureRecognizers>
-                                <TapGestureRecognizer Tapped="OnAddPhotoTapped" />
-                            </Label.GestureRecognizers>
-                        </Label>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnAddPhotoTapped" />
+                        </Border.GestureRecognizers>
+                        <Label Text="+ Fotoğrafları Seç (Toplu)" TextColor="#00796B" VerticalOptions="Center" HorizontalOptions="Center" InputTransparent="True" />
                     </Border>
 
+                    <!-- Seçili Fotoğraflar -->
                     <FlexLayout x:Name="PhotosContainer" BindableLayout.ItemsSource="{Binding SecilenFotograflar}" Wrap="Wrap" JustifyContent="Start">
                         <BindableLayout.ItemTemplate>
                             <DataTemplate>
                                 <Grid WidthRequest="80" HeightRequest="80" Margin="0,0,10,10">
                                     <Image Source="{Binding FullPath, Mode=OneWay}" Aspect="AspectFill" WidthRequest="80" HeightRequest="80"/>
+                                    <!-- Silme Butonu (Border tıklanabilir) -->
                                     <Border BackgroundColor="#EF4444" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 12" WidthRequest="25" HeightRequest="25" HorizontalOptions="End" VerticalOptions="Start" Margin="3" Padding="0">
-                                        <Label Text="X" TextColor="White" FontSize="10" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center">
-                                            <Label.GestureRecognizers>
-                                                <TapGestureRecognizer Tapped="OnRemovePhotoTapped" CommandParameter="{Binding .}" />
-                                            </Label.GestureRecognizers>
-                                        </Label>
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer Tapped="OnRemovePhotoTapped" CommandParameter="{Binding .}" />
+                                        </Border.GestureRecognizers>
+                                        <Label Text="X" TextColor="White" FontSize="10" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" InputTransparent="True" />
                                     </Border>
                                 </Grid>
                             </DataTemplate>
@@ -117,23 +123,25 @@
                     </FlexLayout>
                 </VerticalStackLayout>
 
+                <!-- Düzeltme Talebi Formu -->
                 <VerticalStackLayout x:Name="DuzeltmeTalebiFormu" Spacing="15" IsVisible="False">
                     <Label Text="Yöneticiye Düzeltme İletin" FontSize="16" FontAttributes="Bold" TextColor="#F57C00"/>
                     <Label Text="Talebiniz onaylandığı için doğrudan değiştiremezsiniz. Lütfen düzeltmek istediğiniz kısımları (örn: adres değişikliği) aşağıya yazarak yöneticiye iletin." FontSize="12" TextColor="#666666"/>
                     <Editor x:Name="DuzeltmeNotuEditor" HeightRequest="100" Placeholder="Düzeltme talebinizi buraya yazın..." BackgroundColor="#FAFAFA" TextColor="#111111" PlaceholderColor="#888888" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False"/>
                 </VerticalStackLayout>
 
+                <!-- Kaydet Butonu (Border tıklanabilir) -->
                 <Border BackgroundColor="#4CAF50" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="50" Margin="0,20,0,0" Padding="0">
-                    <Label x:Name="KaydetLabel" Text="Değişiklikleri Kaydet" TextColor="White" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center">
-                        <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnKaydetTapped" />
-                        </Label.GestureRecognizers>
-                    </Label>
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnKaydetTapped" />
+                    </Border.GestureRecognizers>
+                    <Label x:Name="KaydetLabel" Text="Değişiklikleri Kaydet" TextColor="White" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" InputTransparent="True" />
                 </Border>
 
             </VerticalStackLayout>
         </ScrollView>
 
+        <!-- LOADING OVERLAY -->
         <Grid x:Name="LoadingOverlay" BackgroundColor="#CCFFFFFF" IsVisible="False" InputTransparent="False">
             <Border BackgroundColor="White" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 15" Padding="30" HorizontalOptions="Center" VerticalOptions="Center">
                 <VerticalStackLayout Spacing="15" HorizontalOptions="Center">

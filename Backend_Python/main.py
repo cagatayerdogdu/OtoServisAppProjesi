@@ -1729,6 +1729,83 @@ def admin_talep_guncelle_kullanilmiyor(talep_id: int, durum: str, tahmini_tutar:
     db.commit()
     return {"mesaj": "Talep güncellendi"}
 
+# Admin İçin Sayfalı Endpoint - DeepSeek
+@app.get("/admin/servis-talepleri/sayfali")
+def admin_taleplerini_sayfali_getir(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    durum: Optional[str] = Query(None),
+    arama: Optional[str] = Query(None),
+    db: Session = Depends(get_db)
+):
+    # Temel sorgu: sadece aktif (kayit_durumu 'A') ve durumları 'Bekliyor','Onaylandı','İşlemde' olanlar
+    query = db.query(models.ServisTalebi).filter(
+        models.ServisTalebi.kayit_durumu == 'A',
+        models.ServisTalebi.durum.in_(['Bekliyor', 'Onaylandı', 'İşlemde'])
+    )
+
+    # Durum filtresi
+    if durum and durum != "Tümü":
+        query = query.filter(models.ServisTalebi.durum == durum)
+
+    # Arama filtresi (kullanıcı adı veya araç adı)
+    if arama:
+        arama = arama.lower()
+        query = query.join(models.Kullanici, models.ServisTalebi.kullanici_id == models.Kullanici.id, isouter=True)\
+                     .join(models.Arac, models.ServisTalebi.arac_id == models.Arac.id, isouter=True)\
+                     .filter(
+                         (models.Kullanici.ad_soyad.ilike(f"%{arama}%")) |
+                         (models.Arac.ozel_marka.ilike(f"%{arama}%")) |
+                         (models.Arac.ozel_model.ilike(f"%{arama}%"))
+                     )
+
+    # Toplam kayıt sayısı (sayfalama için)
+    toplam_kayit = query.count()
+
+    # Sıralama (durum önceliği + talep tarihi)
+    siralama = case(
+        (models.ServisTalebi.durum == 'Bekliyor', 1),
+        (models.ServisTalebi.durum == 'Onaylandı', 2),
+        (models.ServisTalebi.durum == 'İşlemde', 3),
+        else_=4
+    )
+    talepler = query.order_by(siralama, models.ServisTalebi.talep_tarihi.asc(), models.ServisTalebi.insert_tarihi.asc())\
+                    .offset(skip).limit(limit).all()
+
+    # İlişkili verileri ekleyelim (C# tarafında tekrar çekmeyelim diye)
+    sonuc = []
+    for t in talepler:
+        kullanici = db.query(models.Kullanici).filter(models.Kullanici.id == t.kullanici_id).first()
+        arac = db.query(models.Arac).filter(models.Arac.id == t.arac_id).first()
+        hizmet = db.query(models.Hizmet).filter(models.Hizmet.id == t.hizmet_id).first()
+
+        arac_adi = "Silinmiş Araç"
+        if arac:
+            if arac.marka_id and arac.model_id:
+                marka = db.query(models.Marka).filter(models.Marka.id == arac.marka_id).first()
+                model = db.query(models.Model).filter(models.Model.id == arac.model_id).first()
+                if marka and model:
+                    arac_adi = f"{marka.ad} {model.ad}"
+            else:
+                arac_adi = f"{arac.ozel_marka} {arac.ozel_model}" if arac.ozel_marka else f"Araç ID: {arac.id}"
+
+        talep_dict = {c.name: getattr(t, c.name) for c in t.__table__.columns}
+        talep_dict["kullanici_ad_soyad"] = kullanici.ad_soyad if kullanici else "Bilinmiyor"
+        talep_dict["kullanici_telefon"] = kullanici.telefon if kullanici else "Belirtilmemiş"
+        talep_dict["arac_adi_tam"] = arac_adi
+        talep_dict["hizmet_adi"] = hizmet.ad if hizmet else ""
+
+        # Tarih formatlaması
+        if t.talep_tarihi:
+            talep_dict["talep_tarihi"] = t.talep_tarihi.strftime("%Y-%m-%d %H:%M")
+
+        sonuc.append(talep_dict)
+
+    return {
+        "talepler": sonuc,
+        "toplam_kayit": toplam_kayit
+    }
+
 #################################################################
 ######################### ADMİN PANELİ ##########################
 #################################################################

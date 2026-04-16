@@ -804,7 +804,7 @@ namespace OtoServisApp.Services
             return new Dictionary<int, bool>();
         }
 
-        /* Sayfalı ve Filtreli Metot - DeepSeek */
+        /* Sayfalı ve Filtreli Metot (Kullanıcı Tarafı)- DeepSeek */
         public async Task<(List<ServisTalebi> talepler, int toplamKayit)> KullaniciTalepleriniSayfaliGetirAsync(
                 int kullaniciId,
                 int skip = 0,
@@ -841,6 +841,50 @@ namespace OtoServisApp.Services
             }
             return (new List<ServisTalebi>(), 0);
         }
+        /* Sayfalı ve Filtreli Metot (Admin Tarafı) - DeepSeek */
+        public async Task<(List<ServisTalebi> talepler, int toplamKayit)> AdminTalepleriniSayfaliGetirAsync(
+            int skip = 0,
+            int limit = 20,
+            string durum = null,
+            string arama = null)
+        {
+            try
+            {
+                var queryParams = new List<string>
+                {
+                    $"skip={skip}",
+                    $"limit={limit}"
+                };
+                if (!string.IsNullOrEmpty(durum) && durum != "Tümü")
+                    queryParams.Add($"durum={Uri.EscapeDataString(durum)}");
+                if (!string.IsNullOrEmpty(arama))
+                    queryParams.Add($"arama={Uri.EscapeDataString(arama)}");
+
+                string url = $"/admin/servis-talepleri/sayfali?" + string.Join("&", queryParams);
+                var response = await _httpClient.GetAsync(url).ConfigureAwait(false);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    var result = JsonSerializer.Deserialize<SayfaliAdminTaleplerResponse>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    return (result.talepler ?? new List<ServisTalebi>(), result.toplam_kayit);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Admin sayfalı talep hatası: {ex.Message}");
+            }
+            return (new List<ServisTalebi>(), 0);
+        }
+
+        // Yardımcı sınıf
+        public class SayfaliAdminTaleplerResponse
+        {
+            public List<ServisTalebi> talepler { get; set; }
+            public int toplam_kayit { get; set; }
+        }
+
+
     } /* En Dıştaki public class ApiService bitişi */
 
     // Yardımcı sınıf (ApiService.cs içinde aynı dosyaya ekleyin)
