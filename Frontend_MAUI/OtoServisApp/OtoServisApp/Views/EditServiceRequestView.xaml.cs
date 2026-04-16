@@ -1,5 +1,6 @@
 ﻿using OtoServisApp.Models;
 using OtoServisApp.Services;
+using System.Collections.Concurrent;
 
 namespace OtoServisApp.Views;
 
@@ -29,10 +30,13 @@ public partial class EditServiceRequestView : ContentPage
         // --- Hasar Fotoğrafları Ekleme için ---
         BindingContext = this;
     }
-
+    
+    private bool _sayfaIlkYuklendi = false;
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+        if (_sayfaIlkYuklendi) return;
+        _sayfaIlkYuklendi = true;
 
         // 1. AŞAMA: Kullanıcıya donma hissi vermemek için Loading ekranını anında aç
         LoadingTitle.Text = "Bilgiler Yükleniyor..."; // YENİ REVİZE: Ekran açılış yazısını amaca uygun güncelledik
@@ -51,8 +55,8 @@ public partial class EditServiceRequestView : ContentPage
             {
                 StandartDuzenlemeFormu.IsVisible = true;
                 DuzeltmeTalebiFormu.IsVisible = false;
-                KaydetButton.IsVisible = true;
-                KaydetButton.Text = "Değişiklikleri Kaydet";
+                KaydetLabel.IsVisible = true;
+                KaydetLabel.Text = "Değişiklikleri Kaydet";
 
                 // 3. AŞAMA: Asıl veriyi (API İsteklerini) şimdi çekiyoruz
                 await VerileriYukle();
@@ -61,9 +65,9 @@ public partial class EditServiceRequestView : ContentPage
             {
                 StandartDuzenlemeFormu.IsVisible = false;
                 DuzeltmeTalebiFormu.IsVisible = true;
-                KaydetButton.IsVisible = true;
-                KaydetButton.Text = "Düzeltme Talebini İlet";
-                KaydetButton.BackgroundColor = Color.FromArgb("#F57C00");
+                KaydetLabel.IsVisible = true;
+                KaydetLabel.Text = "Düzeltme Talebini İlet";
+                KaydetLabel.BackgroundColor = Color.FromArgb("#F57C00");
 
                 // Eğer daha önceden bir not yazdıysa onu göster
                 if (!string.IsNullOrEmpty(_talep.duzeltme_notu))
@@ -75,7 +79,7 @@ public partial class EditServiceRequestView : ContentPage
             {
                 StandartDuzenlemeFormu.IsVisible = false;
                 DuzeltmeTalebiFormu.IsVisible = false;
-                KaydetButton.IsVisible = false;
+                KaydetLabel.IsVisible = false;
                 ReadOnlyWarningLabel.IsVisible = true;
             }
         }
@@ -119,8 +123,8 @@ public partial class EditServiceRequestView : ContentPage
             if (mevcutHizmet != null)
             {
                 _secilenHizmet = mevcutHizmet;
-                SecilenHizmetButonu.Text = mevcutHizmet.ad;
-                SecilenHizmetButonu.TextColor = Color.FromArgb("#111111");
+                SecilenHizmetLabel.Text = mevcutHizmet.ad;
+                SecilenHizmetLabel.TextColor = Color.FromArgb("#111111");
             }
         }
 
@@ -161,8 +165,8 @@ public partial class EditServiceRequestView : ContentPage
             if (seciliArac != null)
             {
                 _secilenArac = seciliArac;
-                SecilenAracButonu.Text = seciliArac.marka_model_yazi;
-                SecilenAracButonu.TextColor = Color.FromArgb("#111111");
+                SecilenAracLabel.Text = seciliArac.marka_model_yazi;
+                SecilenAracLabel.TextColor = Color.FromArgb("#111111");
             }
         }
 
@@ -177,7 +181,7 @@ public partial class EditServiceRequestView : ContentPage
     // =====================================================================================
     // 1. ANA TETİKLEYİCİ METOT (Sadece iş akışını yönetir, detaylarla boğuşmaz)
     // =====================================================================================
-    private async void OnKaydetClicked(object sender, EventArgs e)
+    private async void OnKaydetTapped(object sender, TappedEventArgs e)
     {
         // 1. Doğrulama (Hatalıysa işlemi anında kes)
         if (!GirdileriDogrula()) return;
@@ -269,7 +273,7 @@ public partial class EditServiceRequestView : ContentPage
     // =====================================================================================
     // 4. YARDIMCI METOT: Sadece Fotoğraf Yükleme ve Stream işlemlerini yapar
     // =====================================================================================
-    private async Task<string> FotograflariYukleAsync()
+    /*private async Task<string> FotograflariYukleAsync()
     {
         if (SecilenFotograflar == null || SecilenFotograflar.Count == 0) return ""; // Fotoğraf yoksa boş dön, hata yok.
 
@@ -307,6 +311,38 @@ public partial class EditServiceRequestView : ContentPage
         }
 
         return hatalar; // Hata varsa string dolu döner, yoksa boş döner
+    }*/
+
+    private async Task<string> FotograflariYukleAsync()
+    {
+        if (SecilenFotograflar == null || SecilenFotograflar.Count == 0) return "";
+
+        await _apiService.EskiFotograflariTemizleAsync(_talep.id);
+
+        string temizAdSoyad = string.IsNullOrWhiteSpace(_aktifKullanici?.ad_soyad) ? "Kullanici" : _aktifKullanici.ad_soyad.Replace(" ", "");
+        var hataListesi = new ConcurrentBag<string>();
+
+        var uploadTasks = SecilenFotograflar.Select(async foto =>
+        {
+            try
+            {
+                using var stream = await foto.OpenReadAsync();
+                string uzanti = Path.GetExtension(foto.FileName);
+                if (string.IsNullOrEmpty(uzanti)) uzanti = ".jpg";
+                string zaman = DateTime.Now.ToString("yyyy_MM_dd_HHmm_ssfff");
+                string ozelDosyaAdi = $"{temizAdSoyad}-{_talep.id}-{zaman}{uzanti}";
+                string sonuc = await _apiService.UploadHasarFotografAsync(_talep.id, stream, ozelDosyaAdi);
+                if (sonuc != "OK")
+                    hataListesi.Add($"- {foto.FileName}: {sonuc}");
+            }
+            catch (Exception ex)
+            {
+                hataListesi.Add($"- {foto.FileName}: {ex.Message}");
+            }
+        });
+
+        await Task.WhenAll(uploadTasks);
+        return string.Join("\n", hataListesi);
     }
 
 
@@ -314,7 +350,7 @@ public partial class EditServiceRequestView : ContentPage
     // 5. YENİ REVİZE: Fotoğraf Seçimi (OnAddPhotoClicked) 
     // Gereksiz if/else karmaşası temizlendi, kod daha akıcı hale getirildi.
     // =====================================================================================
-    private async void OnAddPhotoClicked(object sender, EventArgs e)
+    private async void OnAddPhotoTapped(object sender, TappedEventArgs e)
     {
         int eklenebilirSayi = MaksimumFotoSayisi - SecilenFotograflar.Count;
 
@@ -359,10 +395,9 @@ public partial class EditServiceRequestView : ContentPage
     }
 
     // --- YENİ REVİZE BAŞLANGICI: Hasar Fotoğrafı Silme İşlemleri ---
-    private void OnRemovePhotoClicked(object sender, EventArgs e)
+    private void OnRemovePhotoTapped(object sender, TappedEventArgs e)
     {
-        var button = sender as Button;
-        var photo = button?.CommandParameter as FileResult;
+        var photo = e.Parameter as FileResult;
         if (photo != null)
         {
             SecilenFotograflar.Remove(photo);
@@ -371,13 +406,12 @@ public partial class EditServiceRequestView : ContentPage
     // --- YENİ REVİZE BİTİŞİ ---
 
     // --- HİZMET SEÇİMİ METOTLARI ---
-    private void OnHizmetSecimButonuClicked(object sender, EventArgs e)
+    private void OnHizmetSecimTapped(object sender, TappedEventArgs e)
     {
         HizmetAramaKutusu.IsVisible = !HizmetAramaKutusu.IsVisible;
-
         if (HizmetAramaKutusu.IsVisible)
         {
-            AracAramaKutusu.IsVisible = false; // DİĞERİNİ ZORLA KAPAT
+            AracAramaKutusu.IsVisible = false;
             HizmetAramaBar.Focus();
         }
     }
@@ -408,8 +442,8 @@ public partial class EditServiceRequestView : ContentPage
         {
             _secilenHizmet = secilen;
 
-            SecilenHizmetButonu.Text = secilen.ad;
-            SecilenHizmetButonu.TextColor = Color.FromArgb("#111111");
+            SecilenHizmetLabel.Text = secilen.ad;
+            SecilenHizmetLabel.TextColor = Color.FromArgb("#111111");
 
             HizmetAramaKutusu.IsVisible = false; // Seçilince kapat
             HizmetListesi.SelectedItem = null; // Seçimi sıfırla
@@ -417,7 +451,7 @@ public partial class EditServiceRequestView : ContentPage
     }
 
     // --- ARAÇ SEÇİMİ METOTLARI (YENİ) ---
-    private void OnAracSecimButonuClicked(object sender, EventArgs e)
+    private void OnAracSecimTapped(object sender, TappedEventArgs e)
     {
         AracAramaKutusu.IsVisible = !AracAramaKutusu.IsVisible;
 
@@ -435,8 +469,8 @@ public partial class EditServiceRequestView : ContentPage
             _secilenArac = secilen;
             dynamic ar = secilen; // Anonim obje olduğu için dynamic ile okuyoruz
 
-            SecilenAracButonu.Text = ar.marka_model_yazi;
-            SecilenAracButonu.TextColor = Color.FromArgb("#111111");
+            SecilenAracLabel.Text = ar.marka_model_yazi;
+            SecilenAracLabel.TextColor = Color.FromArgb("#111111");
 
             AracAramaKutusu.IsVisible = false; // Seçilince kapat
             AracListesi.SelectedItem = null; // Seçimi sıfırla

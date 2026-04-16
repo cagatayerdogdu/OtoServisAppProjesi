@@ -24,7 +24,11 @@
                     <Label Text="Hizmet Seçimi" FontSize="14" FontAttributes="Bold" TextColor="#333333"/>
 
                     <Border BackgroundColor="#FAFAFA" Stroke="#CCCCCC" StrokeThickness="1" StrokeShape="RoundRectangle 8" HeightRequest="45" HorizontalOptions="FillAndExpand" Padding="0">
-                        <Button x:Name="SecilenHizmetButonu" Text="Lütfen bir hizmet seçin..." BackgroundColor="Transparent" TextColor="#666666" BorderWidth="0" Clicked="OnHizmetSecimButonuClicked" Margin="0" Padding="0"/>
+                        <Label x:Name="SecilenHizmetLabel" Text="Lütfen bir hizmet seçin..." TextColor="#666666" VerticalOptions="Center" HorizontalOptions="Center">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnHizmetSecimTapped" />
+                            </Label.GestureRecognizers>
+                        </Label>
                     </Border>
 
                     <Border x:Name="HizmetAramaKutusu" IsVisible="False" BackgroundColor="#FAFAFA" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10" Margin="0,5,0,10">
@@ -48,7 +52,11 @@
                     <Label Text="Araç Seçimi" FontSize="14" FontAttributes="Bold" TextColor="#333333"/>
 
                     <Border BackgroundColor="#FAFAFA" Stroke="#CCCCCC" StrokeThickness="1" StrokeShape="RoundRectangle 8" HeightRequest="45" HorizontalOptions="FillAndExpand" Padding="0">
-                        <Button x:Name="SecilenAracButonu" Text="Lütfen bir araç seçin..." BackgroundColor="Transparent" TextColor="#666666" BorderWidth="0" Clicked="OnAracSecimButonuClicked" Margin="0" Padding="0"/>
+                        <Label x:Name="SecilenAracLabel" Text="Lütfen bir araç seçin..." TextColor="#666666" VerticalOptions="Center" HorizontalOptions="Center">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnAracSecimTapped" />
+                            </Label.GestureRecognizers>
+                        </Label>
                     </Border>
 
                     <Border x:Name="AracAramaKutusu" IsVisible="False" BackgroundColor="#FAFAFA" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10" Margin="0,5,0,10">
@@ -84,7 +92,11 @@
                     </HorizontalStackLayout>
 
                     <Border BackgroundColor="#E0F2F1" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="40" Margin="0,0,0,5" Padding="0">
-                        <Button Text="+ Fotoğrafları Seç (Toplu)" Clicked="OnAddPhotoClicked" BackgroundColor="Transparent" TextColor="#00796B" BorderWidth="0" Margin="0" Padding="0"/>
+                        <Label Text="+ Fotoğrafları Seç (Toplu)" TextColor="#00796B" VerticalOptions="Center" HorizontalOptions="Center">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnAddPhotoTapped" />
+                            </Label.GestureRecognizers>
+                        </Label>
                     </Border>
 
                     <FlexLayout x:Name="PhotosContainer" BindableLayout.ItemsSource="{Binding SecilenFotograflar}" Wrap="Wrap" JustifyContent="Start">
@@ -93,7 +105,11 @@
                                 <Grid WidthRequest="80" HeightRequest="80" Margin="0,0,10,10">
                                     <Image Source="{Binding FullPath, Mode=OneWay}" Aspect="AspectFill" WidthRequest="80" HeightRequest="80"/>
                                     <Border BackgroundColor="#EF4444" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 12" WidthRequest="25" HeightRequest="25" HorizontalOptions="End" VerticalOptions="Start" Margin="3" Padding="0">
-                                        <Button Text="X" CommandParameter="{Binding .}" Clicked="OnRemovePhotoClicked" BackgroundColor="Transparent" TextColor="White" BorderWidth="0" FontSize="10" FontAttributes="Bold" Margin="0" Padding="0"/>
+                                        <Label Text="X" TextColor="White" FontSize="10" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center">
+                                            <Label.GestureRecognizers>
+                                                <TapGestureRecognizer Tapped="OnRemovePhotoTapped" CommandParameter="{Binding .}" />
+                                            </Label.GestureRecognizers>
+                                        </Label>
                                     </Border>
                                 </Grid>
                             </DataTemplate>
@@ -108,7 +124,11 @@
                 </VerticalStackLayout>
 
                 <Border BackgroundColor="#4CAF50" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="50" Margin="0,20,0,0" Padding="0">
-                    <Button x:Name="KaydetButton" Text="Değişiklikleri Kaydet" BackgroundColor="Transparent" TextColor="White" FontAttributes="Bold" Clicked="OnKaydetClicked" BorderWidth="0" Margin="0" Padding="0"/>
+                    <Label x:Name="KaydetLabel" Text="Değişiklikleri Kaydet" TextColor="White" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnKaydetTapped" />
+                        </Label.GestureRecognizers>
+                    </Label>
                 </Border>
 
             </VerticalStackLayout>

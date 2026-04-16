@@ -45,30 +45,36 @@ public partial class MyServiceRequestsView : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+
         if (_ilkYukleme)
         {
             LoadingOverlay.IsVisible = true;
             LoadingTitle.Text = "Talepler Yükleniyor...";
             await Task.Delay(5);
-            _ = TalepleriYukle(reset: true);
-        }
 
-        try
-        {
-            if (DurumListesi != null && DurumListesi.ItemsSource == null)
-                DurumListesi.ItemsSource = _durumFiltreleri;
+            try
+            {
+                if (DurumListesi != null && DurumListesi.ItemsSource == null)
+                    DurumListesi.ItemsSource = _durumFiltreleri;
 
-            if (_ilkYukleme)
                 await TalepleriYukle(reset: true);
-        }
-        catch (Exception ex)
-        {
-            await DisplayAlert("Hata", "Talep verileri yüklenirken bir sorun oluştu.", "Tamam");
-        }
-        finally
-        {
-            if (_ilkYukleme)
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Hata", "Talep verileri yüklenirken bir sorun oluştu.", "Tamam");
+            }
+            finally
+            {
                 LoadingOverlay.IsVisible = false;
+            }
+        }
+        else
+        {
+            // Sayfa zaten yüklenmiş, sadece mevcut listeyi yeniden bağla (edge swipe dönüşleri için)
+            if (_orijinalTalepler != null && _orijinalTalepler.Any())
+            {
+                RequestsList.ItemsSource = _orijinalTalepler.ToList();
+            }
         }
     }
 
@@ -327,7 +333,8 @@ public partial class MyServiceRequestsView : ContentPage
     {
         base.OnDisappearing();
         _aramaCts?.Cancel();
-        RequestsList.ItemsSource = null;
+        //RequestsList.ItemsSource = null;
+        //edge swipe ile geri dönüldüğünde listenin boş kalmasına neden olabileceği için kaldırıldı.
     }
 
     /*private void OnFiltreSecildi(object sender, SelectionChangedEventArgs e)

@@ -28,16 +28,16 @@
         HeightRequest="35" 
         WidthRequest="110" 
         Padding="0">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnFiltreAcKapatTapped" />
+                            </Border.GestureRecognizers>
                             <Label x:Name="SecilenDurumLabel" 
            Text="Tümü" 
            TextColor="#111111" 
            FontSize="12" 
            VerticalOptions="Center" 
-           HorizontalOptions="Center">
-                                <Label.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="OnFiltreAcKapatTapped" />
-                                </Label.GestureRecognizers>
-                            </Label>
+           HorizontalOptions="Center"
+           InputTransparent="True" />
                         </Border>
                     </HorizontalStackLayout>
                 </HorizontalStackLayout>
@@ -129,12 +129,26 @@
                                         <Label Text="Bu talebe detaylı hasar fotoğrafları yüklediniz." TextColor="#F57C00" FontSize="11"/>
                                     </VerticalStackLayout>
 
-                                    <Border Grid.Column="1" BackgroundColor="#FF9800" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 6" HeightRequest="35" Padding="15,0" VerticalOptions="Center">
-                                        <Label Text="Fotoğrafları Gör" TextColor="White" FontSize="12" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center">
-                                            <Label.GestureRecognizers>
-                                                <TapGestureRecognizer Tapped="OnViewPhotosTapped" CommandParameter="{Binding .}" />
-                                            </Label.GestureRecognizers>
-                                        </Label>
+                                    <Border Grid.Column="1" 
+        BackgroundColor="#FF9800" 
+        Stroke="Transparent" 
+        StrokeThickness="0" 
+        StrokeShape="RoundRectangle 6" 
+        HeightRequest="35" 
+        Padding="15,0" 
+        VerticalOptions="Center">
+                                        <!-- GestureRecognizer Border'a taşındı -->
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer Tapped="OnViewPhotosTapped" CommandParameter="{Binding .}" />
+                                        </Border.GestureRecognizers>
+                                        <!-- Label artık tıklamaları geçiriyor -->
+                                        <Label Text="Fotoğrafları Gör" 
+           TextColor="White" 
+           FontSize="12" 
+           FontAttributes="Bold" 
+           VerticalOptions="Center" 
+           HorizontalOptions="Center"
+           InputTransparent="True" />
                                     </Border>
                                 </Grid>
                             </Border>
