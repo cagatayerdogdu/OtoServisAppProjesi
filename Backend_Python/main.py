@@ -895,13 +895,61 @@ def servis_talebi_olustur(istek: schemas.ServisTalebiCreate, db: Session = Depen
     
 # --- KULLANICININ SERVİS TALEPLERİ (LİSTELE, GÜNCELLE, SİL) ---
 # TALEPLERİ GETİRİRKEN (Sadece A olanlar)
-@app.get("/servis-talepleri/kullanici/{kullanici_id}")
-def kullanici_taleplerini_getir(kullanici_id: int, db: Session = Depends(get_db)):
+# @app.get("/servis-talepleri/kullanici/{kullanici_id}")
+# def kullanici_taleplerini_getir(kullanici_id: int, db: Session = Depends(get_db)):
     # DİKKAT: Talep tablosunda kayit_durumu KORUNDU
-    talepler = db.query(models.ServisTalebi)\
-                 .filter(models.ServisTalebi.kullanici_id == kullanici_id, models.ServisTalebi.kayit_durumu == 'A')\
-                 .order_by(models.ServisTalebi.insert_tarihi.desc()).all()
-    return talepler
+#     talepler = db.query(models.ServisTalebi)\
+#                  .filter(models.ServisTalebi.kullanici_id == kullanici_id, models.ServisTalebi.kayit_durumu == 'A')\
+#                  .order_by(models.ServisTalebi.insert_tarihi.desc()).all()
+#     return talepler
+
+@app.get("/servis-talepleri/kullanici/{kullanici_id}")
+def kullanici_taleplerini_getir(
+    kullanici_id: int,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    durum: Optional[str] = Query(None),
+    arama: Optional[str] = Query(None),
+    db: Session = Depends(get_db)
+):
+    query = db.query(models.ServisTalebi)\
+        .filter(models.ServisTalebi.kullanici_id == kullanici_id,
+                models.ServisTalebi.kayit_durumu == 'A')
+
+    if durum and durum != "Tümü":
+        query = query.filter(models.ServisTalebi.durum == durum)
+
+    if arama:
+        # Araç adı veya hizmet adı için JOIN’li arama (performans için)
+        query = query.join(models.Hizmet, models.ServisTalebi.hizmet_id == models.Hizmet.id, isouter=True)\
+                     .join(models.Arac, models.ServisTalebi.arac_id == models.Arac.id, isouter=True)\
+                     .filter(
+                         (models.Hizmet.ad.ilike(f"%{arama}%")) |
+                         (models.Arac.ozel_marka.ilike(f"%{arama}%")) |
+                         (models.Arac.ozel_model.ilike(f"%{arama}%"))
+                     )
+
+    # Sıralama: durum önceliği + talep tarihi yeniden eskiye
+    siralama = case(
+        (models.ServisTalebi.durum == 'Bekliyor', 1),
+        (models.ServisTalebi.durum == 'Onaylandı', 2),
+        (models.ServisTalebi.durum == 'İşlemde', 3),
+        (models.ServisTalebi.durum == 'Tamamlandı', 4),
+        (models.ServisTalebi.durum == 'İptal Edildi', 5),
+        else_=6
+    )
+
+    talepler = query.order_by(siralama, models.ServisTalebi.id.desc())\
+                    .offset(skip).limit(limit).all()
+
+    # Toplam kayıt sayısını da header veya ayrı alan olarak dönebiliriz
+    total = query.count()
+
+    # Response’a toplam sayıyı ekleyelim (C# tarafında kullanacağız)
+    return {
+        "talepler": talepler,
+        "toplam_kayit": total
+    }
 
 
 # --- 1. KULLANICI TALEP GÜNCELLEME METODU ---
