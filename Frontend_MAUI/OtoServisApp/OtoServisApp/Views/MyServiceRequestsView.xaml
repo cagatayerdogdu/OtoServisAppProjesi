@@ -108,7 +108,7 @@
                             </HorizontalStackLayout>
 
                             <HorizontalStackLayout Spacing="5" IsVisible="{Binding duzeltme_istendi_mi, Mode=OneWay}" Margin="0,2,0,0">
-                                <Label Text="{x:Static helpers:IconFont.ExclamationTriangle}" FontFamily="FASolid" FontSize="12" TextColor="#F57C00" VerticalOptions="Center"/>
+                                <Label Text="{x:Static helpers:IconFont.ExclamationTriangle}" FontFamily="FASolid" FontSize="12" TextColor="#57C00" VerticalOptions="Center"/>
                                 <Label Text="Bu talep için düzeltme isteğiniz inceleniyor." TextColor="#F57C00" FontSize="11" FontAttributes="Bold" VerticalOptions="Center"/>
                             </HorizontalStackLayout>
 

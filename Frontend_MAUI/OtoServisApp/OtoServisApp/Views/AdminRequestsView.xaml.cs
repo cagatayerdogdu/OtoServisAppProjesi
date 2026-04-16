@@ -21,10 +21,9 @@ public partial class AdminRequestsView : ContentPage
     private List<string> _durumFiltreleri = new List<string> { "Tümü", "Bekliyor", "Onaylandı", "İşlemde" };
     private string _secilenDurum = "Tümü";
 
-    // Açık olan kartın referansını tutar (yüzen menü için)
     private ServisTalebi _secilenTalep;
+    private Border _aktifKartBorder; // Hangi kartın menüsü açık, Label'ını güncellemek için
 
-    // Lazy loading değişkenleri
     private const int SayfaBoyutu = 20;
     private int _mevcutSkip = 0;
     private bool _dahaFazlaVar = true;
@@ -32,7 +31,6 @@ public partial class AdminRequestsView : ContentPage
     private bool _ilkYukleme = true;
     private string _aktifArama = "";
 
-    // Arama debounce için
     private CancellationTokenSource _aramaCts;
 
     public AdminRequestsView()
@@ -73,9 +71,6 @@ public partial class AdminRequestsView : ContentPage
         }
     }
 
-    /// <summary>
-    /// Talepleri sayfalı olarak yükler. reset=true ise listeyi sıfırlar.
-    /// </summary>
     private async Task TalepleriYukle(bool reset = true)
     {
         if (_yukleniyor) return;
@@ -98,7 +93,6 @@ public partial class AdminRequestsView : ContentPage
 
         try
         {
-            // İlk yüklemede referans verileri bir kez al
             if (_ilkYukleme)
             {
                 _tumHizmetler = await _apiService.HizmetleriGetirAsync();
@@ -106,7 +100,6 @@ public partial class AdminRequestsView : ContentPage
                 _ilkYukleme = false;
             }
 
-            // Sayfalı admin talepleri endpoint'ini kullan
             var (yeniTalepler, toplamKayit) = await _apiService.AdminTalepleriniSayfaliGetirAsync(
                 skip: _mevcutSkip,
                 limit: SayfaBoyutu,
@@ -119,7 +112,6 @@ public partial class AdminRequestsView : ContentPage
                 if (_orijinalTalepler == null)
                     _orijinalTalepler = new List<ServisTalebi>();
 
-                // Gelen talepleri zenginleştir (araç adı, hizmet adı, foto durumu)
                 await TalepleriZenginlestir(yeniTalepler);
 
                 _orijinalTalepler.AddRange(yeniTalepler);
@@ -148,25 +140,18 @@ public partial class AdminRequestsView : ContentPage
         }
     }
 
-    /// <summary>
-    /// Yeni yüklenen talepleri zenginleştirir: hizmet adı, araç adı ve fotoğraf var mı bilgisi ekler.
-    /// </summary>
     private async Task TalepleriZenginlestir(List<ServisTalebi> talepler)
     {
         if (talepler == null || talepler.Count == 0) return;
 
-        // Araç havuzu (cache) – aynı aracı tekrar API'den çekmemek için
         var aracHavuzu = new ConcurrentDictionary<int, Arac>();
 
-        // Her talep için paralel olarak hizmet adı ve araç adı doldur
         var detayGorevleri = talepler.Select(async talep =>
         {
-            // Hizmet adı (önceden alınan _tumHizmetler listesinden)
             var hizmet = _tumHizmetler?.FirstOrDefault(h => h.id == talep.hizmet_id);
             if (hizmet != null)
                 talep.hizmet_adi = hizmet.ad;
 
-            // Araç bilgisi (cache'de yoksa API'den al)
             if (!aracHavuzu.TryGetValue(talep.arac_id, out var arac))
             {
                 arac = await _apiService.AracGetirAsync(talep.arac_id);
@@ -198,7 +183,6 @@ public partial class AdminRequestsView : ContentPage
 
         await Task.WhenAll(detayGorevleri);
 
-        // Toplu fotoğraf durumu sorgusu (sadece bu sayfadaki talepler için)
         var talepIdleri = talepler.Select(t => t.id).ToList();
         var fotoDurumlari = await _apiService.TopluFotografDurumuGetirAsync(talepIdleri);
 
@@ -208,24 +192,18 @@ public partial class AdminRequestsView : ContentPage
         }
     }
 
-    /// <summary>
-    /// Koleksiyon görünümü sona yaklaştığında tetiklenir, yeni sayfa yükler.
-    /// </summary>
     private async void OnThresholdReached(object sender, EventArgs e)
     {
         if (!_yukleniyor && _dahaFazlaVar)
             await TalepleriYukle(reset: false);
     }
 
-    /// <summary>
-    /// Arama çubuğu değiştiğinde debounce ile filtreleme yapar.
-    /// </summary>
     private void OnFiltreDegisti(object sender, TextChangedEventArgs e)
     {
         _aramaCts?.Cancel();
         _aramaCts = new CancellationTokenSource();
 
-        Task.Delay(300, _aramaCts.Token).ContinueWith(t =>
+        Task.Delay(100, _aramaCts.Token).ContinueWith(t =>
         {
             if (!t.IsCanceled)
             {
@@ -239,17 +217,12 @@ public partial class AdminRequestsView : ContentPage
     {
         base.OnDisappearing();
         _aramaCts?.Cancel();
-        // ItemsSource = null YAPMIYORUZ, sayfa geri gelince liste boş kalmasın.
     }
-
-    // =========================================================
-    // ÜST FİLTRE DROPDOWN KONTROLLERİ
-    // =========================================================
 
     private void OnFiltreDurumKutusuAcKapatTapped(object sender, TappedEventArgs e)
     {
         DurumSecimKutusu.IsVisible = !DurumSecimKutusu.IsVisible;
-        FloatingMenuOverlay.IsVisible = false; // Yüzen menüyü kapat
+        FloatingMenuOverlay.IsVisible = false;
     }
 
     private void OnFiltreDurumSecildi(object sender, SelectionChangedEventArgs e)
@@ -265,19 +238,13 @@ public partial class AdminRequestsView : ContentPage
         }
     }
 
-    // =========================================================
-    // YÜZEN DURUM MENÜSÜ KONTROLLERİ
-    // =========================================================
-
     private void OnFloatingMenuClose(object sender, EventArgs e)
     {
         FloatingMenuOverlay.IsVisible = false;
         _secilenTalep = null;
+        _aktifKartBorder = null;
     }
 
-    /// <summary>
-    /// Kart içindeki "Mevcut Durum" alanına tıklandığında yüzen durum menüsünü açar.
-    /// </summary>
     private void OnItemDurumKutusuAcTapped(object sender, TappedEventArgs e)
     {
         var border = sender as Border;
@@ -287,6 +254,7 @@ public partial class AdminRequestsView : ContentPage
 
         DurumSecimKutusu.IsVisible = false;
         _secilenTalep = talep;
+        _aktifKartBorder = border;
         FloatingMenuOverlay.IsVisible = true;
 
         double buton_X = 0;
@@ -322,24 +290,26 @@ public partial class AdminRequestsView : ContentPage
         AbsoluteLayout.SetLayoutBounds(FloatingItemDurumMenusu, new Microsoft.Maui.Graphics.Rect(buton_X, buton_Y, 130, 160));
     }
 
-    /// <summary>
-    /// Yüzen menüden bir durum seçildiğinde talebin durumunu günceller.
-    /// </summary>
     private void OnFloatingItemDurumSecildi(object sender, TappedEventArgs e)
     {
         var yeniDurum = e.Parameter as string;
         if (_secilenTalep != null && !string.IsNullOrEmpty(yeniDurum))
         {
             _secilenTalep.durum = yeniDurum;
+
+            // Karttaki Label'ı güncelle
+            if (_aktifKartBorder != null)
+            {
+                var label = _aktifKartBorder.FindByName<Label>("KartDurumLabel");
+                if (label != null)
+                    label.Text = yeniDurum;
+            }
         }
 
         FloatingMenuOverlay.IsVisible = false;
         _secilenTalep = null;
+        _aktifKartBorder = null;
     }
-
-    // =========================================================
-    // GÜNCELLEME İŞLEMİ
-    // =========================================================
 
     private async void OnUpdateTapped(object sender, TappedEventArgs e)
     {
@@ -376,10 +346,6 @@ public partial class AdminRequestsView : ContentPage
         }
     }
 
-    // =========================================================
-    // ADRES KOPYALAMA
-    // =========================================================
-
     private async void OnCopyTapped(object sender, EventArgs e)
     {
         var label = sender as Label;
@@ -392,10 +358,6 @@ public partial class AdminRequestsView : ContentPage
             await DisplayAlert("Kopyalandı", "Bilgi panoya kopyalandı.", "Tamam");
         }
     }
-
-    // =========================================================
-    // FOTOĞRAF İŞLEMLERİ
-    // =========================================================
 
     private async void OnViewPhotosTapped(object sender, TappedEventArgs e)
     {
@@ -465,10 +427,6 @@ public partial class AdminRequestsView : ContentPage
             LoadingOverlay.IsVisible = false;
         }
     }
-
-    // =========================================================
-    // TELEFON ARAMA
-    // =========================================================
 
     private void OnPhoneTapped(object sender, TappedEventArgs e)
     {

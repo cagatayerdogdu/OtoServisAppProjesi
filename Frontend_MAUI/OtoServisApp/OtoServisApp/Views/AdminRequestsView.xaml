@@ -141,11 +141,11 @@
                                     <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="End">
                                         <Label Text="Mevcut Durum" FontSize="10" TextColor="#888888" Margin="5,0,0,0"/>
 
-                                        <Border BackgroundColor="#FAFAFA" Stroke="#CCCCCC" StrokeThickness="1" StrokeShape="RoundRectangle 15" HeightRequest="35" Padding="15,0" VerticalOptions="End">
+                                        <Border x:Name="KartDurumBorder" BackgroundColor="#FAFAFA" Stroke="#CCCCCC" StrokeThickness="1" StrokeShape="RoundRectangle 15" HeightRequest="35" Padding="15,0" VerticalOptions="End">
                                             <Border.GestureRecognizers>
                                                 <TapGestureRecognizer Tapped="OnItemDurumKutusuAcTapped" CommandParameter="{Binding .}" />
                                             </Border.GestureRecognizers>
-                                            <Label Text="{Binding durum}" TextColor="#333333" FontSize="13" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" InputTransparent="True" />
+                                            <Label x:Name="KartDurumLabel" Text="{Binding durum}" TextColor="#333333" FontSize="13" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" InputTransparent="True" />
                                         </Border>
                                     </VerticalStackLayout>
 
@@ -171,7 +171,7 @@
             </CollectionView>
         </Grid>
 
-        <!-- DURUM SEÇİM DROPDOWN'U -->
+        <!-- DURUM SEÇİM DROPDOWN'U (ÜST FİLTRE) -->
         <Border x:Name="DurumSecimKutusu" IsVisible="False" BackgroundColor="White" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="5" Margin="0,60,15,0" ZIndex="99" HorizontalOptions="End" VerticalOptions="Start">
             <CollectionView x:Name="DurumListesi" HeightRequest="140" WidthRequest="110" SelectionMode="Single" SelectionChanged="OnFiltreDurumSecildi">
                 <CollectionView.ItemTemplate>
@@ -213,6 +213,7 @@
                         </Border.GestureRecognizers>
                         <Label Text="Bekliyor" TextColor="#111111" FontSize="12" VerticalOptions="Center" HorizontalOptions="Center" InputTransparent="True" />
                     </Border>
+                    <BoxView HeightRequest="1" Color="#EEEEEE"/>
                     <!-- Onaylandı -->
                     <Border HeightRequest="32" Padding="0">
                         <Border.GestureRecognizers>
@@ -220,6 +221,7 @@
                         </Border.GestureRecognizers>
                         <Label Text="Onaylandı" TextColor="#111111" FontSize="12" VerticalOptions="Center" HorizontalOptions="Center" InputTransparent="True" />
                     </Border>
+                    <BoxView HeightRequest="1" Color="#EEEEEE"/>
                     <!-- İşlemde -->
                     <Border HeightRequest="32" Padding="0">
                         <Border.GestureRecognizers>
@@ -227,6 +229,7 @@
                         </Border.GestureRecognizers>
                         <Label Text="İşlemde" TextColor="#111111" FontSize="12" VerticalOptions="Center" HorizontalOptions="Center" InputTransparent="True" />
                     </Border>
+                    <BoxView HeightRequest="1" Color="#EEEEEE"/>
                     <!-- Tamamlandı -->
                     <Border HeightRequest="32" Padding="0">
                         <Border.GestureRecognizers>
@@ -234,6 +237,7 @@
                         </Border.GestureRecognizers>
                         <Label Text="Tamamlandı" TextColor="#111111" FontSize="12" VerticalOptions="Center" HorizontalOptions="Center" InputTransparent="True" />
                     </Border>
+                    <BoxView HeightRequest="1" Color="#EEEEEE"/>
                     <!-- İptal Edildi -->
                     <Border HeightRequest="32" Padding="0">
                         <Border.GestureRecognizers>
