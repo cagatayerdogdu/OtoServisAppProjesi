@@ -903,6 +903,9 @@ def servis_talebi_olustur(istek: schemas.ServisTalebiCreate, db: Session = Depen
 #                  .order_by(models.ServisTalebi.insert_tarihi.desc()).all()
 #     return talepler
 
+# ------------------------------------------------------------
+# KULLANICI TALEPLERİ (SAYFALI + FİLTRELİ)
+# ------------------------------------------------------------
 @app.get("/servis-talepleri/kullanici/{kullanici_id}")
 def kullanici_taleplerini_getir(
     kullanici_id: int,
@@ -912,6 +915,7 @@ def kullanici_taleplerini_getir(
     arama: Optional[str] = Query(None),
     db: Session = Depends(get_db)
 ):
+    # Ana sorgu
     query = db.query(models.ServisTalebi)\
         .filter(models.ServisTalebi.kullanici_id == kullanici_id,
                 models.ServisTalebi.kayit_durumu == 'A')
@@ -921,18 +925,25 @@ def kullanici_taleplerini_getir(
 
     if arama:
         arama = arama.lower()
-        # Hizmet adı veya araç adı (özel marka/model ya da marka+model) için join'li arama
+        # Hizmet adı
         query = query.join(models.Hizmet, models.ServisTalebi.hizmet_id == models.Hizmet.id, isouter=True)\
-                     .join(models.Arac, models.ServisTalebi.arac_id == models.Arac.id, isouter=True)\
-                     .filter(
-                         (models.Hizmet.ad.ilike(f"%{arama}%")) |
-                         (models.Arac.ozel_marka.ilike(f"%{arama}%")) |
-                         (models.Arac.ozel_model.ilike(f"%{arama}%")) |
-                         (models.Arac.marka_id.isnot(None) & models.Arac.model_id.isnot(None) & 
-                          (models.Marka.ad + " " + models.Model.ad).ilike(f"%{arama}%"))
-                     )
+                     .join(models.Arac, models.ServisTalebi.arac_id == models.Arac.id, isouter=True)
 
-    # Sıralama: durum önceliği + talep ID'si yeniden eskiye
+        # Araç marka/model bilgisi için ek join'ler
+        query = query.outerjoin(models.Marka, models.Arac.marka_id == models.Marka.id)\
+                     .outerjoin(models.Model, models.Arac.model_id == models.Model.id)
+
+        query = query.filter(
+            (models.Hizmet.ad.ilike(f"%{arama}%")) |
+            (models.Arac.ozel_marka.ilike(f"%{arama}%")) |
+            (models.Arac.ozel_model.ilike(f"%{arama}%")) |
+            (models.Marka.ad + " " + models.Model.ad).ilike(f"%{arama}%")
+        )
+
+    # Toplam kayıt sayısı
+    toplam_kayit = query.count()
+
+    # Sıralama: durum önceliği + ID azalan
     siralama = case(
         (models.ServisTalebi.durum == 'Bekliyor', 1),
         (models.ServisTalebi.durum == 'Onaylandı', 2),
@@ -942,7 +953,6 @@ def kullanici_taleplerini_getir(
         else_=6
     )
 
-    toplam_kayit = query.count()
     talepler = query.order_by(siralama, models.ServisTalebi.id.desc())\
                     .offset(skip).limit(limit).all()
 
@@ -1730,6 +1740,9 @@ def admin_talep_guncelle_kullanilmiyor(talep_id: int, durum: str, tahmini_tutar:
     return {"mesaj": "Talep güncellendi"}
 
 # Admin İçin Sayfalı Endpoint - DeepSeek
+# ------------------------------------------------------------
+# ADMİN TALEPLERİ (SAYFALI + FİLTRELİ)
+# ------------------------------------------------------------
 @app.get("/admin/servis-talepleri/sayfali")
 def admin_taleplerini_sayfali_getir(
     skip: int = Query(0, ge=0),
@@ -1748,13 +1761,18 @@ def admin_taleplerini_sayfali_getir(
 
     if arama:
         arama = arama.lower()
-        query = query.join(models.Kullanici, models.ServisTalebi.kullanici_id == models.Kullanici.id, isouter=True)\
-                     .join(models.Arac, models.ServisTalebi.arac_id == models.Arac.id, isouter=True)\
-                     .filter(
-                         (models.Kullanici.ad_soyad.ilike(f"%{arama}%")) |
-                         (models.Arac.ozel_marka.ilike(f"%{arama}%")) |
-                         (models.Arac.ozel_model.ilike(f"%{arama}%"))
-                     )
+        query = query.join(models.Kullanici, models.ServisTalebi.kullanici_id == models.Kullanici.id)\
+                     .join(models.Arac, models.ServisTalebi.arac_id == models.Arac.id)
+        # Araç marka/model join'leri
+        query = query.outerjoin(models.Marka, models.Arac.marka_id == models.Marka.id)\
+                     .outerjoin(models.Model, models.Arac.model_id == models.Model.id)
+
+        query = query.filter(
+            (models.Kullanici.ad_soyad.ilike(f"%{arama}%")) |
+            (models.Arac.ozel_marka.ilike(f"%{arama}%")) |
+            (models.Arac.ozel_model.ilike(f"%{arama}%")) |
+            (models.Marka.ad + " " + models.Model.ad).ilike(f"%{arama}%")
+        )
 
     toplam_kayit = query.count()
 
@@ -1767,7 +1785,7 @@ def admin_taleplerini_sayfali_getir(
     talepler = query.order_by(siralama, models.ServisTalebi.talep_tarihi.asc(), models.ServisTalebi.insert_tarihi.asc())\
                     .offset(skip).limit(limit).all()
 
-    # İlişkili verileri ekle
+    # İlişkili verileri ekleyelim (C# tarafı tekrar tekrar çekmesin)
     sonuc = []
     for t in talepler:
         kullanici = db.query(models.Kullanici).filter(models.Kullanici.id == t.kullanici_id).first()

@@ -804,22 +804,24 @@ namespace OtoServisApp.Services
             return new Dictionary<int, bool>();
         }
 
-        /* Sayfalı ve Filtreli Metot (Kullanıcı Tarafı)- DeepSeek */
+        /* Sayfalı ve Filtreli Metot (Kullanıcı Tarafı) - DeepSeek */
+        /// <summary>
+        /// Kullanıcının servis taleplerini sayfalı ve filtreli olarak getirir.
+        /// </summary>
         public async Task<(List<ServisTalebi> talepler, int toplamKayit)> KullaniciTalepleriniSayfaliGetirAsync(
-                int kullaniciId,
-                int skip = 0,
-                int limit = 20,
-                string durum = null,
-                string arama = null
-            )
+            int kullaniciId,
+            int skip = 0,
+            int limit = 20,
+            string durum = null,
+            string arama = null)
         {
             try
             {
                 var queryParams = new List<string>
-                {
-                    $"skip={skip}",
-                    $"limit={limit}"
-                };
+        {
+            $"skip={skip}",
+            $"limit={limit}"
+        };
                 if (!string.IsNullOrEmpty(durum) && durum != "Tümü")
                     queryParams.Add($"durum={Uri.EscapeDataString(durum)}");
                 if (!string.IsNullOrEmpty(arama))
@@ -842,6 +844,9 @@ namespace OtoServisApp.Services
             return (new List<ServisTalebi>(), 0);
         }
         /* Sayfalı ve Filtreli Metot (Admin Tarafı) - DeepSeek */
+        /// <summary>
+        /// Admin paneli için talepleri sayfalı ve filtreli olarak getirir.
+        /// </summary>
         public async Task<(List<ServisTalebi> talepler, int toplamKayit)> AdminTalepleriniSayfaliGetirAsync(
             int skip = 0,
             int limit = 20,
@@ -851,10 +856,10 @@ namespace OtoServisApp.Services
             try
             {
                 var queryParams = new List<string>
-                {
-                    $"skip={skip}",
-                    $"limit={limit}"
-                };
+        {
+            $"skip={skip}",
+            $"limit={limit}"
+        };
                 if (!string.IsNullOrEmpty(durum) && durum != "Tümü")
                     queryParams.Add($"durum={Uri.EscapeDataString(durum)}");
                 if (!string.IsNullOrEmpty(arama))
