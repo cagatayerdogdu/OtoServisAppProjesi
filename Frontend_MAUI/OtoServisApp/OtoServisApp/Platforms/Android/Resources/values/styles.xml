@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- MAUI varsayılan temasını genişlet -->
+  <style name="Maui.MainTheme" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+    <!-- Tıklanabilir öğelerdeki varsayılan renkli geri bildirimi (ripple) kapat -->
+    <item name="android:colorControlHighlight">@android:color/transparent</item>
+    <!-- Odaklanıldığında çıkan kenarlığı kapat -->
+    <item name="android:focusable">false</item>
+    <item name="android:focusableInTouchMode">false</item>
+  </style>
+</resources>

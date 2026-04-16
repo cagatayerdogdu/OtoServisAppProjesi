@@ -35,6 +35,11 @@ public partial class MyServiceRequestsView : ContentPage
         InitializeComponent();
         _aktifKullanici = kullanici;
         _apiService = new ApiService();
+
+        MessagingCenter.Subscribe<object>(this, "TalepGuncellendi", async (sender) =>
+        {
+            await TalepleriYukle(reset: true);
+        });
     }
 
     protected override async void OnAppearing()
@@ -45,6 +50,7 @@ public partial class MyServiceRequestsView : ContentPage
             LoadingOverlay.IsVisible = true;
             LoadingTitle.Text = "Talepler Yükleniyor...";
             await Task.Delay(5);
+            _ = TalepleriYukle(reset: true);
         }
 
         try
@@ -272,10 +278,16 @@ public partial class MyServiceRequestsView : ContentPage
         }
     }*/
 
-    private void OnFiltreAcKapat(object sender, EventArgs e)
+    /*private void OnFiltreAcKapat(object sender, EventArgs e)
+    {
+        DurumSecimKutusu.IsVisible = !DurumSecimKutusu.IsVisible;
+    }*/
+
+    private void OnFiltreAcKapatTapped(object sender, TappedEventArgs e)
     {
         DurumSecimKutusu.IsVisible = !DurumSecimKutusu.IsVisible;
     }
+
 
     // Arama barı tetikleyicisi
     /*private CancellationTokenSource _aramaCts;
@@ -337,7 +349,8 @@ public partial class MyServiceRequestsView : ContentPage
         if (secilen != null)
         {
             _aktifDurum = secilen;
-            SecilenDurumButonu.Text = secilen;
+            //SecilenDurumButonu.Text = secilen;
+            SecilenDurumLabel.Text = secilen;
             DurumSecimKutusu.IsVisible = false;
             DurumListesi.SelectedItem = null;
 

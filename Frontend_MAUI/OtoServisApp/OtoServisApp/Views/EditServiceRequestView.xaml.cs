@@ -213,7 +213,7 @@ public partial class EditServiceRequestView : ContentPage
             {
                 await DisplayAlert("Başarılı", "Talep bilgileriniz ve fotoğraflarınız başarıyla güncellendi.", "Tamam");
             }
-
+            MessagingCenter.Send<object>(this, "TalepGuncellendi");
             await Navigation.PopAsync(); // Önceki ekrana dön
         }
         catch (Exception ex)

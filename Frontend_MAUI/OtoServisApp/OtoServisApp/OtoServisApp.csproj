@@ -62,6 +62,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <AndroidResource Remove="Platforms\Android\Resources\values\styles.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Platforms\Android\AndroidManifest.xml" />
     <None Remove="Platforms\Android\Resources\values\strings.xml" />
     <None Remove="Resources\AppIcon\appiconfg.svg" />
