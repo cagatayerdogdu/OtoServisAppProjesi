@@ -920,16 +920,19 @@ def kullanici_taleplerini_getir(
         query = query.filter(models.ServisTalebi.durum == durum)
 
     if arama:
-        # Araç adı veya hizmet adı için JOIN’li arama (performans için)
+        arama = arama.lower()
+        # Hizmet adı veya araç adı (özel marka/model ya da marka+model) için join'li arama
         query = query.join(models.Hizmet, models.ServisTalebi.hizmet_id == models.Hizmet.id, isouter=True)\
                      .join(models.Arac, models.ServisTalebi.arac_id == models.Arac.id, isouter=True)\
                      .filter(
                          (models.Hizmet.ad.ilike(f"%{arama}%")) |
                          (models.Arac.ozel_marka.ilike(f"%{arama}%")) |
-                         (models.Arac.ozel_model.ilike(f"%{arama}%"))
+                         (models.Arac.ozel_model.ilike(f"%{arama}%")) |
+                         (models.Arac.marka_id.isnot(None) & models.Arac.model_id.isnot(None) & 
+                          (models.Marka.ad + " " + models.Model.ad).ilike(f"%{arama}%"))
                      )
 
-    # Sıralama: durum önceliği + talep tarihi yeniden eskiye
+    # Sıralama: durum önceliği + talep ID'si yeniden eskiye
     siralama = case(
         (models.ServisTalebi.durum == 'Bekliyor', 1),
         (models.ServisTalebi.durum == 'Onaylandı', 2),
@@ -939,16 +942,13 @@ def kullanici_taleplerini_getir(
         else_=6
     )
 
+    toplam_kayit = query.count()
     talepler = query.order_by(siralama, models.ServisTalebi.id.desc())\
                     .offset(skip).limit(limit).all()
 
-    # Toplam kayıt sayısını da header veya ayrı alan olarak dönebiliriz
-    total = query.count()
-
-    # Response’a toplam sayıyı ekleyelim (C# tarafında kullanacağız)
     return {
         "talepler": talepler,
-        "toplam_kayit": total
+        "toplam_kayit": toplam_kayit
     }
 
 
@@ -1738,17 +1738,14 @@ def admin_taleplerini_sayfali_getir(
     arama: Optional[str] = Query(None),
     db: Session = Depends(get_db)
 ):
-    # Temel sorgu: sadece aktif (kayit_durumu 'A') ve durumları 'Bekliyor','Onaylandı','İşlemde' olanlar
     query = db.query(models.ServisTalebi).filter(
         models.ServisTalebi.kayit_durumu == 'A',
         models.ServisTalebi.durum.in_(['Bekliyor', 'Onaylandı', 'İşlemde'])
     )
 
-    # Durum filtresi
     if durum and durum != "Tümü":
         query = query.filter(models.ServisTalebi.durum == durum)
 
-    # Arama filtresi (kullanıcı adı veya araç adı)
     if arama:
         arama = arama.lower()
         query = query.join(models.Kullanici, models.ServisTalebi.kullanici_id == models.Kullanici.id, isouter=True)\
@@ -1759,10 +1756,8 @@ def admin_taleplerini_sayfali_getir(
                          (models.Arac.ozel_model.ilike(f"%{arama}%"))
                      )
 
-    # Toplam kayıt sayısı (sayfalama için)
     toplam_kayit = query.count()
 
-    # Sıralama (durum önceliği + talep tarihi)
     siralama = case(
         (models.ServisTalebi.durum == 'Bekliyor', 1),
         (models.ServisTalebi.durum == 'Onaylandı', 2),
@@ -1772,7 +1767,7 @@ def admin_taleplerini_sayfali_getir(
     talepler = query.order_by(siralama, models.ServisTalebi.talep_tarihi.asc(), models.ServisTalebi.insert_tarihi.asc())\
                     .offset(skip).limit(limit).all()
 
-    # İlişkili verileri ekleyelim (C# tarafında tekrar çekmeyelim diye)
+    # İlişkili verileri ekle
     sonuc = []
     for t in talepler:
         kullanici = db.query(models.Kullanici).filter(models.Kullanici.id == t.kullanici_id).first()
@@ -1795,7 +1790,6 @@ def admin_taleplerini_sayfali_getir(
         talep_dict["arac_adi_tam"] = arac_adi
         talep_dict["hizmet_adi"] = hizmet.ad if hizmet else ""
 
-        # Tarih formatlaması
         if t.talep_tarihi:
             talep_dict["talep_tarihi"] = t.talep_tarihi.strftime("%Y-%m-%d %H:%M")
 

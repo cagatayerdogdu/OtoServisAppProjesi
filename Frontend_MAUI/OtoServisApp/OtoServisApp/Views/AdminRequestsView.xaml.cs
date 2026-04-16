@@ -255,6 +255,9 @@ public partial class AdminRequestsView : ContentPage
         DurumSecimKutusu.IsVisible = false;
         _secilenTalep = talep;
         _aktifKartBorder = border;
+
+        // Durum listesini doldur
+        FloatingDurumListesi.ItemsSource = new List<string> { "Bekliyor", "Onaylandı", "İşlemde", "Tamamlandı", "İptal Edildi" };
         FloatingMenuOverlay.IsVisible = true;
 
         double buton_X = 0;
@@ -270,39 +273,38 @@ public partial class AdminRequestsView : ContentPage
             buton_Y = rect.Y + border.Height;
         }
 #elif ANDROID
-        var androidBorder = border.Handler?.PlatformView as Android.Views.View;
-        var androidOverlay = FloatingMenuOverlay.Handler?.PlatformView as Android.Views.View;
-        if (androidBorder != null && androidOverlay != null)
-        {
-            int[] locBorder = new int[2];
-            androidBorder.GetLocationOnScreen(locBorder);
+    var androidBorder = border.Handler?.PlatformView as Android.Views.View;
+    var androidOverlay = FloatingMenuOverlay.Handler?.PlatformView as Android.Views.View;
+    if (androidBorder != null && androidOverlay != null)
+    {
+        int[] locBorder = new int[2];
+        androidBorder.GetLocationOnScreen(locBorder);
 
-            int[] locOverlay = new int[2];
-            androidOverlay.GetLocationOnScreen(locOverlay);
+        int[] locOverlay = new int[2];
+        androidOverlay.GetLocationOnScreen(locOverlay);
 
-            double density = DeviceDisplay.MainDisplayInfo.Density;
+        double density = DeviceDisplay.MainDisplayInfo.Density;
 
-            buton_X = (locBorder[0] - locOverlay[0]) / density;
-            buton_Y = ((locBorder[1] - locOverlay[1]) / density) + border.Height;
-        }
+        buton_X = (locBorder[0] - locOverlay[0]) / density;
+        buton_Y = ((locBorder[1] - locOverlay[1]) / density) + border.Height;
+    }
 #endif
 
-        AbsoluteLayout.SetLayoutBounds(FloatingItemDurumMenusu, new Microsoft.Maui.Graphics.Rect(buton_X, buton_Y, 130, 160));
+        AbsoluteLayout.SetLayoutBounds(FloatingItemDurumMenusu, new Microsoft.Maui.Graphics.Rect(buton_X, buton_Y, 130, 200));
     }
 
-    private void OnFloatingItemDurumSecildi(object sender, TappedEventArgs e)
+    private void OnFloatingDurumSecildi(object sender, SelectionChangedEventArgs e)
     {
-        var yeniDurum = e.Parameter as string;
-        if (_secilenTalep != null && !string.IsNullOrEmpty(yeniDurum))
+        var secilen = e.CurrentSelection.FirstOrDefault() as string;
+        if (_secilenTalep != null && !string.IsNullOrEmpty(secilen))
         {
-            _secilenTalep.durum = yeniDurum;
+            _secilenTalep.durum = secilen;
 
-            // Karttaki Label'ı güncelle
             if (_aktifKartBorder != null)
             {
                 var label = _aktifKartBorder.FindByName<Label>("KartDurumLabel");
                 if (label != null)
-                    label.Text = yeniDurum;
+                    label.Text = secilen;
             }
         }
 
@@ -310,6 +312,7 @@ public partial class AdminRequestsView : ContentPage
         _secilenTalep = null;
         _aktifKartBorder = null;
     }
+
 
     private async void OnUpdateTapped(object sender, TappedEventArgs e)
     {
