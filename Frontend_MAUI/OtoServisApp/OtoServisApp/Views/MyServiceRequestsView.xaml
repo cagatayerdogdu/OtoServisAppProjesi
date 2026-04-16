@@ -17,6 +17,14 @@
                 </Grid>
 
                 <HorizontalStackLayout Spacing="5" VerticalOptions="Center" HorizontalOptions="EndAndExpand">
+                    <!-- Toplam talep sayısı etiketi -->
+                    <Label x:Name="ToplamTalepLabel" 
+                           Text="0 talep" 
+                           FontSize="11" 
+                           TextColor="#666666" 
+                           VerticalOptions="Center" 
+                           Margin="0,0,10,0"/>
+
                     <Label Text="Durum:" VerticalOptions="Center" FontSize="13" FontAttributes="Bold" TextColor="#333333"/>
 
                     <Border BackgroundColor="White" Stroke="#CCCCCC" StrokeThickness="1" StrokeShape="RoundRectangle 15" HeightRequest="35" WidthRequest="110" Padding="0">
@@ -65,8 +73,8 @@
 
                             <BoxView HeightRequest="1" Color="#EEEEEE" Margin="0,0,0,5"/>
 
-                            <HorizontalStackLayout Spacing="10">
-                                <Label Text="Durum:" TextColor="#666666" FontAttributes="Bold"/>
+                            <HorizontalStackLayout Spacing="10">                                
+                                    <Label Text="Durum:" TextColor="#666666" FontAttributes="Bold"/>
                                 <Label Text="{Binding durum, Mode=OneWay}" TextColor="#00BCD4" FontAttributes="Bold"/>
                             </HorizontalStackLayout>
 
@@ -106,21 +114,33 @@
                                         <Label Text="Bu talebe detaylı hasar fotoğrafları yüklediniz." TextColor="#F57C00" FontSize="11"/>
                                     </VerticalStackLayout>
 
-                                    <Border Grid.Column="1" BackgroundColor="#FF9800" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 6" HeightRequest="35" VerticalOptions="Center" Padding="0">
-                                        <Button Text="Fotoğrafları Gör" BackgroundColor="Transparent" TextColor="White" FontSize="12" FontAttributes="Bold" Padding="15,0" CommandParameter="{Binding .}" Clicked="OnViewPhotosClicked" BorderWidth="0" Margin="0"/>
-                                    </Border>
-                                </Grid>
+                                        <Border Grid.Column="1" BackgroundColor="#FF9800" StrokeShape="RoundRectangle 6" HeightRequest="35" Padding="15,0" VerticalOptions="Center">
+                                            <Label Text="Fotoğrafları Gör" TextColor="White" FontSize="12" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center">
+                                                <Label.GestureRecognizers>
+                                                    <TapGestureRecognizer Tapped="OnViewPhotosTapped" CommandParameter="{Binding .}" />
+                                                </Label.GestureRecognizers>
+                                            </Label>
+                                        </Border>
+                                    </Grid>
                             </Border>
 
-                            <Grid ColumnDefinitions="*, *">
-                                <Border Grid.Column="0" BackgroundColor="#00BCD4" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 8" Margin="0,0,5,0" Padding="0">
-                                    <Button Text="Düzenle" BackgroundColor="Transparent" TextColor="White" Clicked="OnEditClicked" CommandParameter="{Binding .}" BorderWidth="0" Margin="0" Padding="0"/>
-                                </Border>
+                                <Grid ColumnDefinitions="*, *">
+                                    <Border Grid.Column="0" BackgroundColor="#00BCD4" StrokeShape="RoundRectangle 8" Margin="0,0,5,0" HeightRequest="40">
+                                        <Label Text="Düzenle" TextColor="White" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center">
+                                            <Label.GestureRecognizers>
+                                                <TapGestureRecognizer Tapped="OnEditTapped" CommandParameter="{Binding .}" />
+                                            </Label.GestureRecognizers>
+                                        </Label>
+                                    </Border>
 
-                                <Border Grid.Column="1" BackgroundColor="#FFEBEE" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 8" Margin="5,0,0,0" Padding="0">
-                                    <Button Text="İptal Et" BackgroundColor="Transparent" TextColor="#D32F2F" Clicked="OnCancelClicked" CommandParameter="{Binding .}" BorderWidth="0" Margin="0" Padding="0"/>
-                                </Border>
-                            </Grid>
+                                    <Border Grid.Column="1" BackgroundColor="#FFEBEE" StrokeShape="RoundRectangle 8" Margin="5,0,0,0" HeightRequest="40">
+                                        <Label Text="İptal Et" TextColor="#D32F2F" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center">
+                                            <Label.GestureRecognizers>
+                                                <TapGestureRecognizer Tapped="OnCancelTapped" CommandParameter="{Binding .}" />
+                                            </Label.GestureRecognizers>
+                                        </Label>
+                                    </Border>
+                                </Grid>
 
                         </VerticalStackLayout>
                     </Border>

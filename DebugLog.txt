@@ -1,0 +1,64 @@
+[MaterialButton] MaterialButton manages its own background to control elevation, shape, color and states. Consider using backgroundTint, shapeAppearance and other attributes where available. A custom background will ignore these attributes and you should consider handling interaction states such as pressed, focused and disabled
+[Choreographer] Skipped 32 frames!  The application may be doing too much work on its main thread.
+[AutofillManager] view not autofillable - not passing ime action check
+[AutofillManager] view not autofillable - not passing ime action check
+[GestureDetector] handleMessage TAP
+[me.otoservisapp] Explicit concurrent mark compact GC freed 420KB AllocSpace bytes, 3(60KB) LOS objects, 73% free, 8638KB/32MB, paused 206us,1.429ms total 21.871ms
+[MaterialButton] MaterialButton manages its own background to control elevation, shape, color and states. Consider using backgroundTint, shapeAppearance and other attributes where available. A custom background will ignore these attributes and you should consider handling interaction states such as pressed, focused and disabled
+[MaterialButton] MaterialButton manages its own background to control elevation, shape, color and states. Consider using backgroundTint, shapeAppearance and other attributes where available. A custom background will ignore these attributes and you should consider handling interaction states such as pressed, focused and disabled
+[MaterialButton] MaterialButton manages its own background to control elevation, shape, color and states. Consider using backgroundTint, shapeAppearance and other attributes where available. A custom background will ignore these attributes and you should consider handling interaction states such as pressed, focused and disabled
+[MaterialButton] MaterialButton manages its own background to control elevation, shape, color and states. Consider using backgroundTint, shapeAppearance and other attributes where available. A custom background will ignore these attributes and you should consider handling interaction states such as pressed, focused and disabled
+[me.otoservisapp] Explicit concurrent mark compact GC freed 236KB AllocSpace bytes, 0(0B) LOS objects, 73% free, 8786KB/32MB, paused 231us,1.465ms total 22.830ms
+[MaterialButton] MaterialButton manages its own background to control elevation, shape, color and states. Consider using backgroundTint, shapeAppearance and other attributes where available. A custom background will ignore these attributes and you should consider handling interaction states such as pressed, focused and disabled
+[MaterialButton] MaterialButton manages its own background to control elevation, shape, color and states. Consider using backgroundTint, shapeAppearance and other attributes where available. A custom background will ignore these attributes and you should consider handling interaction states such as pressed, focused and disabled
+[VRI[MainActivity]@9d6addf] ViewPostIme pointer 0
+[VRI[MainActivity]@9d6addf] ViewPostIme pointer 1
+[me.otoservisapp] Explicit concurrent mark compact GC freed 256KB AllocSpace bytes, 0(0B) LOS objects, 73% free, 8882KB/32MB, paused 161us,1.338ms total 20.465ms
+[WindowOnBackDispatcher] OnBackInvokedCallback is not enabled for the application.
+[WindowOnBackDispatcher] Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+[MaterialButton] MaterialButton manages its own background to control elevation, shape, color and states. Consider using backgroundTint, shapeAppearance and other attributes where available. A custom background will ignore these attributes and you should consider handling interaction states such as pressed, focused and disabled
+[MaterialButton] MaterialButton manages its own background to control elevation, shape, color and states. Consider using backgroundTint, shapeAppearance and other attributes where available. A custom background will ignore these attributes and you should consider handling interaction states such as pressed, focused and disabled
+[MaterialButton] MaterialButton manages its own background to control elevation, shape, color and states. Consider using backgroundTint, shapeAppearance and other attributes where available. A custom background will ignore these attributes and you should consider handling interaction states such as pressed, focused and disabled
+[MaterialButton] MaterialButton manages its own background to control elevation, shape, color and states. Consider using backgroundTint, shapeAppearance and other attributes where available. A custom background will ignore these attributes and you should consider handling interaction states such as pressed, focused and disabled
+[MaterialButton] MaterialButton manages its own background to control elevation, shape, color and states. Consider using backgroundTint, shapeAppearance and other attributes where available. A custom background will ignore these attributes and you should consider handling interaction states such as pressed, focused and disabled
+[AutofillManager] view not autofillable - not passing ime action check
+[AutofillManager] view not autofillable - not passing ime action check
+[VRI[MainActivity]@9d6addf] call setFrameRateCategory for touch hint category=no preference, reason=boost timeout, vri=VRI[MainActivity]@9d6addf
+[VRI[MainActivity]@9d6addf] ViewPostIme pointer 0
+[VRI[MainActivity]@9d6addf] call setFrameRateCategory for touch hint category=high hint, reason=touch, vri=VRI[MainActivity]@9d6addf
+[VRI[MainActivity]@9d6addf] ViewPostIme pointer 1
+[VRI[MainActivity]@9d6addf] ViewPostIme pointer 0
+[VRI[MainActivity]@9d6addf] ViewPostIme pointer 1
+[VRI[MainActivity]@9d6addf] ViewPostIme pointer 0
+[VRI[MainActivity]@9d6addf] ViewPostIme pointer 1
+[VRI[MainActivity]@9d6addf] call setFrameRateCategory for touch hint category=no preference, reason=boost timeout, vri=VRI[MainActivity]@9d6addf
+[SmartClipDataCropperImpl] doExtractSmartClipData : Extraction start! reqId = 100  Cropped area = Rect(540, 1101 - 541, 1102)  Package = com.companyname.otoservisapp
+[SmartClipDataCropperImpl] addAppMetaTag : package name is com.companyname.otoservisapp
+[SmartClipDataCropperImpl] sendExtractionResultToSmartClipService : -- Extracted SmartClip data information --
+[SmartClipDataCropperImpl] sendExtractionResultToSmartClipService : Request Id : 100
+[SmartClipDataCropperImpl] sendExtractionResultToSmartClipService : Extraction mode : 1
+[SemSmartClipDataRepository] ----- Start of SmartClip repository informations -----
+[SemSmartClipDataRepository] ** Content type : image
+[SemSmartClipDataRepository] ** Meta area rect : Rect(0, 0 - 0, 0)
+[SemSmartClipDataRepository] ** Captured image file path : null
+[SemSmartClipDataRepository] ----- End of SmartClip repository informations -----
+[SmartClipDataCropperImpl] sendExtractionResultToSmartClipService : Elapsed = 21
+[ImeFocusController] onPreWindowFocus: skipped hasWindowFocus=false mHasImeFocus=true
+[ImeFocusController] onPostWindowFocus: skipped hasWindowFocus=false mHasImeFocus=true
+[SmartClipRemoteRequestDispatcher] dispatchScrollableAreaInfo : windowRect = Rect(0, 0 - 1080, 2316)
+[SmartClipRemoteRequestDispatcher] dispatchScrollableAreaInfo : Scrollable view count = 20
+[SmartClipRemoteRequestDispatcher] dispatchScrollableAreaInfo : Unscrollable view count = 0
+[SmartClipRemoteRequestDispatcher] dispatchScrollableAreaInfo : Pkg=com.companyname.otoservisapp Activity=null
+[InsetsSourceConsumer] applyRequestedVisibilityToControl: visible=true, type=navigationBars, host=com.companyname.otoservisapp/crc649bb5a67142c0bd7f.MainActivity
+[InsetsSourceConsumer] applyRequestedVisibilityToControl: visible=true, type=statusBars, host=com.companyname.otoservisapp/crc649bb5a67142c0bd7f.MainActivity
+[VRI[MainActivity]@9d6addf] mThreadedRenderer.initializeIfNeeded()#2 mSurface={isValid=true 0xb40000780128f880}
+[InputMethodManagerUtils] startInputInner - Id : 0
+[InputMethodManager] startInputInner - IInputMethodManagerGlobalInvoker.startInputOrWindowGainedFocus
+[InputMethodManager] handleMessage: setImeVisibility visible=false
+[InsetsController] hide(ime(), fromIme=false)
+[ImeTracker] com.companyname.otoservisapp:10455884: onCancelled at PHASE_CLIENT_ALREADY_HIDDEN
+[InputTransport] Input channel constructed: 'ClientS', fd=168
+Thread finished: <Thread Pool> #7
+The thread 7 has exited with code 0 (0x0).
+Thread finished:  #5
+The thread 5 has exited with code 0 (0x0).

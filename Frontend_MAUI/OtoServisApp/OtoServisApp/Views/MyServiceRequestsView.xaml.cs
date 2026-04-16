@@ -107,6 +107,11 @@ public partial class MyServiceRequestsView : ContentPage
                 arama: _aktifArama
             );
 
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                ToplamTalepLabel.Text = $"{toplamKayit} talep";
+            });
+
             if (yeniTalepler != null && yeniTalepler.Any())
             {
                 if (_orijinalTalepler == null)
@@ -377,7 +382,7 @@ public partial class MyServiceRequestsView : ContentPage
         RequestsList.ItemsSource = filtrelenmisListe.ToList();
     }
 
-    private async void OnEditClicked(object sender, EventArgs e)
+    /*private async void OnEditClicked(object sender, EventArgs e)
     {
         var buton = sender as Button;
         var secilenTalep = buton?.CommandParameter as ServisTalebi;
@@ -391,9 +396,9 @@ public partial class MyServiceRequestsView : ContentPage
             }
             await Navigation.PushAsync(new EditServiceRequestView(secilenTalep, _aktifKullanici));
         }
-    }
+    }*/
 
-    private async void OnCancelClicked(object sender, EventArgs e)
+    /*private async void OnCancelClicked(object sender, EventArgs e)
     {
         var buton = sender as Button;
         var secilenTalep = buton?.CommandParameter as ServisTalebi;
@@ -434,9 +439,9 @@ public partial class MyServiceRequestsView : ContentPage
                 }
             }
         }
-    }
+    }*/
 
-    private async void OnViewPhotosClicked(object sender, EventArgs e)
+    /*private async void OnViewPhotosClicked(object sender, EventArgs e)
     {
         var buton = sender as Button;
         var secilenTalep = buton?.CommandParameter as ServisTalebi;
@@ -444,6 +449,73 @@ public partial class MyServiceRequestsView : ContentPage
         if (secilenTalep != null)
         {
             await Navigation.PushAsync(new ViewPhotosView(secilenTalep));
+        }
+    }*/
+
+    private async void OnViewPhotosTapped(object sender, TappedEventArgs e)
+    {
+        var label = sender as Label;
+        var secilenTalep = label?.BindingContext as ServisTalebi;
+        if (secilenTalep != null)
+            await Navigation.PushAsync(new ViewPhotosView(secilenTalep));
+    }
+
+    private async void OnEditTapped(object sender, TappedEventArgs e)
+    {
+        var label = sender as Label;
+        var secilenTalep = label?.BindingContext as ServisTalebi;
+
+        if (secilenTalep != null)
+        {
+            if (secilenTalep.durum == "Tamamlandı" || secilenTalep.durum == "İptal Edildi")
+            {
+                await DisplayAlert("İşlem Engellendi", "Bu talep sonlandığı için üzerinde değişiklik yapılamaz.", "Tamam");
+                return;
+            }
+            await Navigation.PushAsync(new EditServiceRequestView(secilenTalep, _aktifKullanici));
+        }
+    }
+
+    private async void OnCancelTapped(object sender, TappedEventArgs e)
+    {
+        var label = sender as Label;
+        var secilenTalep = label?.BindingContext as ServisTalebi;
+
+        if (secilenTalep != null)
+        {
+            if (secilenTalep.durum != "Bekliyor")
+            {
+                await DisplayAlert("İşlem Engellendi", "Sadece 'Bekliyor' durumundaki talepler iptal edilebilir.", "Tamam");
+                return;
+            }
+
+            bool eminMisin = await DisplayAlert("Onay", "Bu servis talebini iptal etmek (silmek) istediğinize emin misiniz?", "Evet, İptal Et", "Vazgeç");
+            if (eminMisin)
+            {
+                LoadingTitle.Text = "Lütfen bekleyiniz...";
+                LoadingOverlay.IsVisible = true;
+                await Task.Delay(10);
+
+                try
+                {
+                    bool basarili = await _apiService.ServisTalebiSilAsync(secilenTalep.id);
+                    if (basarili)
+                    {
+                        await DisplayAlert("Başarılı", "Talebiniz iptal edildi.", "Tamam");
+                        //await VerileriYukle();
+                        await TalepleriYukle(reset: true);
+                    }
+                    else
+                    {
+                        await DisplayAlert("Hata", "Talebiniz iptal edilirken bir sorun oluştu.", "Tamam");
+                    }
+                }
+                finally
+                {
+                    LoadingOverlay.IsVisible = false;
+                    LoadingTitle.Text = "Talepler Yükleniyor..."; // Yazıyı geri eski haline alıyoruz
+                }
+            }
         }
     }
 
