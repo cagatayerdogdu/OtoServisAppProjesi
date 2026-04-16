@@ -20,7 +20,6 @@
 
                     <HorizontalStackLayout Spacing="5" VerticalOptions="Center" HorizontalOptions="EndAndExpand">
                         <Label Text="Durum:" VerticalOptions="Center" FontSize="13" FontAttributes="Bold" TextColor="#333333"/>
-                        <!-- DURUM FİLTRESİ (Border tıklanabilir) -->
                         <Border BackgroundColor="White" Stroke="#CCCCCC" StrokeThickness="1" StrokeShape="RoundRectangle 15" HeightRequest="35" WidthRequest="110" Padding="0">
                             <Border.GestureRecognizers>
                                 <TapGestureRecognizer Tapped="OnFiltreDurumKutusuAcKapatTapped" />
@@ -31,7 +30,7 @@
                 </HorizontalStackLayout>
             </Border>
 
-            <!-- TALEP LİSTESİ (CollectionView) -->
+            <!-- TALEP LİSTESİ -->
             <CollectionView x:Name="RequestsList" Grid.Row="1" Margin="10"
                             RemainingItemsThreshold="5"
                             RemainingItemsThresholdReached="OnThresholdReached">
@@ -40,7 +39,6 @@
                         <Border BackgroundColor="#FAFAFA" StrokeShape="RoundRectangle 12" Padding="15" Margin="0,0,0,15" Stroke="#E0E0E0" StrokeThickness="1">
                             <VerticalStackLayout Spacing="10">
 
-                                <!-- Kullanıcı Bilgisi -->
                                 <Grid ColumnDefinitions="*, Auto">
                                     <VerticalStackLayout Grid.Column="0" Spacing="4">
                                         <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
@@ -67,7 +65,6 @@
 
                                 <BoxView HeightRequest="1" Color="#EEEEEE"/>
 
-                                <!-- Araç ve Hizmet -->
                                 <HorizontalStackLayout Spacing="10">
                                     <HorizontalStackLayout Spacing="5">
                                         <Label Text="{x:Static helpers:IconFont.Car}" FontFamily="FASolid" FontSize="13" TextColor="#333333" VerticalOptions="Center"/>
@@ -79,7 +76,6 @@
                                     </HorizontalStackLayout>
                                 </HorizontalStackLayout>
 
-                                <!-- Adres -->
                                 <VerticalStackLayout Spacing="2">
                                     <HorizontalStackLayout Spacing="5">
                                         <Label Text="{x:Static helpers:IconFont.MapMarkerAlt}" FontFamily="FASolid" FontSize="11" TextColor="#666666" VerticalOptions="Center"/>
@@ -92,7 +88,6 @@
                                     </Label>
                                 </VerticalStackLayout>
 
-                                <!-- Müşteri Notu -->
                                 <VerticalStackLayout Spacing="2">
                                     <HorizontalStackLayout Spacing="5">
                                         <Label Text="{x:Static helpers:IconFont.ClipboardList}" FontFamily="FASolid" FontSize="11" TextColor="#666666" VerticalOptions="Center"/>
@@ -101,7 +96,6 @@
                                     <Label Text="{Binding notlar, Mode=OneWay}" FontSize="12" TextColor="#333333" LineBreakMode="WordWrap"/>
                                 </VerticalStackLayout>
 
-                                <!-- Düzeltme Talebi -->
                                 <Border IsVisible="{Binding duzeltme_istendi_mi, Mode=OneWay}" BackgroundColor="#FFEBEE" Stroke="#D32F2F" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="12" Margin="0,5,0,5">
                                     <VerticalStackLayout Spacing="5">
                                         <HorizontalStackLayout Spacing="5">
@@ -112,7 +106,6 @@
                                     </VerticalStackLayout>
                                 </Border>
 
-                                <!-- Fotoğraf Var -->
                                 <Border BackgroundColor="#FFF3E0" Stroke="#FFCC80" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10" Margin="0,5,0,5" IsVisible="{Binding foto_var_mi, Mode=OneWay}">
                                     <Grid ColumnDefinitions="*, Auto">
                                         <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="2">
@@ -123,7 +116,6 @@
                                             <Label Text="Müşteri bu talebe hasar fotoğrafları yüklemiş." TextColor="#F57C00" FontSize="11"/>
                                         </VerticalStackLayout>
 
-                                        <!-- Fotoğrafları Gör (Border tıklanabilir) -->
                                         <Border Grid.Column="1" BackgroundColor="#FF9800" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 6" HeightRequest="35" Padding="15,0" VerticalOptions="Center">
                                             <Border.GestureRecognizers>
                                                 <TapGestureRecognizer Tapped="OnViewPhotosTapped" CommandParameter="{Binding .}" />
@@ -135,7 +127,6 @@
 
                                 <BoxView HeightRequest="1" Color="#EEEEEE" Margin="0,5"/>
 
-                                <!-- Fotoğraf Ekle -->
                                 <HorizontalStackLayout HorizontalOptions="End" Spacing="8" Margin="0,0,0,10" VerticalOptions="Center">
                                     <Label Text="Talebe ait fotoğraf eklemek için:" FontSize="11" TextColor="#888888" VerticalOptions="Center" />
                                     <Border BackgroundColor="#FF9800" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="30" Padding="15,0">
@@ -146,17 +137,15 @@
                                     </Border>
                                 </HorizontalStackLayout>
 
-                                <!-- Durum, Tutar, Güncelle -->
                                 <Grid ColumnDefinitions="*, *, Auto" ColumnSpacing="10">
                                     <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="End">
                                         <Label Text="Mevcut Durum" FontSize="10" TextColor="#888888" Margin="5,0,0,0"/>
 
-                                        <!-- Kart Durum Butonu (Border tıklanabilir) -->
                                         <Border BackgroundColor="#FAFAFA" Stroke="#CCCCCC" StrokeThickness="1" StrokeShape="RoundRectangle 15" HeightRequest="35" Padding="15,0" VerticalOptions="End">
                                             <Border.GestureRecognizers>
                                                 <TapGestureRecognizer Tapped="OnItemDurumKutusuAcTapped" CommandParameter="{Binding .}" />
                                             </Border.GestureRecognizers>
-                                            <Label x:Name="KartDurumLabel" Text="{Binding durum}" TextColor="#333333" FontSize="13" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" InputTransparent="True" />
+                                            <Label Text="{Binding durum}" TextColor="#333333" FontSize="13" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" InputTransparent="True" />
                                         </Border>
                                     </VerticalStackLayout>
 
@@ -167,7 +156,6 @@
                                         </Border>
                                     </VerticalStackLayout>
 
-                                    <!-- Güncelle Butonu -->
                                     <Border Grid.Column="2" BackgroundColor="#4CAF50" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 15" HeightRequest="35" VerticalOptions="End" Padding="15,0">
                                         <Border.GestureRecognizers>
                                             <TapGestureRecognizer Tapped="OnUpdateTapped" CommandParameter="{Binding .}" />
@@ -183,7 +171,7 @@
             </CollectionView>
         </Grid>
 
-        <!-- DURUM SEÇİM DROPDOWN'U (ÜST FİLTRE) -->
+        <!-- DURUM SEÇİM DROPDOWN'U -->
         <Border x:Name="DurumSecimKutusu" IsVisible="False" BackgroundColor="White" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="5" Margin="0,60,15,0" ZIndex="99" HorizontalOptions="End" VerticalOptions="Start">
             <CollectionView x:Name="DurumListesi" HeightRequest="140" WidthRequest="110" SelectionMode="Single" SelectionChanged="OnFiltreDurumSecildi">
                 <CollectionView.ItemTemplate>
@@ -208,9 +196,8 @@
             </Border>
         </Grid>
 
-        <!-- YÜZEN DURUM MENÜSÜ (AbsoluteLayout) -->
+        <!-- YÜZEN DURUM MENÜSÜ -->
         <AbsoluteLayout x:Name="FloatingMenuOverlay" IsVisible="False" BackgroundColor="Transparent" ZIndex="999" InputTransparent="False">
-            <!-- Arka plan tıklama ile kapatma -->
             <Grid AbsoluteLayout.LayoutBounds="0,0,1,1" AbsoluteLayout.LayoutFlags="All" BackgroundColor="Transparent">
                 <Grid.GestureRecognizers>
                     <TapGestureRecognizer Tapped="OnFloatingMenuClose" />
@@ -219,31 +206,35 @@
 
             <Border x:Name="FloatingItemDurumMenusu" BackgroundColor="White" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="0" ZIndex="1" AbsoluteLayout.LayoutBounds="0,0,130,160" AbsoluteLayout.LayoutFlags="None">
                 <VerticalStackLayout Spacing="0">
-                    <!-- Tüm butonlar Label + TapGesture ile değiştirildi -->
+                    <!-- Bekliyor -->
                     <Border HeightRequest="32" Padding="0">
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer Tapped="OnFloatingItemDurumSecildi" CommandParameter="Bekliyor" />
                         </Border.GestureRecognizers>
                         <Label Text="Bekliyor" TextColor="#111111" FontSize="12" VerticalOptions="Center" HorizontalOptions="Center" InputTransparent="True" />
                     </Border>
+                    <!-- Onaylandı -->
                     <Border HeightRequest="32" Padding="0">
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer Tapped="OnFloatingItemDurumSecildi" CommandParameter="Onaylandı" />
                         </Border.GestureRecognizers>
                         <Label Text="Onaylandı" TextColor="#111111" FontSize="12" VerticalOptions="Center" HorizontalOptions="Center" InputTransparent="True" />
                     </Border>
+                    <!-- İşlemde -->
                     <Border HeightRequest="32" Padding="0">
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer Tapped="OnFloatingItemDurumSecildi" CommandParameter="İşlemde" />
                         </Border.GestureRecognizers>
                         <Label Text="İşlemde" TextColor="#111111" FontSize="12" VerticalOptions="Center" HorizontalOptions="Center" InputTransparent="True" />
                     </Border>
+                    <!-- Tamamlandı -->
                     <Border HeightRequest="32" Padding="0">
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer Tapped="OnFloatingItemDurumSecildi" CommandParameter="Tamamlandı" />
                         </Border.GestureRecognizers>
                         <Label Text="Tamamlandı" TextColor="#111111" FontSize="12" VerticalOptions="Center" HorizontalOptions="Center" InputTransparent="True" />
                     </Border>
+                    <!-- İptal Edildi -->
                     <Border HeightRequest="32" Padding="0">
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer Tapped="OnFloatingItemDurumSecildi" CommandParameter="İptal Edildi" />

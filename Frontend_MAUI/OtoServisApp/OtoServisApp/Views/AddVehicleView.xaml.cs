@@ -213,22 +213,30 @@ public partial class AddVehicleView : ContentPage
 
         var eklenenArac = await _apiService.AracEkleAsync(yeniArac);
 
-        if (eklenenArac != null)
+        try
         {
-            // Kullanıcının lokal listesine de ekliyoruz
-            _aktifKullanici.araclar.Add(eklenenArac);
+            if (eklenenArac != null)
+            {
+                // Kullanıcının lokal listesine de ekliyoruz
+                _aktifKullanici.araclar.Add(eklenenArac);
 
-            //await DisplayAlert("Başarılı", "Aracınız başarıyla eklendi.", "Tamam");
-            ModernUyariGoster("Aracınız başarıyla kaydedildi.");
-            //await Navigation.PopAsync();
+                //await DisplayAlert("Başarılı", "Aracınız başarıyla eklendi.", "Tamam");
+                ModernUyariGoster("Aracınız başarıyla kaydedildi.");
+                //await Navigation.PopAsync();
+            }
+            else
+            {
+                //await DisplayAlert("Hata", "Araç eklenirken bir sorun oluştu.", "Tamam");
+                ModernUyariGoster("Hata");
+                SaveButton.IsEnabled = true;
+                SaveButton.Text = "ARACI KAYDET";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            //await DisplayAlert("Hata", "Araç eklenirken bir sorun oluştu.", "Tamam");
-            ModernUyariGoster("Hata");
-            SaveButton.IsEnabled = true;
-            SaveButton.Text = "ARACI KAYDET";
+            ModernUyariGoster("Araç eklenirken bir sorun oluştu. " + ex.ToString());
         }
+
     }
 
     private void ModernUyariGoster(string mesaj)
