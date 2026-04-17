@@ -72,8 +72,10 @@
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:ServisTalebi">
                     <Border BackgroundColor="#FAFAFA" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 12" Padding="15" Margin="0,0,0,15">
-                        <Grid ColumnDefinitions="*, Auto">
-                            <VerticalStackLayout Spacing="6">
+                        <Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto, Auto">
+
+                            <!-- SOL TARAF: BİLGİLER -->
+                            <VerticalStackLayout Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Spacing="6">
                                 <!-- Hizmet -->
                                 <HorizontalStackLayout Spacing="5">
                                     <Label Text="{x:Static helpers:IconFont.Wrench}" FontFamily="FASolid" FontSize="12" TextColor="#666666" VerticalOptions="Center"/>
@@ -94,36 +96,54 @@
                                     <Label Text="Maliyet:" TextColor="#00796B" FontSize="13" FontAttributes="Bold"/>
                                     <Label Text="{Binding tahmini_tutar, StringFormat='{0} ₺', Mode=OneWay}" TextColor="#004D40" FontSize="14" FontAttributes="Bold"/>
                                 </HorizontalStackLayout>
-                                <!-- Talep Tarihi -->
-                                <HorizontalStackLayout Spacing="5">
-                                    <Label Text="{x:Static helpers:IconFont.CalendarAlt}" FontFamily="FASolid" FontSize="12" TextColor="#666666"/>
-                                    <Label Text="İstediğiniz Tarih:" TextColor="#666666" FontSize="12"/>
-                                    <Label Text="{Binding talep_tarihi, Mode=OneWay}" TextColor="#111111" FontSize="12" FontAttributes="Bold"/>
-                                </HorizontalStackLayout>
 
                                 <!-- Düzeltme Talebi Uyarısı -->
                                 <Border IsVisible="{Binding duzeltme_istendi_mi, Mode=OneWay}" 
-        BackgroundColor="#FFEBEE" 
-        Stroke="#D32F2F" 
-        StrokeThickness="1" 
-        StrokeShape="RoundRectangle 6" 
-        Padding="8" 
-        Margin="0,2,0,0">
+                        BackgroundColor="#FFEBEE" 
+                        Stroke="#D32F2F" 
+                        StrokeThickness="1" 
+                        StrokeShape="RoundRectangle 6" 
+                        Padding="8" 
+                        Margin="0,2,0,0">
                                     <HorizontalStackLayout Spacing="5">
                                         <Label Text="{x:Static helpers:IconFont.ExclamationTriangle}" FontFamily="FASolid" FontSize="12" TextColor="#C62828" VerticalOptions="Center"/>
                                         <Label Text="Bu talep için düzeltme isteğiniz inceleniyor." TextColor="#C62828" FontSize="11" FontAttributes="Bold" VerticalOptions="Center"/>
                                     </HorizontalStackLayout>
                                 </Border>
 
+                                <!-- Talep Tarihi -->
+                                <HorizontalStackLayout Spacing="5">
+                                    <Label Text="{x:Static helpers:IconFont.CalendarAlt}" FontFamily="FASolid" FontSize="12" TextColor="#666666"/>
+                                    <Label Text="İstediğiniz Tarih:" TextColor="#666666" FontSize="12"/>
+                                    <Label Text="{Binding talep_tarihi, Mode=OneWay}" TextColor="#111111" FontSize="12" FontAttributes="Bold"/>
+                                </HorizontalStackLayout>
                             </VerticalStackLayout>
 
-                            <!-- Detay Butonu -->
-                            <Border Grid.Column="1" BackgroundColor="#00BCD4" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="35" WidthRequest="70" Padding="0" VerticalOptions="Center">
+                            <!-- SAĞ ÜST: DETAY BUTONU -->
+                            <Border Grid.Row="0" Grid.Column="1" 
+                    BackgroundColor="#00BCD4" 
+                    Stroke="Transparent" StrokeThickness="0" 
+                    StrokeShape="RoundRectangle 8" 
+                    HeightRequest="35" WidthRequest="70" 
+                    Padding="0" VerticalOptions="Center" HorizontalOptions="End">
                                 <Border.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="OnDetayTapped" CommandParameter="{Binding .}" />
                                 </Border.GestureRecognizers>
-                                <Label Text="Detay" TextColor="White" FontSize="12" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" InputTransparent="True" />
+                                <Label Text="Detay" TextColor="White" FontSize="12" FontAttributes="Bold" 
+                       VerticalOptions="Center" HorizontalOptions="Center" InputTransparent="True" />
                             </Border>
+
+                            <!-- SAĞ ALT: FOTOĞRAF İKONU (sadece fotoğraf varsa) -->
+                            <Label Grid.Row="1" Grid.Column="1" 
+                   Text="{x:Static helpers:IconFont.Camera}" 
+                   FontFamily="FASolid" 
+                   FontSize="18" 
+                   TextColor="#4CAF50" 
+                   HorizontalOptions="End" 
+                   VerticalOptions="End" 
+                   Margin="0,5,5,0"
+                   IsVisible="{Binding foto_var_mi, Mode=OneWay}" />
+
                         </Grid>
                     </Border>
                 </DataTemplate>
