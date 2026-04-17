@@ -100,6 +100,21 @@
                                     <Label Text="İstediğiniz Tarih:" TextColor="#666666" FontSize="12"/>
                                     <Label Text="{Binding talep_tarihi, Mode=OneWay}" TextColor="#111111" FontSize="12" FontAttributes="Bold"/>
                                 </HorizontalStackLayout>
+
+                                <!-- Düzeltme Talebi Uyarısı -->
+                                <Border IsVisible="{Binding duzeltme_istendi_mi, Mode=OneWay}" 
+        BackgroundColor="#FFEBEE" 
+        Stroke="#D32F2F" 
+        StrokeThickness="1" 
+        StrokeShape="RoundRectangle 6" 
+        Padding="8" 
+        Margin="0,2,0,0">
+                                    <HorizontalStackLayout Spacing="5">
+                                        <Label Text="{x:Static helpers:IconFont.ExclamationTriangle}" FontFamily="FASolid" FontSize="12" TextColor="#C62828" VerticalOptions="Center"/>
+                                        <Label Text="Bu talep için düzeltme isteğiniz inceleniyor." TextColor="#C62828" FontSize="11" FontAttributes="Bold" VerticalOptions="Center"/>
+                                    </HorizontalStackLayout>
+                                </Border>
+
                             </VerticalStackLayout>
 
                             <!-- Detay Butonu -->

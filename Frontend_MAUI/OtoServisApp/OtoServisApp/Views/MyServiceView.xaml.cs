@@ -164,6 +164,14 @@ public partial class MyServiceView : ContentPage
         });
 
         await Task.WhenAll(gorevler);
+
+        // 📸 TOPLU FOTOĞRAF DURUMU SORGUSU (EKLENDİ)
+        var talepIdleri = talepler.Select(t => t.id).ToList();
+        var fotoDurumlari = await _apiService.TopluFotografDurumuGetirAsync(talepIdleri);
+        foreach (var talep in talepler)
+        {
+            talep.foto_var_mi = fotoDurumlari.TryGetValue(talep.id, out var varMi) && varMi;
+        }
     }
 
     private void GuncelleButonDurumlari()

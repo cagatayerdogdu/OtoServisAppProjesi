@@ -41,7 +41,20 @@ namespace OtoServisApp.Models
         public string arac_adi { get; set; } = "Yükleniyor...";
 
         // Fotoğraf olup olmadığını UI tarafında kontrol etmek için
-        public bool foto_var_mi { get; set; }
+        // FOTOĞRAF VAR MI (INotifyPropertyChanged destekli)
+        private bool _foto_var_mi;
+        public bool foto_var_mi
+        {
+            get => _foto_var_mi;
+            set
+            {
+                if (_foto_var_mi != value)
+                {
+                    _foto_var_mi = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
 
         // --- YENİ EKLENEN KISIM (MADDE 46 - DROPDOWN KONTROLÜ) ---
         private bool _dropdownAcikMi = false;
