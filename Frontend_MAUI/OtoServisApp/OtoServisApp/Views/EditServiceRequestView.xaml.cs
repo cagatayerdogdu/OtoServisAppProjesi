@@ -67,7 +67,6 @@ public partial class EditServiceRequestView : ContentPage
                 DuzeltmeTalebiFormu.IsVisible = true;
                 KaydetLabel.IsVisible = true;
                 KaydetLabel.Text = "Düzeltme Talebini İlet";
-                KaydetLabel.BackgroundColor = Color.FromArgb("#FAFAFA");
 
                 // Eğer daha önceden bir not yazdıysa onu göster
                 if (!string.IsNullOrEmpty(_talep.duzeltme_notu))

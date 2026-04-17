@@ -114,22 +114,23 @@
                                 </Border>
 
                                 <!-- Talep Tarihi + Fotoğraf İkonu (alt satır) -->
-                                <Grid ColumnDefinitions="*, Auto">
+                                <Grid ColumnDefinitions="*, Auto" VerticalOptions="End">
                                     <HorizontalStackLayout Grid.Column="0" Spacing="5" VerticalOptions="Center">
                                         <Label Text="{x:Static helpers:IconFont.CalendarAlt}" FontFamily="FASolid" FontSize="12" TextColor="#666666"/>
                                         <Label Text="İstediğiniz Tarih:" TextColor="#666666" FontSize="12"/>
                                         <Label Text="{Binding talep_tarihi, Mode=OneWay}" TextColor="#111111" FontSize="12" FontAttributes="Bold"/>
                                     </HorizontalStackLayout>
 
-                                    <!-- Fotoğraf İkonu -->
+                                    <!-- Fotoğraf İkonu - sağ alt köşeye yapıştırıldı -->
                                     <Label Grid.Column="1" 
-                           Text="{x:Static helpers:IconFont.Camera}" 
-                           FontFamily="FASolid" 
-                           FontSize="18" 
-                           TextColor="#4CAF50" 
-                           HorizontalOptions="End" 
-                           VerticalOptions="Center"
-                           IsVisible="{Binding foto_var_mi, Mode=OneWay}" />
+           Text="{x:Static helpers:IconFont.Camera}" 
+           FontFamily="FASolid" 
+           FontSize="18" 
+           TextColor="#4CAF50" 
+           HorizontalOptions="End" 
+           VerticalOptions="End"
+           Margin="0,0,-5,-5"
+           IsVisible="{Binding foto_var_mi, Mode=OneWay}" />
                                 </Grid>
                             </VerticalStackLayout>
 
