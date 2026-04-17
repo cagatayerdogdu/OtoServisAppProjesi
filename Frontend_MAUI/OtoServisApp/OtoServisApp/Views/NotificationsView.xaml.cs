@@ -1,16 +1,20 @@
 ﻿using OtoServisApp.Models;
 using OtoServisApp.Services;
 using System.Collections.ObjectModel;
-using System.Linq;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace OtoServisApp.Views;
 
 public partial class NotificationsView : ContentPage
 {
     private readonly ApiService _apiService;
-    private bool _isUpdating = false;
-    private bool _isSelectAllUpdating = false; // Hepsini seç event'ini geçici engellemek için
+    private bool _isSelectAllUpdating = false;
+
+    private int _sayfaBoyutu = 20;
+    private int _mevcutSayfa = 1;
+    private int _toplamSayfa = 1;
+    private int _toplamKayit = 0;
+    private bool _yukleniyor = false;
+    private bool _ilkYukleme = true;
 
     public ObservableCollection<BildirimResponse> Bildirimler { get; set; } = new();
 
@@ -19,33 +23,33 @@ public partial class NotificationsView : ContentPage
         InitializeComponent();
         _apiService = new ApiService();
         NotificationList.ItemsSource = Bildirimler;
+        BtnDeleteSelectedLabel.IsVisible = false;
+        GuncelleButonDurumlari();
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
 
-        // 1. AŞAMA: Kullanıcıya donma hissi vermemek için Loading ekranını anında aç
-        LoadingOverlay.IsVisible = true;
+        if (_ilkYukleme)
+        {
+            LoadingOverlay.IsVisible = true;
+            LoadingTitle.Text = "Bildirimler Yükleniyor...";
+            await Task.Delay(5);
 
-        // YENİ REVİZE: Arayüzün (UI) donmasını ve uygulamanın çökmesini engellemek ve Loading animasyonunu başlatması için 
-        // veri çekme işlemine geçmeden önce çok kısa bir süre (20ms) bekleyip thread'i rahatlatıyoruz..
-        await Task.Delay(10);
-
-        try
-        {
-            // 3. AŞAMA: Asıl veriyi (API İsteklerini) şimdi çekiyoruz
-            await BildirimleriYukle();
-        }
-        catch (Exception ex)
-        {
-            await DisplayAlert("Hata", "Bildirimler yüklenirken bir sorun oluştu.", "Tamam");
-            System.Diagnostics.Debug.WriteLine($"Yükleme Hatası: {ex.Message}");
-        }
-        finally
-        {
-            // 4. AŞAMA: Veri gelse de, hata da verse Loading ekranını KESİNLİKLE kapat
-            LoadingOverlay.IsVisible = false;
+            try
+            {
+                await BildirimleriYukle(sayfa: 1);
+                _ilkYukleme = false;
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Hata", "Bildirimler yüklenirken bir sorun oluştu.", "Tamam");
+            }
+            finally
+            {
+                LoadingOverlay.IsVisible = false;
+            }
         }
     }
 
@@ -57,27 +61,95 @@ public partial class NotificationsView : ContentPage
         return null;
     }
 
-    private async Task BildirimleriYukle()
+    private async Task BildirimleriYukle(int sayfa)
     {
+        if (_yukleniyor) return;
+        _yukleniyor = true;
+
         int? aktifKullaniciId = await GetCurrentUserIdAsync();
         if (aktifKullaniciId == null)
         {
             Bildirimler.Clear();
+            _yukleniyor = false;
             return;
         }
 
-        var bildirimler = await _apiService.KullaniciBildirimleriniGetirAsync(aktifKullaniciId.Value);
-        Bildirimler.Clear();
-        foreach (var item in bildirimler)
+        int skip = (sayfa - 1) * _sayfaBoyutu;
+
+        try
         {
-            item.IsSelected = false;
-            Bildirimler.Add(item);
+            var (yeniBildirimler, toplamKayit) = await _apiService.KullaniciBildirimleriniSayfaliGetirAsync(
+                aktifKullaniciId.Value,
+                skip: skip,
+                limit: _sayfaBoyutu
+            );
+
+            _toplamKayit = toplamKayit;
+            _toplamSayfa = (int)Math.Ceiling((double)toplamKayit / _sayfaBoyutu);
+            if (_toplamSayfa == 0) _toplamSayfa = 1;
+            _mevcutSayfa = sayfa;
+
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                Bildirimler.Clear();
+                foreach (var item in yeniBildirimler)
+                {
+                    item.IsSelected = false;
+                    Bildirimler.Add(item);
+                }
+
+                ToplamBildirimLabel.Text = $"{toplamKayit} bildirim";
+                SayfaBilgiLabel.Text = $"Sayfa {_mevcutSayfa} / {_toplamSayfa}";
+                GuncelleButonDurumlari();
+
+                // Hepsini seç checkbox'ını sıfırla
+                _isSelectAllUpdating = true;
+                ChkSelectAll.IsChecked = false;
+                _isSelectAllUpdating = false;
+                BtnDeleteSelectedLabel.IsVisible = false;
+            });
         }
-        // Hepsini seç checkbox'ını sıfırlarken event tetiklenmesini engelle
-        _isSelectAllUpdating = true;
-        ChkSelectAll.IsChecked = false;
-        _isSelectAllUpdating = false;
-        BtnDeleteSelected.IsVisible = false;
+        catch (Exception ex)
+        {
+            await DisplayAlert("Hata", "Veriler yüklenirken bir sorun oluştu.", "Tamam");
+            System.Diagnostics.Debug.WriteLine($"Bildirim yükleme hatası: {ex.Message}");
+        }
+        finally
+        {
+            _yukleniyor = false;
+        }
+    }
+
+    private void GuncelleButonDurumlari()
+    {
+        BtnOncekiLabel.Opacity = _mevcutSayfa > 1 ? 1.0 : 0.5;
+        BtnSonrakiLabel.Opacity = _mevcutSayfa < _toplamSayfa ? 1.0 : 0.5;
+    }
+
+    private async void OnOncekiTapped(object sender, TappedEventArgs e)
+    {
+        if (_yukleniyor) return;
+        if (_mevcutSayfa > 1)
+        {
+            await BildirimleriYukle(_mevcutSayfa - 1);
+        }
+    }
+
+    private async void OnSonrakiTapped(object sender, TappedEventArgs e)
+    {
+        if (_yukleniyor) return;
+        if (_mevcutSayfa < _toplamSayfa)
+        {
+            await BildirimleriYukle(_mevcutSayfa + 1);
+        }
+    }
+
+    private async void OnThresholdReached(object sender, EventArgs e)
+    {
+        if (!_yukleniyor && _mevcutSayfa < _toplamSayfa)
+        {
+            await BildirimleriYukle(_mevcutSayfa + 1);
+        }
     }
 
     private async void OnNotificationTapped(object sender, TappedEventArgs e)
@@ -88,24 +160,10 @@ public partial class NotificationsView : ContentPage
         if (bildirim != null && !bildirim.okundu_mu)
         {
             bool basarili = await _apiService.BildirimOkunduIsaretleAsync(bildirim.id);
-            try
+            if (basarili)
             {
-                if (basarili)
-                {
-                    bildirim.okundu_mu = true;
-                    await BildirimleriYukle();
-                    // Listeyi yeniden yükle (Artık donmayacak çünkü Loading çalışıyor)
-                }
-                else
-                {
-                    await DisplayAlert("Hata", "Liste yeniden yüklenirken bir sorun oluştu.", "Tamam");
-                }
-            }
-            finally
-            {
-                // İşlem bitti, ekranı serbest bırak
-                LoadingOverlay.IsVisible = false;
-                LoadingTitle.Text = "Bildirimler Yükleniyor..."; // Sonraki kullanımlar için varsayılana çevir
+                // UI'ı anında güncelle, tüm listeyi yeniden yükleme!
+                bildirim.okundu_mu = true;
             }
         }
     }
@@ -120,20 +178,28 @@ public partial class NotificationsView : ContentPage
             bool onay = await DisplayAlert("Onay", "Bu bildirimi silmek istiyor musunuz?", "Evet", "Vazgeç");
             if (onay)
             {
-                await _apiService.NotificationsDeleteAsync($"bildirimler/{bildirim.id}");
-                Bildirimler.Remove(bildirim);
-                BtnDeleteSelected.IsVisible = Bildirimler.Any(b => b.IsSelected);
-                if (Bildirimler.Count == 0)
+                bool silindi = await _apiService.NotificationsDeleteAsync($"bildirimler/{bildirim.id}");
+                if (silindi)
                 {
-                    _isSelectAllUpdating = true;
-                    ChkSelectAll.IsChecked = false;
-                    _isSelectAllUpdating = false;
-                }
-                else if (Bildirimler.All(b => b.IsSelected))
-                {
-                    _isSelectAllUpdating = true;
-                    ChkSelectAll.IsChecked = true;
-                    _isSelectAllUpdating = false;
+                    Bildirimler.Remove(bildirim);
+                    _toplamKayit--;
+                    ToplamBildirimLabel.Text = $"{_toplamKayit} bildirim";
+
+                    // Toplam sayfa değişebilir, güncelle
+                    _toplamSayfa = (int)Math.Ceiling((double)_toplamKayit / _sayfaBoyutu);
+                    if (_toplamSayfa == 0) _toplamSayfa = 1;
+                    if (_mevcutSayfa > _toplamSayfa)
+                    {
+                        _mevcutSayfa = _toplamSayfa;
+                        await BildirimleriYukle(_mevcutSayfa);
+                    }
+                    else
+                    {
+                        SayfaBilgiLabel.Text = $"Sayfa {_mevcutSayfa} / {_toplamSayfa}";
+                        GuncelleButonDurumlari();
+                    }
+
+                    GuncelleSeciliDurum();
                 }
             }
         }
@@ -141,28 +207,25 @@ public partial class NotificationsView : ContentPage
 
     private void OnItemCheckChanged(object sender, CheckedChangedEventArgs e)
     {
-        if (_isUpdating) return;
-        /*
-        var checkBox = sender as CheckBox;
-        var bildirim = checkBox?.BindingContext as BildirimResponse;
-        if (bildirim != null)
-        {
-            bildirim.IsSelected = e.Value;
-            BtnDeleteSelected.IsVisible = Bildirimler.Any(b => b.IsSelected);
+        GuncelleSeciliDurum();
+    }
 
-            // Hepsini seç checkbox'ını güncelle (event tetiklenmesini engelle)
-            bool hepsiSecili = Bildirimler.All(b => b.IsSelected);
-            if (ChkSelectAll.IsChecked != hepsiSecili)
-            {
-                _isSelectAllUpdating = true;
-                ChkSelectAll.IsChecked = hepsiSecili;
-                _isSelectAllUpdating = false;
-            }
+    private void OnSelectAllCheckedChanged(object sender, CheckedChangedEventArgs e)
+    {
+        if (_isSelectAllUpdating) return;
+
+        bool yeniDeger = e.Value;
+        foreach (var item in Bildirimler)
+        {
+            item.IsSelected = yeniDeger;
         }
-        */
-        // CheckBox tıklandığında XAML zaten IsSelected değerini otomatik günceller.
-        // Biz burada sadece Buton görünürlüğü ve "Hepsini Seç" kontrolünü yapıyoruz.
-        BtnDeleteSelected.IsVisible = Bildirimler.Any(b => b.IsSelected);
+        BtnDeleteSelectedLabel.IsVisible = yeniDeger && Bildirimler.Any();
+    }
+
+    private void GuncelleSeciliDurum()
+    {
+        bool enAzBirSecili = Bildirimler.Any(b => b.IsSelected);
+        BtnDeleteSelectedLabel.IsVisible = enAzBirSecili;
 
         bool hepsiSecili = Bildirimler.Any() && Bildirimler.All(b => b.IsSelected);
         if (ChkSelectAll.IsChecked != hepsiSecili)
@@ -173,20 +236,7 @@ public partial class NotificationsView : ContentPage
         }
     }
 
-    private void OnSelectAllCheckedChanged(object sender, CheckedChangedEventArgs e)
-    {
-        if (_isSelectAllUpdating) return; // Event'i manuel değişikliklerde tetikleme
-        if (_isUpdating) return;
-        _isUpdating = true;
-        foreach (var item in Bildirimler)
-        {
-            item.IsSelected = e.Value;
-        }
-        BtnDeleteSelected.IsVisible = e.Value;
-        _isUpdating = false;
-    }
-
-    private async void OnDeleteSelectedClicked(object sender, EventArgs e)
+    private async void OnDeleteSelectedTapped(object sender, TappedEventArgs e)
     {
         var secilenler = Bildirimler.Where(b => b.IsSelected).ToList();
         if (!secilenler.Any()) return;
@@ -194,15 +244,50 @@ public partial class NotificationsView : ContentPage
         bool onay = await DisplayAlert("Onay", $"{secilenler.Count} adet bildirimi silmek istiyor musunuz?", "Evet", "İptal");
         if (!onay) return;
 
-        foreach (var bildirim in secilenler)
+        LoadingOverlay.IsVisible = true;
+        LoadingTitle.Text = "Siliniyor...";
+
+        try
         {
-            await _apiService.NotificationsDeleteAsync($"bildirimler/{bildirim.id}");
-            Bildirimler.Remove(bildirim);
+            foreach (var bildirim in secilenler)
+            {
+                await _apiService.NotificationsDeleteAsync($"bildirimler/{bildirim.id}");
+            }
+
+            // UI'dan kaldır
+            foreach (var bildirim in secilenler)
+            {
+                Bildirimler.Remove(bildirim);
+            }
+
+            _toplamKayit -= secilenler.Count;
+            ToplamBildirimLabel.Text = $"{_toplamKayit} bildirim";
+            _toplamSayfa = (int)Math.Ceiling((double)_toplamKayit / _sayfaBoyutu);
+            if (_toplamSayfa == 0) _toplamSayfa = 1;
+
+            // Eğer mevcut sayfada hiç kayıt kalmadıysa bir önceki sayfaya geç
+            if (Bildirimler.Count == 0 && _mevcutSayfa > 1)
+            {
+                await BildirimleriYukle(_mevcutSayfa - 1);
+            }
+            else
+            {
+                SayfaBilgiLabel.Text = $"Sayfa {_mevcutSayfa} / {_toplamSayfa}";
+                GuncelleButonDurumlari();
+            }
+
+            BtnDeleteSelectedLabel.IsVisible = false;
+            _isSelectAllUpdating = true;
+            ChkSelectAll.IsChecked = false;
+            _isSelectAllUpdating = false;
         }
-        BtnDeleteSelected.IsVisible = false;
-        _isSelectAllUpdating = true;
-        ChkSelectAll.IsChecked = false;
-        _isSelectAllUpdating = false;
-        await DisplayAlert("Bilgi", "Seçilen bildirimler silindi.", "Tamam");
+        catch (Exception ex)
+        {
+            await DisplayAlert("Hata", "Silme işlemi sırasında bir sorun oluştu.", "Tamam");
+        }
+        finally
+        {
+            LoadingOverlay.IsVisible = false;
+        }
     }
 }

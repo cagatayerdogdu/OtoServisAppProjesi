@@ -226,8 +226,8 @@ public partial class ProfileView : ContentPage
         };
     }
 
-    // --- YENİ REVİZE BAŞLANGICI: Tema Değiştirme İşlemi (Madde 65) ---
-    private void OnThemeSwitchToggled(object sender, ToggledEventArgs e)
+    // --- YENİ REVİZE BAŞLANGICI: Tema Değiştirme İşlemi (Madde 65) --- TEMA İSTEMİYORUM.
+    /*private void OnThemeSwitchToggled(object sender, ToggledEventArgs e)
     {
         if (e.Value)
         {
@@ -239,7 +239,7 @@ public partial class ProfileView : ContentPage
             // Switch kapalıysa Aydınlık Modu yapılandır
             Application.Current.UserAppTheme = AppTheme.Light;
         }
-    }
+    }*/
     // --- YENİ REVİZE BİTİŞİ ---
 
     // YENİ EKLENEN DEĞİŞKEN: Switch'in kod tarafından mı yoksa kullanıcı tarafından mı değiştirildiğini anlamak için

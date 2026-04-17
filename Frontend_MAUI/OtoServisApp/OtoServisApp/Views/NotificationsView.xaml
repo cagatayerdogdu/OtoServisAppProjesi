@@ -7,20 +7,31 @@
              BackgroundColor="#F4F6F8"
              Title="Bildirimlerim">
 
-    <Grid RowDefinitions="Auto, *">
+    <Grid RowDefinitions="Auto, *, Auto">
 
-        <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Padding="15" BackgroundColor="#F8FAFC">
-            <HorizontalStackLayout Grid.Column="0" Spacing="10" VerticalOptions="Center">
-                <CheckBox x:Name="ChkSelectAll" CheckedChanged="OnSelectAllCheckedChanged" Color="#00BCD4"/>
-                <Label Text="Hepsini Seç" FontAttributes="Bold" VerticalOptions="Center" TextColor="#334155"/>
-            </HorizontalStackLayout>
+        <!-- ÜST ÇUBUK: Seçim ve Toplam Sayı -->
+        <Border Grid.Row="0" BackgroundColor="#F8FAFC" Padding="15,10" StrokeThickness="0">
+            <Grid ColumnDefinitions="*, Auto, Auto">
+                <HorizontalStackLayout Grid.Column="0" Spacing="10" VerticalOptions="Center">
+                    <CheckBox x:Name="ChkSelectAll" CheckedChanged="OnSelectAllCheckedChanged" Color="#00BCD4"/>
+                    <Label Text="Hepsini Seç" FontAttributes="Bold" VerticalOptions="Center" TextColor="#334155"/>
+                </HorizontalStackLayout>
 
-            <Border Grid.Column="1" BackgroundColor="#00BCD4" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="35" Padding="0" IsVisible="{Binding Source={x:Reference BtnDeleteSelected}, Path=IsVisible}">
-                <Button x:Name="BtnDeleteSelected" Text="Seçilenleri Sil" Clicked="OnDeleteSelectedClicked" BackgroundColor="Transparent" TextColor="White" BorderWidth="0" Margin="0" Padding="10,0" IsVisible="False"/>
-            </Border>
-        </Grid>
+                <Label Grid.Column="1" x:Name="ToplamBildirimLabel" Text="0 bildirim" FontSize="12" TextColor="#666666" VerticalOptions="Center" Margin="0,0,15,0"/>
 
-        <CollectionView Grid.Row="1" x:Name="NotificationList" Margin="15">
+                <Border Grid.Column="2" BackgroundColor="#00BCD4" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="35" Padding="0">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnDeleteSelectedTapped" />
+                    </Border.GestureRecognizers>
+                    <Label x:Name="BtnDeleteSelectedLabel" Text="Seçilenleri Sil" TextColor="White" FontSize="13" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" Padding="15,0" InputTransparent="True" IsVisible="False"/>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- BİLDİRİM LİSTESİ -->
+        <CollectionView Grid.Row="1" x:Name="NotificationList" Margin="15"
+                        RemainingItemsThreshold="5"
+                        RemainingItemsThresholdReached="OnThresholdReached">
             <CollectionView.EmptyView>
                 <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="10" Margin="0,100,0,0">
                     <Label Text="{x:Static helpers:IconFont.Bell}" FontFamily="FASolid" FontSize="50" TextColor="#888888" HorizontalOptions="Center" Opacity="0.5"/>
@@ -94,7 +105,27 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <Grid x:Name="LoadingOverlay" BackgroundColor="#CCFFFFFF" IsVisible="False" InputTransparent="False" Grid.RowSpan="2">
+        <!-- SAYFALAMA KONTROLLERİ -->
+        <HorizontalStackLayout Grid.Row="2" HorizontalOptions="Center" Spacing="20" Padding="10,10">
+            <Border BackgroundColor="#E0E6ED" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="40" Padding="0">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnOncekiTapped" />
+                </Border.GestureRecognizers>
+                <Label x:Name="BtnOncekiLabel" Text="&lt; Önceki" TextColor="#2C3E50" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" Padding="15,0" InputTransparent="True" />
+            </Border>
+
+            <Label x:Name="SayfaBilgiLabel" Text="Sayfa 1 / 1" VerticalOptions="Center" TextColor="#2C3E50" FontAttributes="Bold"/>
+
+            <Border BackgroundColor="#E0E6ED" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="40" Padding="0">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnSonrakiTapped" />
+                </Border.GestureRecognizers>
+                <Label x:Name="BtnSonrakiLabel" Text="Sonraki &gt;" TextColor="#2C3E50" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" Padding="15,0" InputTransparent="True" />
+            </Border>
+        </HorizontalStackLayout>
+
+        <!-- LOADING OVERLAY -->
+        <Grid x:Name="LoadingOverlay" BackgroundColor="#CCFFFFFF" IsVisible="False" InputTransparent="False" Grid.RowSpan="3">
             <Border BackgroundColor="White" Stroke="#E0E0E0" StrokeShape="RoundRectangle 15" Padding="30" HorizontalOptions="Center" VerticalOptions="Center">
                 <VerticalStackLayout Spacing="15" HorizontalOptions="Center">
                     <ActivityIndicator IsRunning="{Binding Source={x:Reference LoadingOverlay}, Path=IsVisible}" Color="#00BCD4" WidthRequest="50" HeightRequest="50" HorizontalOptions="Center"/>

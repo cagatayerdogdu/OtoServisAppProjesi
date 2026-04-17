@@ -583,6 +583,40 @@ namespace OtoServisApp.Services
             }
         }
 
+        // DeepSeek Bildirimleri sayfalı getirme Lazy Loading
+        public async Task<(List<BildirimResponse> bildirimler, int toplamKayit)> KullaniciBildirimleriniSayfaliGetirAsync(
+                    int kullaniciId,
+                    int skip = 0,
+                    int limit = 20
+            )
+        {
+            try
+            {
+                string url = $"/bildirimler/sayfali/{kullaniciId}?skip={skip}&limit={limit}";
+                var response = await _httpClient.GetAsync(url).ConfigureAwait(false);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    var result = JsonSerializer.Deserialize<SayfaliBildirimResponse>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    return (result.bildirimler ?? new List<BildirimResponse>(), result.toplam_kayit);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Sayfalı bildirim çekme hatası: {ex.Message}");
+            }
+            return (new List<BildirimResponse>(), 0);
+        }
+
+        // Yardımcı sınıf
+        public class SayfaliBildirimResponse
+        {
+            public List<BildirimResponse> bildirimler { get; set; }
+            public int toplam_kayit { get; set; }
+        }
+        // DeepSeek Bildirimleri sayfalı getirme Lazy Loading Bitişi
+
         public async Task FcmTokenGuncelle(int kullaniciId)
         {
 #if ANDROID || IOS

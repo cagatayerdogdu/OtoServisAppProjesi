@@ -1937,6 +1937,26 @@ def bildirim_sil(bildirim_id: int, db: Session = Depends(get_db)):
     
     return {"mesaj": "Bildirim başarıyla silindi."}
 
+# DeepSeek Bildirimleri sayfalı getirme Lazy Loading - /bildirimler/{kullanici_id} endpointi artık kullanılmayabilir.
+@app.get("/bildirimler/sayfali/{kullanici_id}")
+def bildirimleri_sayfali_getir(
+    kullanici_id: int,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db)
+):
+    query = db.query(models.SistemBildirimleri)\
+        .filter(models.SistemBildirimleri.kullanici_id == kullanici_id)\
+        .order_by(models.SistemBildirimleri.olusturulma_tarihi.desc())
+
+    toplam_kayit = query.count()
+    bildirimler = query.offset(skip).limit(limit).all()
+
+    return {
+        "bildirimler": bildirimler,
+        "toplam_kayit": toplam_kayit
+    }
+
 @app.post("/kullanici/token-kaydet/")
 def token_kaydet(istek: schemas.TokenKayitIstegi, db: Session = Depends(get_db)):
     try:
