@@ -73,83 +73,85 @@
 
                 <DataTemplate x:DataType="models:ServisTalebi">
                     <Border BackgroundColor="#FAFAFA" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 12" Padding="15" Margin="0,0,0,15">
-                        <Grid ColumnDefinitions="*, Auto">
-                            <!-- SOL TARAF: TÜM BİLGİLER -->
-                            <VerticalStackLayout Grid.Column="0" Spacing="6">
-                                <!-- Hizmet -->
-                                <HorizontalStackLayout Spacing="5">
-                                    <Label Text="{x:Static helpers:IconFont.Wrench}" FontFamily="FASolid" FontSize="12" TextColor="#666666" VerticalOptions="Center"/>
-                                    <Label Text="{Binding hizmet_adi, Mode=OneWay}" FontSize="14" FontAttributes="Bold" TextColor="#333333" VerticalOptions="Center"/>
-                                </HorizontalStackLayout>
-
-                                <!-- Araç -->
-                                <HorizontalStackLayout Spacing="5">
-                                    <Label Text="{x:Static helpers:IconFont.Car}" FontFamily="FASolid" FontSize="12" TextColor="#666666" VerticalOptions="Center"/>
-                                    <Label Text="{Binding arac_adi, Mode=OneWay}" FontSize="13" TextColor="#666666" FontAttributes="Bold" VerticalOptions="Center"/>
-                                </HorizontalStackLayout>
-
-                                <!-- Durum -->
-                                <HorizontalStackLayout Spacing="10">
-                                    <Label Text="Durum:" TextColor="#666666" FontAttributes="Bold"/>
-                                    <Label Text="{Binding durum, Mode=OneWay}" TextColor="#00BCD4" FontAttributes="Bold"/>
-                                </HorizontalStackLayout>
-
-                                <!-- Maliyet -->
-                                <HorizontalStackLayout Spacing="5">
-                                    <Label Text="Maliyet:" TextColor="#00796B" FontSize="13" FontAttributes="Bold"/>
-                                    <Label Text="{Binding tahmini_tutar, StringFormat='{0} ₺', Mode=OneWay}" TextColor="#004D40" FontSize="14" FontAttributes="Bold"/>
-                                </HorizontalStackLayout>
-
-                                <!-- Düzeltme Talebi Uyarısı -->
-                                <Border IsVisible="{Binding duzeltme_istendi_mi, Mode=OneWay}" 
-                        BackgroundColor="#FFEBEE" 
-                        Stroke="#D32F2F" 
-                        StrokeThickness="1" 
-                        StrokeShape="RoundRectangle 6" 
-                        Padding="8" 
-                        Margin="0,2,0,0">
+                        <Grid>
+                            <!-- ANA İÇERİK (iki sütunlu) -->
+                            <Grid ColumnDefinitions="*, Auto">
+                                <VerticalStackLayout Grid.Column="0" Spacing="6">
+                                    <!-- Hizmet -->
                                     <HorizontalStackLayout Spacing="5">
-                                        <Label Text="{x:Static helpers:IconFont.ExclamationTriangle}" FontFamily="FASolid" FontSize="12" TextColor="#C62828" VerticalOptions="Center"/>
-                                        <Label Text="Bu talep için düzeltme isteğiniz inceleniyor." TextColor="#C62828" FontSize="11" FontAttributes="Bold" VerticalOptions="Center"/>
+                                        <Label Text="{x:Static helpers:IconFont.Wrench}" FontFamily="FASolid" FontSize="12" TextColor="#666666" VerticalOptions="Center"/>
+                                        <Label Text="{Binding hizmet_adi, Mode=OneWay}" FontSize="14" FontAttributes="Bold" TextColor="#333333" VerticalOptions="Center"/>
                                     </HorizontalStackLayout>
+
+                                    <!-- Araç -->
+                                    <HorizontalStackLayout Spacing="5">
+                                        <Label Text="{x:Static helpers:IconFont.Car}" FontFamily="FASolid" FontSize="12" TextColor="#666666" VerticalOptions="Center"/>
+                                        <Label Text="{Binding arac_adi, Mode=OneWay}" FontSize="13" TextColor="#666666" FontAttributes="Bold" VerticalOptions="Center"/>
+                                    </HorizontalStackLayout>
+
+                                    <!-- Durum -->
+                                    <HorizontalStackLayout Spacing="10">
+                                        <Label Text="Durum:" TextColor="#666666" FontAttributes="Bold"/>
+                                        <Label Text="{Binding durum, Mode=OneWay}" TextColor="#00BCD4" FontAttributes="Bold"/>
+                                    </HorizontalStackLayout>
+
+                                    <!-- Maliyet -->
+                                    <HorizontalStackLayout Spacing="5">
+                                        <Label Text="Maliyet:" TextColor="#00796B" FontSize="13" FontAttributes="Bold"/>
+                                        <Label Text="{Binding tahmini_tutar, StringFormat='{0} ₺', Mode=OneWay}" TextColor="#004D40" FontSize="14" FontAttributes="Bold"/>
+                                    </HorizontalStackLayout>
+
+                                    <!-- Düzeltme Talebi Uyarısı -->
+                                    <Border IsVisible="{Binding duzeltme_istendi_mi, Mode=OneWay}" 
+                            BackgroundColor="#FFEBEE" 
+                            Stroke="#D32F2F" 
+                            StrokeThickness="1" 
+                            StrokeShape="RoundRectangle 6" 
+                            Padding="8" 
+                            Margin="0,2,0,0">
+                                        <HorizontalStackLayout Spacing="5">
+                                            <Label Text="{x:Static helpers:IconFont.ExclamationTriangle}" FontFamily="FASolid" FontSize="12" TextColor="#C62828" VerticalOptions="Center"/>
+                                            <Label Text="Bu talep için düzeltme isteğiniz inceleniyor." TextColor="#C62828" FontSize="11" FontAttributes="Bold" VerticalOptions="Center"/>
+                                        </HorizontalStackLayout>
+                                    </Border>
+
+                                    <!-- Talep Tarihi -->
+                                    <HorizontalStackLayout Spacing="5">
+                                        <Label Text="{x:Static helpers:IconFont.CalendarAlt}" FontFamily="FASolid" FontSize="12" TextColor="#666666"/>
+                                        <Label Text="İstediğiniz Tarih:" TextColor="#666666" FontSize="12"/>
+                                        <Label Text="{Binding talep_tarihi, Mode=OneWay}" TextColor="#111111" FontSize="12" FontAttributes="Bold"/>
+                                    </HorizontalStackLayout>
+                                </VerticalStackLayout>
+
+                                <!-- Detay Butonu -->
+                                <Border Grid.Column="1" 
+                        BackgroundColor="#00BCD4" 
+                        Stroke="Transparent" StrokeThickness="0" 
+                        StrokeShape="RoundRectangle 8" 
+                        HeightRequest="40" 
+                        WidthRequest="75" 
+                        Padding="0" 
+                        VerticalOptions="Center"
+                        HorizontalOptions="Center">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnDetayTapped" CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+                                    <Label Text="Detay" TextColor="White" FontSize="13" FontAttributes="Bold" 
+                           VerticalOptions="Center" HorizontalOptions="Center" InputTransparent="True" />
                                 </Border>
+                            </Grid>
 
-                                <!-- Talep Tarihi -->
-                                <HorizontalStackLayout Spacing="5">
-                                    <Label Text="{x:Static helpers:IconFont.CalendarAlt}" FontFamily="FASolid" FontSize="12" TextColor="#666666"/>
-                                    <Label Text="İstediğiniz Tarih:" TextColor="#666666" FontSize="12"/>
-                                    <Label Text="{Binding talep_tarihi, Mode=OneWay}" TextColor="#111111" FontSize="12" FontAttributes="Bold"/>
-                                </HorizontalStackLayout>
-                            </VerticalStackLayout>
-
-                            <!-- SAĞ TARAF: DETAY BUTONU (DİKEY ORTALI) -->
-                            <Border Grid.Column="1" 
-                    BackgroundColor="#00BCD4" 
-                    Stroke="Transparent" StrokeThickness="0" 
-                    StrokeShape="RoundRectangle 8" 
-                    HeightRequest="40" 
-                    WidthRequest="75" 
-                    Padding="0" 
-                    VerticalOptions="Center"
-                    HorizontalOptions="Center">
-                                <Border.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="OnDetayTapped" CommandParameter="{Binding .}" />
-                                </Border.GestureRecognizers>
-                                <Label Text="Detay" TextColor="White" FontSize="13" FontAttributes="Bold" 
-                       VerticalOptions="Center" HorizontalOptions="Center" InputTransparent="True" />
-                            </Border>
-                        </Grid>
-
-                        <!-- FOTOĞRAF İKONU (AbsoluteLayout ile sağ alt köşeye yapıştır) -->
-                        <AbsoluteLayout HorizontalOptions="Fill" VerticalOptions="Fill">
+                            <!-- FOTOĞRAF İKONU (sağ alt köşe, tıklamayı engellemez) -->
                             <Label Text="{x:Static helpers:IconFont.Camera}" 
                    FontFamily="FASolid" 
                    FontSize="20" 
                    TextColor="#4CAF50" 
-                   AbsoluteLayout.LayoutBounds="1, 1, AutoSize, AutoSize"
-                   AbsoluteLayout.LayoutFlags="PositionProportional"
-                   IsVisible="{Binding foto_var_mi, Mode=OneWay}" />
-                        </AbsoluteLayout>
+                   HorizontalOptions="End" 
+                   VerticalOptions="End"
+                   Margin="0,0,-5,-5"
+                   IsVisible="{Binding foto_var_mi, Mode=OneWay}"
+                   InputTransparent="True" />
+                        </Grid>
                     </Border>
                 </DataTemplate>
 
