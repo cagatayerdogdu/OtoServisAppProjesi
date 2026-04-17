@@ -93,4 +93,10 @@
     <Folder Include="Resources\Splash\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="Views\MyServiceRequestDetailView.xaml.cs">
+      <DependentUpon>MyServiceRequestDetailView.xaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
 </Project>

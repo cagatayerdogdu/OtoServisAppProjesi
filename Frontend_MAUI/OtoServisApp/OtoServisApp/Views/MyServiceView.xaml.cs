@@ -5,7 +5,7 @@ using OtoServisApp.Services;
 
 namespace OtoServisApp.Views;
 
-public partial class MyServiceRequestsView : ContentPage
+public partial class MyServiceView : ContentPage
 {
     private Kullanici _aktifKullanici;
     private readonly ApiService _apiService;
@@ -13,29 +13,26 @@ public partial class MyServiceRequestsView : ContentPage
     private List<Marka> _tumMarkalar;
     private List<ServisTalebi> _orijinalTalepler;
 
-    // DeepSeek - Lazy Loading + Server‑Side Filtreleme \\									
-    private const int SayfaBoyutu = 20;
-    private int _mevcutSkip = 0;
-    private bool _dahaFazlaVar = true;
+    // Sayfalama için parametrik değer
+    private int _sayfaBoyutu = 20;
+    private int _mevcutSayfa = 1;
+    private int _toplamSayfa = 1;
+    private int _toplamKayit = 0;
     private bool _yukleniyor = false;
     private bool _ilkYukleme = true;
 
     private string _aktifDurum = "Tümü";
     private string _aktifArama = "";
 
-    // Yeni revize bitişi \\
     private List<string> _durumFiltreleri = new List<string> { "Tümü", "Bekliyor", "Onaylandı", "İşlemde", "Tamamlandı", "İptal Edildi" };
 
-    public MyServiceRequestsView(Kullanici kullanici)
+    public MyServiceView(Kullanici kullanici)
     {
         InitializeComponent();
         _aktifKullanici = kullanici;
         _apiService = new ApiService();
 
-        MessagingCenter.Subscribe<object>(this, "TalepGuncellendi", async (sender) =>
-        {
-            await TalepleriYukle(reset: true);
-        });
+        GuncelleButonDurumlari();
     }
 
     protected override async void OnAppearing()
@@ -53,7 +50,7 @@ public partial class MyServiceRequestsView : ContentPage
                 if (DurumListesi != null && DurumListesi.ItemsSource == null)
                     DurumListesi.ItemsSource = _durumFiltreleri;
 
-                await TalepleriYukle(reset: true);
+                await TalepleriYukle(sayfa: 1);
             }
             catch (Exception ex)
             {
@@ -64,40 +61,17 @@ public partial class MyServiceRequestsView : ContentPage
                 LoadingOverlay.IsVisible = false;
             }
         }
-        else
-        {
-            // Sayfa zaten yüklenmiş, sadece mevcut listeyi yeniden bağla (edge swipe dönüşleri için)							  
-            if (_orijinalTalepler != null && _orijinalTalepler.Any())
-            {
-                RequestsList.ItemsSource = _orijinalTalepler.ToList();
-            }
-        }
     }
 
-    private async Task TalepleriYukle(bool reset = true)
+    private async Task TalepleriYukle(int sayfa)
     {
         if (_yukleniyor) return;
-        if (!reset && !_dahaFazlaVar) return;
-
         _yukleniyor = true;
 
-        if (reset)
-        {
-            _mevcutSkip = 0;
-            _dahaFazlaVar = true;
-            _orijinalTalepler?.Clear();
-        }
-
-        // İlk yüklemede loading overlay göster								  
-        if (_ilkYukleme)
-        {
-            LoadingOverlay.IsVisible = true;
-            LoadingTitle.Text = "Talepler Yükleniyor...";
-        }
+        int skip = (sayfa - 1) * _sayfaBoyutu;
 
         try
         {
-            // İlk yüklemede referans verileri de çek										
             if (_ilkYukleme)
             {
                 _tumHizmetler = await _apiService.HizmetleriGetirAsync();
@@ -107,41 +81,42 @@ public partial class MyServiceRequestsView : ContentPage
 
             var (yeniTalepler, toplamKayit) = await _apiService.KullaniciTalepleriniSayfaliGetirAsync(
                 _aktifKullanici.id,
-                skip: _mevcutSkip,
-                limit: SayfaBoyutu,
+                skip: skip,
+                limit: _sayfaBoyutu,
                 durum: _aktifDurum,
                 arama: _aktifArama
             );
 
+            _toplamKayit = toplamKayit;
+            _toplamSayfa = (int)Math.Ceiling((double)toplamKayit / _sayfaBoyutu);
+            if (_toplamSayfa == 0) _toplamSayfa = 1;
+            _mevcutSayfa = sayfa;
+
             MainThread.BeginInvokeOnMainThread(() =>
             {
                 ToplamTalepLabel.Text = $"{toplamKayit} talep";
+                SayfaBilgiLabel.Text = $"Sayfa {_mevcutSayfa} / {_toplamSayfa}";
+                GuncelleButonDurumlari();
             });
 
             if (yeniTalepler != null && yeniTalepler.Any())
             {
-                if (_orijinalTalepler == null)
-                    _orijinalTalepler = new List<ServisTalebi>();
+                _orijinalTalepler = new List<ServisTalebi>(yeniTalepler);
+                await TalepleriZenginlestir(_orijinalTalepler);
 
-                // Gelen talepleri zenginleştir (araç adı, hizmet adı, foto durumu)														   
-                await TalepleriZenginlestir(yeniTalepler);
-
-                _orijinalTalepler.AddRange(yeniTalepler);
-                _mevcutSkip += yeniTalepler.Count;
-
-                // Toplam kayıt sayısına göre daha fazla var mı kontrol et											   
-                _dahaFazlaVar = _orijinalTalepler.Count < toplamKayit;
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    RequestsList.ItemsSource = _orijinalTalepler.ToList();
+                });
             }
             else
             {
-                _dahaFazlaVar = false;
+                _orijinalTalepler?.Clear();
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    RequestsList.ItemsSource = null;
+                });
             }
-
-            // UI'ı güncelle (filtreleme yok, direkt listeyi bağla)												  
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                RequestsList.ItemsSource = _orijinalTalepler?.ToList();
-            });
         }
         catch (Exception ex)
         {
@@ -151,7 +126,6 @@ public partial class MyServiceRequestsView : ContentPage
         finally
         {
             _yukleniyor = false;
-            LoadingOverlay.IsVisible = false;
         }
     }
 
@@ -159,18 +133,15 @@ public partial class MyServiceRequestsView : ContentPage
     {
         if (talepler == null || !talepler.Any()) return;
 
-        // Araç havuzu (kullanıcının araçları + yeni çekilenler)										   
         var aracHavuzu = new ConcurrentDictionary<int, Arac>(
             _aktifKullanici.araclar?.ToDictionary(a => a.id) ?? new Dictionary<int, Arac>()
         );
 
         var gorevler = talepler.Select(async talep =>
         {
-            // Hizmet adı		  
             var hizmet = _tumHizmetler?.FirstOrDefault(h => h.id == talep.hizmet_id);
             if (hizmet != null) talep.hizmet_adi = hizmet.ad;
 
-            // Araç bilgisi	
             if (!aracHavuzu.TryGetValue(talep.arac_id, out var arac))
             {
                 arac = await _apiService.AracGetirAsync(talep.arac_id);
@@ -193,13 +164,29 @@ public partial class MyServiceRequestsView : ContentPage
         });
 
         await Task.WhenAll(gorevler);
+    }
 
-        // Toplu fotoğraf durumu					 
-        var talepIdleri = talepler.Select(t => t.id).ToList();
-        var fotoDurumlari = await _apiService.TopluFotografDurumuGetirAsync(talepIdleri);
-        foreach (var talep in talepler)
+    private void GuncelleButonDurumlari()
+    {
+        BtnOncekiLabel.Opacity = _mevcutSayfa > 1 ? 1.0 : 0.5;
+        BtnSonrakiLabel.Opacity = _mevcutSayfa < _toplamSayfa ? 1.0 : 0.5;
+    }
+
+    private async void OnOncekiTapped(object sender, TappedEventArgs e)
+    {
+        if (_yukleniyor) return;
+        if (_mevcutSayfa > 1)
         {
-            talep.foto_var_mi = fotoDurumlari.TryGetValue(talep.id, out var varMi) && varMi;
+            await TalepleriYukle(_mevcutSayfa - 1);
+        }
+    }
+
+    private async void OnSonrakiTapped(object sender, TappedEventArgs e)
+    {
+        if (_yukleniyor) return;
+        if (_mevcutSayfa < _toplamSayfa)
+        {
+            await TalepleriYukle(_mevcutSayfa + 1);
         }
     }
 
@@ -214,14 +201,14 @@ public partial class MyServiceRequestsView : ContentPage
         _aramaCts?.Cancel();
         _aramaCts = new CancellationTokenSource();
 
-        Task.Delay(100, _aramaCts.Token).ContinueWith(t =>
+        Task.Delay(300, _aramaCts.Token).ContinueWith(t =>
         {
             if (!t.IsCanceled)
             {
                 _aktifArama = AramaBar.Text;
                 MainThread.BeginInvokeOnMainThread(async () =>
                 {
-                    await TalepleriYukle(reset: true);
+                    await TalepleriYukle(sayfa: 1);
                 });
             }
         });
@@ -243,78 +230,16 @@ public partial class MyServiceRequestsView : ContentPage
             DurumSecimKutusu.IsVisible = false;
             DurumListesi.SelectedItem = null;
 
-            _ = TalepleriYukle(reset: true);
+            _ = TalepleriYukle(sayfa: 1);
         }
     }
 
-    private async void OnViewPhotosTapped(object sender, TappedEventArgs e)
+    private async void OnDetayTapped(object sender, TappedEventArgs e)
     {
         var secilenTalep = e.Parameter as ServisTalebi;
         if (secilenTalep != null)
-            await Navigation.PushAsync(new ViewPhotosView(secilenTalep));
-    }
-
-    private async void OnEditTapped(object sender, TappedEventArgs e)
-    {
-        var secilenTalep = e.Parameter as ServisTalebi;
-
-        if (secilenTalep != null)
         {
-            if (secilenTalep.durum == "Tamamlandı" || secilenTalep.durum == "İptal Edildi")
-            {
-                await DisplayAlert("İşlem Engellendi", "Bu talep sonlandığı için üzerinde değişiklik yapılamaz.", "Tamam");
-                return;
-            }
-            await Navigation.PushAsync(new EditServiceRequestView(secilenTalep, _aktifKullanici));
-        }
-    }
-
-    private async void OnCancelTapped(object sender, TappedEventArgs e)
-    {
-        var secilenTalep = e.Parameter as ServisTalebi;
-
-        if (secilenTalep != null)
-        {
-            if (secilenTalep.durum != "Bekliyor")
-            {
-                await DisplayAlert("İşlem Engellendi", "Sadece 'Bekliyor' durumundaki talepler iptal edilebilir.", "Tamam");
-                return;
-            }
-
-            bool eminMisin = await DisplayAlert("Onay", "Bu servis talebini iptal etmek (silmek) istediğinize emin misiniz?", "Evet, İptal Et", "Vazgeç");
-            if (eminMisin)
-            {
-                LoadingTitle.Text = "Lütfen bekleyiniz...";
-                LoadingOverlay.IsVisible = true;
-                await Task.Delay(10);
-
-                try
-                {
-                    bool basarili = await _apiService.ServisTalebiSilAsync(secilenTalep.id);
-                    if (basarili)
-                    {
-                        await DisplayAlert("Başarılı", "Talebiniz iptal edildi.", "Tamam");
-                        await TalepleriYukle(reset: true);
-                    }
-                    else
-                    {
-                        await DisplayAlert("Hata", "Talebiniz iptal edilirken bir sorun oluştu.", "Tamam");
-                    }
-                }
-                finally
-                {
-                    LoadingOverlay.IsVisible = false;
-                    LoadingTitle.Text = "Talepler Yükleniyor...";
-                }
-            }
-        }
-    }
-
-    private async void OnThresholdReached(object sender, EventArgs e)
-    {
-        if (!_yukleniyor && _dahaFazlaVar)
-        {
-            await TalepleriYukle(reset: false);
+            await Navigation.PushAsync(new MyServiceRequestDetailView(secilenTalep, _aktifKullanici));
         }
     }
 }
