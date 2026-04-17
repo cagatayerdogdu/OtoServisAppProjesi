@@ -1,5 +1,6 @@
 ﻿using OtoServisApp.Models;
 using OtoServisApp.Services;
+using System.IO;
 
 #if IOS
 using UIKit;
@@ -144,7 +145,7 @@ public partial class AdminRequestDetailView : ContentPage
             {
                 using var stream = await foto.OpenReadAsync();
                 string zaman = DateTime.Now.ToString("yyyy_MM_dd_HHmm_ssfff");
-                string uzanti = Path.GetExtension(foto.FileName);
+                string uzanti = System.IO.Path.GetExtension(foto.FileName);
                 if (string.IsNullOrEmpty(uzanti)) uzanti = ".jpg";
                 string ozelDosyaAdi = $"Admin-{_talep.id}-{zaman}{uzanti}";
                 string sonuc = await _apiService.UploadHasarFotografAsync(_talep.id, stream, ozelDosyaAdi);
