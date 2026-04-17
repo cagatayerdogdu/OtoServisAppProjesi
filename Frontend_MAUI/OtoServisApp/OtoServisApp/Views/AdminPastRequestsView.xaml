@@ -7,26 +7,36 @@
              BackgroundColor="#F4F6F8"
              Title="Geçmiş Talepler">
 
-    <Grid RowDefinitions="Auto, *">
+    <Grid RowDefinitions="Auto, *, Auto">
 
+        <!-- ÜST FİLTRE ÇUBUĞU -->
         <Border Grid.Row="0" BackgroundColor="#FAFAFA" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="5" Margin="10,10,10,5" ZIndex="1">
-            <HorizontalStackLayout Spacing="10" HorizontalOptions="FillAndExpand">
-                <Grid WidthRequest="220" VerticalOptions="Center" HorizontalOptions="Start">
-                    <SearchBar x:Name="AramaBar" Placeholder="Ad veya Araç..." TextChanged="OnFiltreDegisti" BackgroundColor="#FAFAFA" TextColor="#111111" Margin="30,0,0,0" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False"/>
-                    <Label Text="{x:Static helpers:IconFont.Search}" FontFamily="FASolid" FontSize="14" TextColor="#888888" HorizontalOptions="Start" VerticalOptions="Center" Margin="10,0,0,0"/>
-                </Grid>
+            <VerticalStackLayout Spacing="5">
+                <HorizontalStackLayout Spacing="10" HorizontalOptions="FillAndExpand">
+                    <Grid WidthRequest="220" VerticalOptions="Center" HorizontalOptions="Start">
+                        <SearchBar x:Name="AramaBar" Placeholder="Ad veya Araç..." TextChanged="OnFiltreDegisti" BackgroundColor="#FAFAFA" TextColor="#111111" Margin="30,0,0,0" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False"/>
+                        <Label Text="{x:Static helpers:IconFont.Search}" FontFamily="FASolid" FontSize="14" TextColor="#888888" HorizontalOptions="Start" VerticalOptions="Center" Margin="10,0,0,0"/>
+                    </Grid>
 
-                <HorizontalStackLayout Spacing="5" VerticalOptions="Center" HorizontalOptions="EndAndExpand">
-                    <Label Text="Durum:" VerticalOptions="Center" FontSize="13" FontAttributes="Bold" TextColor="#333333"/>
-
-                    <Border BackgroundColor="White" Stroke="#CCCCCC" StrokeThickness="1" StrokeShape="RoundRectangle 15" HeightRequest="35" WidthRequest="110" Padding="0">
-                        <Button x:Name="SecilenDurumButonu" Text="Tümü" BackgroundColor="Transparent" TextColor="#111111" FontSize="12" Padding="5,0" Clicked="OnFiltreDurumKutusuAcKapat" BorderWidth="0" Margin="0"/>
-                    </Border>
+                    <HorizontalStackLayout Spacing="5" VerticalOptions="Center" HorizontalOptions="EndAndExpand">
+                        <Label Text="Durum:" VerticalOptions="Center" FontSize="13" FontAttributes="Bold" TextColor="#333333"/>
+                        <Border BackgroundColor="White" Stroke="#CCCCCC" StrokeThickness="1" StrokeShape="RoundRectangle 15" HeightRequest="35" WidthRequest="110" Padding="0">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnFiltreDurumKutusuAcKapatTapped" />
+                            </Border.GestureRecognizers>
+                            <Label x:Name="SecilenDurumLabel" Text="Tümü" TextColor="#111111" FontSize="12" VerticalOptions="Center" HorizontalOptions="Center" InputTransparent="True" />
+                        </Border>
+                    </HorizontalStackLayout>
                 </HorizontalStackLayout>
-            </HorizontalStackLayout>
+
+                <HorizontalStackLayout HorizontalOptions="End" Padding="0,0,5,0">
+                    <Label x:Name="ToplamTalepLabel" Text="0 talep" FontSize="11" TextColor="#666666" VerticalOptions="Center"/>
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
         </Border>
 
-        <Border x:Name="DurumSecimKutusu" Grid.Row="0" Grid.RowSpan="2" IsVisible="False" BackgroundColor="White" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="5" Margin="0,60,15,0" ZIndex="99" HorizontalOptions="End" VerticalOptions="Start">
+        <!-- DURUM SEÇİM DROPDOWN'U -->
+        <Border x:Name="DurumSecimKutusu" Grid.Row="0" Grid.RowSpan="3" IsVisible="False" BackgroundColor="White" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="5" Margin="0,60,15,0" ZIndex="99" HorizontalOptions="End" VerticalOptions="Start">
             <CollectionView x:Name="DurumListesi" HeightRequest="110" WidthRequest="110" SelectionMode="Single" SelectionChanged="OnFiltreDurumSecildi">
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="x:String">
@@ -39,8 +49,10 @@
             </CollectionView>
         </Border>
 
-        <CollectionView x:Name="PastRequestsList" Grid.Row="1" Margin="15,10,15,0">
-
+        <!-- TALEP LİSTESİ (Lazy Loading) -->
+        <CollectionView x:Name="PastRequestsList" Grid.Row="1" Margin="15,10,15,0"
+                        RemainingItemsThreshold="5"
+                        RemainingItemsThresholdReached="OnThresholdReached">
             <CollectionView.EmptyView>
                 <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Start" Spacing="10" Margin="0,50,0,0">
                     <Label Text="{x:Static helpers:IconFont.Search}" FontFamily="FASolid" FontSize="50" TextColor="#BDC3C7" HorizontalOptions="Center" Opacity="0.6"/>
@@ -51,6 +63,7 @@
 
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:ServisTalebi">
+                    <!-- Kart içeriği aynen korunacak, sadece performans için Button yerine Label kullanılabilir -->
                     <Border BackgroundColor="#FAFAFA" StrokeShape="RoundRectangle 12" Padding="15" Margin="0,0,0,15" Stroke="#E0E0E0" StrokeThickness="1">
                         <VerticalStackLayout Spacing="8">
 
@@ -78,7 +91,7 @@
                                 <HorizontalStackLayout Spacing="5">
                                     <Label Text="{x:Static helpers:IconFont.CalendarAlt}" FontFamily="FASolid" FontSize="12" TextColor="#64748B" VerticalOptions="Center"/>
                                     <Label Text="Talep Tarihi:" FontSize="12" TextColor="#64748B" FontAttributes="Bold" VerticalOptions="Center"/>
-                                    <Label Text="{Binding talep_tarihi, StringFormat='{}{0:dd.MM.yyyy HH:mm}', Mode=OneWay}" FontSize="12" TextColor="#334155" VerticalOptions="Center"/>
+                                    <Label Text="{Binding talep_tarihi, Mode=OneWay}" FontSize="12" TextColor="#334155" VerticalOptions="Center"/>
                                 </HorizontalStackLayout>
 
                                 <HorizontalStackLayout Spacing="5">
@@ -138,7 +151,7 @@
                                 <HorizontalStackLayout Spacing="5">
                                     <Label Text="{x:Static helpers:IconFont.Coins}" FontFamily="FASolid" FontSize="14" TextColor="#00796B" VerticalOptions="Center"/>
                                     <Label Text="Tutar:" FontSize="13" FontAttributes="Bold" TextColor="#00796B" VerticalOptions="Center"/>
-                                    <Label Text="{Binding tahmini_tutar, Mode=OneWay}" FontSize="13" FontAttributes="Bold" TextColor="#004D40" VerticalOptions="Center"/>
+                                    <Label Text="{Binding tahmini_tutar, StringFormat='{0} ₺', Mode=OneWay}" FontSize="13" FontAttributes="Bold" TextColor="#004D40" VerticalOptions="Center"/>
                                 </HorizontalStackLayout>
                             </Border>
 
@@ -148,13 +161,32 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
+        <!-- SAYFALAMA KONTROLLERİ -->
+        <HorizontalStackLayout Grid.Row="2" HorizontalOptions="Center" Spacing="20" Padding="10,10">
+            <Border BackgroundColor="#E0E6ED" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="40" Padding="0">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnOncekiTapped" />
+                </Border.GestureRecognizers>
+                <Label x:Name="BtnOncekiLabel" Text="&lt; Önceki" TextColor="#2C3E50" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" Padding="15,0" InputTransparent="True" />
+            </Border>
 
-        <Grid x:Name="LoadingOverlay" BackgroundColor="#CCFFFFFF" IsVisible="False" InputTransparent="False" Grid.RowSpan="2">
+            <Label x:Name="SayfaBilgiLabel" Text="Sayfa 1 / 1" VerticalOptions="Center" TextColor="#2C3E50" FontAttributes="Bold"/>
+
+            <Border BackgroundColor="#E0E6ED" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="40" Padding="0">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnSonrakiTapped" />
+                </Border.GestureRecognizers>
+                <Label x:Name="BtnSonrakiLabel" Text="Sonraki &gt;" TextColor="#2C3E50" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" Padding="15,0" InputTransparent="True" />
+            </Border>
+        </HorizontalStackLayout>
+
+        <!-- LOADING OVERLAY -->
+        <Grid x:Name="LoadingOverlay" BackgroundColor="#CCFFFFFF" IsVisible="False" InputTransparent="False" Grid.RowSpan="3">
             <Border BackgroundColor="White" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 15" Padding="30" HorizontalOptions="Center" VerticalOptions="Center">
                 <VerticalStackLayout Spacing="15" HorizontalOptions="Center">
                     <ActivityIndicator IsRunning="{Binding Source={x:Reference LoadingOverlay}, Path=IsVisible}" Color="#00BCD4" WidthRequest="50" HeightRequest="50" HorizontalOptions="Center"/>
                     <Label x:Name="LoadingTitle" Text="Veriler Yükleniyor..." FontSize="16" FontAttributes="Bold" TextColor="#333333" HorizontalOptions="Center"/>
-                    <Label x:Name="LoadingSubText" Text="Lütfen işlem bitene kadar bekleyiniz." FontSize="13" TextColor="#666666" HorizontalTextAlignment="Center" HorizontalOptions="Center"/>
+                    <Label x:Name="LoadingSubText" Text="Lütfen işlem bitene kadar bekleyiniz." FontSize="13" TextColor="#666666" HorizontalTextAlignment="Center" HorizontalOptions="32"/>
                 </VerticalStackLayout>
             </Border>
         </Grid>

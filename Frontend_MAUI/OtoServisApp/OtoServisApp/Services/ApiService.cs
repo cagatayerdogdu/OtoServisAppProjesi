@@ -882,6 +882,42 @@ namespace OtoServisApp.Services
             return (new List<ServisTalebi>(), 0);
         }
 
+        public async Task<(List<ServisTalebi> talepler, int toplamKayit)> AdminGecmisTalepleriSayfaliGetirAsync(
+                    int skip = 0,
+                    int limit = 20,
+                    string durum = null,
+                    string arama = null
+            )
+        {
+            try
+            {
+                var queryParams = new List<string>
+                {
+                    $"skip={skip}",
+                    $"limit={limit}"
+                };
+                if (!string.IsNullOrEmpty(durum) && durum != "Tümü")
+                    queryParams.Add($"durum={Uri.EscapeDataString(durum)}");
+                if (!string.IsNullOrEmpty(arama))
+                    queryParams.Add($"arama={Uri.EscapeDataString(arama)}");
+
+                string url = $"/admin/servis-talepleri/gecmis?" + string.Join("&", queryParams);
+                var response = await _httpClient.GetAsync(url).ConfigureAwait(false);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    var result = JsonSerializer.Deserialize<SayfaliTaleplerResponse>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    return (result.talepler ?? new List<ServisTalebi>(), result.toplam_kayit);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Geçmiş talepler sayfalı çekme hatası: {ex.Message}");
+            }
+            return (new List<ServisTalebi>(), 0);
+        }
+
         // Yardımcı sınıf
         public class SayfaliAdminTaleplerResponse
         {

@@ -1467,24 +1467,125 @@ def admin_aktif_talepleri_getir(db: Session = Depends(get_db)):
 # ---------------------------------------------------------
 # --- ADMİN: GEÇMİŞ TALEPLERİ GETİR (VERİ ÇEKME) ---
 # ---------------------------------------------------------
-@app.get("/admin/servis-talepleri/gecmis")
-def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
+#@app.get("/admin/servis-talepleri/gecmis")
+# def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
     # Tamamlanmış ve İptal Edilmiş talepleri çekiyoruz
     # Sorgu performansını artırmak için gerekli filtrelemeyi yapıyoruz
-    talepler = db.query(models.ServisTalebi).filter(
+#     talepler = db.query(models.ServisTalebi).filter(
        # models.ServisTalebi.kayit_durumu == 'A', # burada A dakileri çektiğimiz de
        # müşterinin iptal taleplerini göremiyorduk. Bu filtreyi kaldırdım.
        # burası için iptal eden user eklememiz gerekecek.  
-        models.ServisTalebi.durum.in_(['Tamamlandı', 'İptal Edildi'])
-    ).order_by(models.ServisTalebi.talep_tarihi.desc()).all()
+#         models.ServisTalebi.durum.in_(['Tamamlandı', 'İptal Edildi'])
+#     ).order_by(models.ServisTalebi.talep_tarihi.desc()).all()
     
-    sonuc = []
-    for t in talepler:                        
+#     sonuc = []
+#     for t in talepler:                        
         # İlişkili verileri çekiyoruz
+#         kullanici = db.query(models.Kullanici).filter(models.Kullanici.id == t.kullanici_id).first()
+#         arac = db.query(models.Arac).filter(models.Arac.id == t.arac_id).first()
+#         hizmet = db.query(models.Hizmet).filter(models.Hizmet.id == t.hizmet_id).first()
+        
+#         arac_adi = "Silinmiş Araç"
+#         if arac:
+#             if arac.marka_id and arac.model_id:
+#                 marka = db.query(models.Marka).filter(models.Marka.id == arac.marka_id).first()
+#                 model = db.query(models.Model).filter(models.Model.id == arac.model_id).first()
+#                 if marka and model:
+#                     arac_adi = f"{marka.ad} {model.ad}"
+#             else:
+#                 arac_adi = f"{arac.ozel_marka} {arac.ozel_model}"        
+        
+        # 1. Mevcut kolonları sözlüğe aktar
+#         talep_dict = {c.name: getattr(t, c.name) for c in t.__table__.columns}
+#         
+#         # Tarihleri güvenli şekilde ISO formatına çevir (None ise None bırak)
+#         for key, value in talep_dict.items():
+#             if isinstance(value, (datetime, date)):
+#                 talep_dict[key] = value.isoformat() if value else None
+#         
+#         # talep_tarihi C#'ta string olduğu için onu özel olarak string formatında eziyoruz (Çökme engellendi)
+#         if t.talep_tarihi:
+#             talep_dict["talep_tarihi"] = t.talep_tarihi.strftime("%Y-%m-%d %H:%M")
+#                     
+#         # 2. Kullanıcı bilgilerini yapılandır
+#         talep_dict["kullanici_ad_soyad"] = kullanici.ad_soyad if kullanici else "Bilinmiyor"
+#         talep_dict["kullanici_telefon"] = kullanici.telefon if kullanici else "Belirtilmemiş"
+#         talep_dict["arac_adi_tam"] = arac_adi
+# 
+#         # 3. İptal eden bilgisini yapılandır
+#         iptal_eden_isim = "İptal bilgisi yok."
+#         if t.iptal_eden_id: # is not None:
+#             iptal_kisi = db.query(models.Kullanici).filter(models.Kullanici.id == t.iptal_eden_id).first()
+#             if iptal_kisi:
+#                 iptal_eden_isim = iptal_kisi.ad_soyad
+#         talep_dict["iptal_eden_ad_soyad"] = iptal_eden_isim
+# 
+#         # Tarih alanlarını C# DateTime? tipine uygun hale getir
+#         # 4. ADIM: Tarih Kurtarma Operasyonu (C# tarafının beklediği isimlerle)
+#         # Eğer iptal edildiyse, iptal tarihini ve tamamlanma tarihini dolduruyoruz        
+#         # Eğer veritabanında tamamlanma_tarihi NULL ise, eski kayıtların boş görünmemesi 
+#         # için guncelleme veya silinme tarihini baz alıyoruz.		
+#         # Tarih Garantisi: Boş gelmesini engelle					   
+#         # if t.durum == "İptal Edildi":
+#         #    talep_dict["tamamlanma_tarihi"] = t.silinme_tarihi or t.guncelleme_tarihi
+#         #elif not t.tamamlanma_tarihi:
+#         #    talep_dict["tamamlanma_tarihi"] = t.guncelleme_tarihi
+#         
+#         # 4. Tamamlanma/İptal tarihi NULL ise guncelleme tarihini bas
+#                 # Güvenli tarih atamaları (None kontrolü)
+#         talep_dict["tamamlanma_tarihi"] = t.tamamlanma_tarihi.isoformat() if t.tamamlanma_tarihi else None
+#         talep_dict["silinme_tarihi"] = t.silinme_tarihi.isoformat() if t.silinme_tarihi else None
+#         
+#         # 5. Tutar hesaplama (30. Madde çözümü korunarak)
+#         mevcut_tutar = float(t.tahmini_tutar) if t.tahmini_tutar else 0.0
+#         if mevcut_tutar == 0.0 and hizmet and hizmet.varsayilan_fiyat:
+#             talep_dict["tahmini_tutar"] = float(hizmet.varsayilan_fiyat)
+#         else:
+#             talep_dict["tahmini_tutar"] = mevcut_tutar
+#             
+#         sonuc.append(talep_dict)
+#         
+#     return sonuc
+
+@app.get("/admin/servis-talepleri/gecmis")
+def admin_gecmis_talepleri_getir(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    durum: Optional[str] = Query(None),
+    arama: Optional[str] = Query(None),
+    db: Session = Depends(get_db)
+):
+    query = db.query(models.ServisTalebi).filter(
+        models.ServisTalebi.durum.in_(['Tamamlandı', 'İptal Edildi'])
+    )
+
+    if durum and durum != "Tümü":
+        query = query.filter(models.ServisTalebi.durum == durum)
+
+    if arama:
+        arama = arama.lower()
+        query = query.join(models.Kullanici, models.ServisTalebi.kullanici_id == models.Kullanici.id)\
+                     .join(models.Arac, models.ServisTalebi.arac_id == models.Arac.id)\
+                     .join(models.Hizmet, models.ServisTalebi.hizmet_id == models.Hizmet.id)\
+                     .filter(
+                         (models.Kullanici.ad_soyad.ilike(f"%{arama}%")) |
+                         (models.Arac.ozel_marka.ilike(f"%{arama}%")) |
+                         (models.Arac.ozel_model.ilike(f"%{arama}%")) |
+                         (models.Hizmet.ad.ilike(f"%{arama}%"))
+                     )
+
+    toplam_kayit = query.count()
+
+    talepler = query.order_by(models.ServisTalebi.talep_tarihi.desc())\
+                    .offset(skip).limit(limit).all()
+
+    # İlişkili verileri ekle
+    sonuc = []
+    for t in talepler:
         kullanici = db.query(models.Kullanici).filter(models.Kullanici.id == t.kullanici_id).first()
         arac = db.query(models.Arac).filter(models.Arac.id == t.arac_id).first()
         hizmet = db.query(models.Hizmet).filter(models.Hizmet.id == t.hizmet_id).first()
-        
+
         arac_adi = "Silinmiş Araç"
         if arac:
             if arac.marka_id and arac.model_id:
@@ -1493,59 +1594,34 @@ def admin_gecmis_talepleri_getir(db: Session = Depends(get_db)):
                 if marka and model:
                     arac_adi = f"{marka.ad} {model.ad}"
             else:
-                arac_adi = f"{arac.ozel_marka} {arac.ozel_model}"        
-        
-        # 1. Mevcut kolonları sözlüğe aktar
+                arac_adi = f"{arac.ozel_marka} {arac.ozel_model}" if arac.ozel_marka else f"Araç ID: {arac.id}"
+
         talep_dict = {c.name: getattr(t, c.name) for c in t.__table__.columns}
-        
-        # Tarihleri güvenli şekilde ISO formatına çevir (None ise None bırak)
-        for key, value in talep_dict.items():
-            if isinstance(value, (datetime, date)):
-                talep_dict[key] = value.isoformat() if value else None
-        
-        # talep_tarihi C#'ta string olduğu için onu özel olarak string formatında eziyoruz (Çökme engellendi)
-        if t.talep_tarihi:
-            talep_dict["talep_tarihi"] = t.talep_tarihi.strftime("%Y-%m-%d %H:%M")
-                    
-        # 2. Kullanıcı bilgilerini yapılandır
         talep_dict["kullanici_ad_soyad"] = kullanici.ad_soyad if kullanici else "Bilinmiyor"
         talep_dict["kullanici_telefon"] = kullanici.telefon if kullanici else "Belirtilmemiş"
         talep_dict["arac_adi_tam"] = arac_adi
+        talep_dict["hizmet_adi"] = hizmet.ad if hizmet else ""
 
-        # 3. İptal eden bilgisini yapılandır
-        iptal_eden_isim = "İptal bilgisi yok."
-        if t.iptal_eden_id: # is not None:
-            iptal_kisi = db.query(models.Kullanici).filter(models.Kullanici.id == t.iptal_eden_id).first()
-            if iptal_kisi:
-                iptal_eden_isim = iptal_kisi.ad_soyad
-        talep_dict["iptal_eden_ad_soyad"] = iptal_eden_isim
+        # İptal eden adı
+        iptal_eden = None
+        if t.iptal_eden_id:
+            iptal_eden = db.query(models.Kullanici).filter(models.Kullanici.id == t.iptal_eden_id).first()
+        talep_dict["iptal_eden_ad_soyad"] = iptal_eden.ad_soyad if iptal_eden else None
 
-        # Tarih alanlarını C# DateTime? tipine uygun hale getir
-        # 4. ADIM: Tarih Kurtarma Operasyonu (C# tarafının beklediği isimlerle)
-        # Eğer iptal edildiyse, iptal tarihini ve tamamlanma tarihini dolduruyoruz        
-        # Eğer veritabanında tamamlanma_tarihi NULL ise, eski kayıtların boş görünmemesi 
-        # için guncelleme veya silinme tarihini baz alıyoruz.		
-        # Tarih Garantisi: Boş gelmesini engelle					   
-        # if t.durum == "İptal Edildi":
-        #    talep_dict["tamamlanma_tarihi"] = t.silinme_tarihi or t.guncelleme_tarihi
-        #elif not t.tamamlanma_tarihi:
-        #    talep_dict["tamamlanma_tarihi"] = t.guncelleme_tarihi
-        
-        # 4. Tamamlanma/İptal tarihi NULL ise guncelleme tarihini bas
-                # Güvenli tarih atamaları (None kontrolü)
-        talep_dict["tamamlanma_tarihi"] = t.tamamlanma_tarihi.isoformat() if t.tamamlanma_tarihi else None
-        talep_dict["silinme_tarihi"] = t.silinme_tarihi.isoformat() if t.silinme_tarihi else None
-        
-        # 5. Tutar hesaplama (30. Madde çözümü korunarak)
-        mevcut_tutar = float(t.tahmini_tutar) if t.tahmini_tutar else 0.0
-        if mevcut_tutar == 0.0 and hizmet and hizmet.varsayilan_fiyat:
-            talep_dict["tahmini_tutar"] = float(hizmet.varsayilan_fiyat)
-        else:
-            talep_dict["tahmini_tutar"] = mevcut_tutar
-            
+        if t.talep_tarihi:
+            talep_dict["talep_tarihi"] = t.talep_tarihi.strftime("%Y-%m-%d %H:%M")
+        if t.tamamlanma_tarihi:
+            talep_dict["tamamlanma_tarihi"] = t.tamamlanma_tarihi.isoformat()
+        if t.silinme_tarihi:
+            talep_dict["silinme_tarihi"] = t.silinme_tarihi.isoformat()
+
         sonuc.append(talep_dict)
-        
-    return sonuc
+
+    return {
+        "talepler": sonuc,
+        "toplam_kayit": toplam_kayit
+    }
+
 
 # --- ADMİN: TALEP GÜNCELLEME (UYARI SİLİCİ) --- 
 # from pydantic import BaseModel en üstte tanımladım.

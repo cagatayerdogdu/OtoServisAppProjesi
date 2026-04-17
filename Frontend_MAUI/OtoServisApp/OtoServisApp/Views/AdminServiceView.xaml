@@ -78,8 +78,8 @@
                                     </HorizontalStackLayout>
                                     <!-- Telefon -->
                                     <HorizontalStackLayout Spacing="5">
-                                        <Label Text="{x:Static helpers:IconFont.Phone}" FontFamily="FASolid" FontSize="12" TextColor="#00BCD4" VerticalOptions="Center"/>
-                                        <Label Text="{Binding kullanici_telefon, Mode=OneWay}" FontSize="12" FontAttributes="Bold" TextColor="#00BCD4" VerticalOptions="Center" TextDecorations="Underline">
+                                        <Label Text="{x:Static helpers:IconFont.Phone}" FontFamily="FASolid" FontSize="13" TextColor="#00BCD4" VerticalOptions="Center"/>
+                                        <Label Text="{Binding kullanici_telefon, Mode=OneWay}" FontSize="13" FontAttributes="Bold" TextColor="#00BCD4" VerticalOptions="Center" TextDecorations="Underline">
                                             <Label.GestureRecognizers>
                                                 <TapGestureRecognizer Tapped="OnPhoneTapped" CommandParameter="{Binding kullanici_telefon}" />
                                             </Label.GestureRecognizers>
@@ -95,8 +95,17 @@
                                         <Label Text="{x:Static helpers:IconFont.Wrench}" FontFamily="FASolid" FontSize="12" TextColor="#00BCD4" VerticalOptions="Center"/>
                                         <Label Text="{Binding hizmet_adi, Mode=OneWay}" FontSize="13" TextColor="#00BCD4" FontAttributes="Bold" VerticalOptions="Center"/>
                                     </HorizontalStackLayout>
-                                    <!-- Müşteri Notu (kısa) -->
-                                    <Label Text="{Binding notlar, Mode=OneWay}" FontSize="11" TextColor="#666666" LineBreakMode="TailTruncation" MaxLines="1"/>
+
+                                    <!-- Müşteri Notu -->
+                                    <VerticalStackLayout Spacing="2">
+                                        <HorizontalStackLayout Spacing="5">
+                                            <Label Text="{x:Static helpers:IconFont.ClipboardList}" FontFamily="FASolid" FontSize="12" TextColor="#666666" VerticalOptions="Center"/>
+                                            <Label Text="Müşteri Notu" FontSize="12" TextColor="#666666" FontAttributes="Bold" VerticalOptions="Center"/>
+                                        </HorizontalStackLayout>
+                                        <Label Text="{Binding notlar, Mode=OneWay}" FontSize="12" TextColor="#333333" LineBreakMode="TailTruncation" MaxLines="1"/>
+                                    </VerticalStackLayout>
+
+
                                     <!-- Düzeltme Talebi Uyarısı -->
                                     <Border IsVisible="{Binding duzeltme_istendi_mi, Mode=OneWay}" BackgroundColor="#FFEBEE" Stroke="#D32F2F" StrokeThickness="1" StrokeShape="RoundRectangle 6" Padding="8,4" Margin="0,2,0,0">
                                         <HorizontalStackLayout Spacing="5">
@@ -106,8 +115,8 @@
                                     </Border>
                                     <!-- Adres (kopyalanabilir) -->
                                     <HorizontalStackLayout Spacing="5">
-                                        <Label Text="{x:Static helpers:IconFont.MapMarkerAlt}" FontFamily="FASolid" FontSize="11" TextColor="#666666" VerticalOptions="Center"/>
-                                        <Label Text="{Binding adres, Mode=OneWay}" FontSize="11" TextColor="#333333" LineBreakMode="TailTruncation" MaxLines="1" VerticalOptions="Center">
+                                        <Label Text="{x:Static helpers:IconFont.MapMarkerAlt}" FontFamily="FASolid" FontSize="13" TextColor="#666666" VerticalOptions="Center"/>
+                                        <Label Text="{Binding adres, Mode=OneWay}" FontSize="13" TextColor="#333333" LineBreakMode="TailTruncation" MaxLines="1" VerticalOptions="Center">
                                             <Label.GestureRecognizers>
                                                 <TapGestureRecognizer Tapped="OnCopyTapped" CommandParameter="{Binding adres}" />
                                             </Label.GestureRecognizers>

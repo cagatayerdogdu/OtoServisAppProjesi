@@ -6,97 +6,147 @@ namespace OtoServisApp.Views;
 public partial class AdminPastRequestsView : ContentPage
 {
     private readonly ApiService _apiService;
-    private List<Hizmet> _tumHizmetler;
     private List<ServisTalebi> _orijinalTalepler;
 
     private List<string> _durumFiltreleri = new List<string> { "Tümü", "Tamamlandı", "İptal Edildi" };
     private string _secilenDurum = "Tümü";
+    private string _aktifArama = "";
+
+    private int _sayfaBoyutu = 20;
+    private int _mevcutSayfa = 1;
+    private int _toplamSayfa = 1;
+    private int _toplamKayit = 0;
+    private bool _yukleniyor = false;
+    private bool _ilkYukleme = true;
+
+    private CancellationTokenSource _aramaCts;
 
     public AdminPastRequestsView()
     {
         InitializeComponent();
         _apiService = new ApiService();
+        GuncelleButonDurumlari();
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
 
-        // 1. AŞAMA: Kullanıcıya donma hissi vermemek için Loading ekranını anında aç
-        LoadingOverlay.IsVisible = true;
+        if (_ilkYukleme)
+        {
+            LoadingOverlay.IsVisible = true;
+            LoadingTitle.Text = "Geçmiş Talepler Yükleniyor...";
+            await Task.Delay(5);
 
-        // YENİ REVİZE: Arayüzün (UI) donmasını ve uygulamanın çökmesini engellemek ve Loading animasyonunu başlatması için 
-        // veri çekme işlemine geçmeden önce çok kısa bir süre (20ms) bekleyip thread'i rahatlatıyoruz.
-        await Task.Delay(1);
+            try
+            {
+                if (DurumListesi != null && DurumListesi.ItemsSource == null)
+                    DurumListesi.ItemsSource = _durumFiltreleri;
+
+                await TalepleriYukle(sayfa: 1);
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Hata", "Veriler yüklenirken bir sorun oluştu.", "Tamam");
+            }
+            finally
+            {
+                LoadingOverlay.IsVisible = false;
+                _ilkYukleme = false;
+            }
+        }
+    }
+
+    private async Task TalepleriYukle(int sayfa)
+    {
+        if (_yukleniyor) return;
+        _yukleniyor = true;
+
+        int skip = (sayfa - 1) * _sayfaBoyutu;
 
         try
         {
-            // Filtre dropdown listelerini vs. burada doldurabilirsin
-            if (DurumListesi != null && DurumListesi.ItemsSource == null)
-                DurumListesi.ItemsSource = _durumFiltreleri;
+            var (yeniTalepler, toplamKayit) = await _apiService.AdminGecmisTalepleriSayfaliGetirAsync(
+                skip: skip,
+                limit: _sayfaBoyutu,
+                durum: _secilenDurum,
+                arama: _aktifArama
+            );
 
-            // 3. AŞAMA: Asıl veriyi (API İsteklerini) şimdi çekiyoruz
-            await VerileriYukle();
+            _toplamKayit = toplamKayit;
+            _toplamSayfa = (int)Math.Ceiling((double)toplamKayit / _sayfaBoyutu);
+            if (_toplamSayfa == 0) _toplamSayfa = 1;
+            _mevcutSayfa = sayfa;
+
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                ToplamTalepLabel.Text = $"{toplamKayit} talep";
+                SayfaBilgiLabel.Text = $"Sayfa {_mevcutSayfa} / {_toplamSayfa}";
+                GuncelleButonDurumlari();
+            });
+
+            if (yeniTalepler != null && yeniTalepler.Any())
+            {
+                _orijinalTalepler = new List<ServisTalebi>(yeniTalepler);
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    PastRequestsList.ItemsSource = _orijinalTalepler.ToList();
+                });
+            }
+            else
+            {
+                _orijinalTalepler?.Clear();
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    PastRequestsList.ItemsSource = null;
+                });
+            }
         }
         catch (Exception ex)
         {
             await DisplayAlert("Hata", "Veriler yüklenirken bir sorun oluştu.", "Tamam");
-            System.Diagnostics.Debug.WriteLine($"Yükleme Hatası: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"Geçmiş talepler yükleme hatası: {ex.Message}");
         }
         finally
         {
-            // 4. AŞAMA: Veri gelse de, hata da verse Loading ekranını KESİNLİKLE kapat
-            LoadingOverlay.IsVisible = false;
+            _yukleniyor = false;
         }
     }
 
-    private async Task VerileriYukle()
+    private void GuncelleButonDurumlari()
     {
-        _tumHizmetler = await _apiService.HizmetleriGetirAsync();
-        _orijinalTalepler = await _apiService.AdminGecmisTalepleriGetirAsync();
-
-        if (_orijinalTalepler != null)
-        {
-            foreach (var talep in _orijinalTalepler)
-            {
-                var hizmet = _tumHizmetler?.FirstOrDefault(h => h.id == talep.hizmet_id);
-                if (hizmet != null) talep.hizmet_adi = hizmet.ad;
-            }
-            FiltreleriUygula();
-        }
+        BtnOncekiLabel.Opacity = _mevcutSayfa > 1 ? 1.0 : 0.5;
+        BtnSonrakiLabel.Opacity = _mevcutSayfa < _toplamSayfa ? 1.0 : 0.5;
     }
 
-    private void OnFiltreDegisti(object sender, TextChangedEventArgs e)
+    private async void OnOncekiTapped(object sender, TappedEventArgs e)
     {
-        FiltreleriUygula();
+        if (_yukleniyor) return;
+        if (_mevcutSayfa > 1)
+        {
+            await TalepleriYukle(_mevcutSayfa - 1);
+        }
     }
 
-    private void FiltreleriUygula()
+    private async void OnSonrakiTapped(object sender, TappedEventArgs e)
     {
-        if (_orijinalTalepler == null) return;
-
-        var filtrelenmisListe = _orijinalTalepler.AsEnumerable();
-
-        if (_secilenDurum != "Tümü")
+        if (_yukleniyor) return;
+        if (_mevcutSayfa < _toplamSayfa)
         {
-            filtrelenmisListe = filtrelenmisListe.Where(t => t.durum == _secilenDurum);
+            await TalepleriYukle(_mevcutSayfa + 1);
         }
-
-        if (!string.IsNullOrWhiteSpace(AramaBar.Text))
-        {
-            var kelime = AramaBar.Text.ToLower();
-            filtrelenmisListe = filtrelenmisListe.Where(t =>
-                (t.kullanici_ad_soyad != null && t.kullanici_ad_soyad.ToLower().Contains(kelime)) ||
-                (t.arac_adi_tam != null && t.arac_adi_tam.ToLower().Contains(kelime)) ||
-                (t.hizmet_adi != null && t.hizmet_adi.ToLower().Contains(kelime))
-            );
-        }
-
-        PastRequestsList.ItemsSource = null;
-        PastRequestsList.ItemsSource = filtrelenmisListe.ToList();
     }
 
-    private void OnFiltreDurumKutusuAcKapat(object sender, EventArgs e)
+    private async void OnThresholdReached(object sender, EventArgs e)
+    {
+        // Lazy loading: sonraki sayfayı otomatik yükle
+        if (!_yukleniyor && _mevcutSayfa < _toplamSayfa)
+        {
+            await TalepleriYukle(_mevcutSayfa + 1);
+        }
+    }
+
+    private void OnFiltreDurumKutusuAcKapatTapped(object sender, TappedEventArgs e)
     {
         DurumSecimKutusu.IsVisible = !DurumSecimKutusu.IsVisible;
     }
@@ -107,10 +157,34 @@ public partial class AdminPastRequestsView : ContentPage
         if (secilen != null)
         {
             _secilenDurum = secilen;
-            SecilenDurumButonu.Text = secilen;
+            SecilenDurumLabel.Text = secilen;
             DurumSecimKutusu.IsVisible = false;
             DurumListesi.SelectedItem = null;
-            FiltreleriUygula();
+            _ = TalepleriYukle(sayfa: 1);
         }
+    }
+
+    private void OnFiltreDegisti(object sender, TextChangedEventArgs e)
+    {
+        _aramaCts?.Cancel();
+        _aramaCts = new CancellationTokenSource();
+
+        Task.Delay(300, _aramaCts.Token).ContinueWith(t =>
+        {
+            if (!t.IsCanceled)
+            {
+                _aktifArama = AramaBar.Text;
+                MainThread.BeginInvokeOnMainThread(async () =>
+                {
+                    await TalepleriYukle(sayfa: 1);
+                });
+            }
+        });
+    }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        _aramaCts?.Cancel();
     }
 }
