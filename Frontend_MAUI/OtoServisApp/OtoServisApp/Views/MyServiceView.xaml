@@ -133,7 +133,7 @@
                        VerticalOptions="Center" HorizontalOptions="Center" InputTransparent="True" />
                             </Border>
 
-                            <!-- SAĞ ALT: FOTOĞRAF İKONU (sadece fotoğraf varsa) -->
+                            <!-- SAĞ ALT: FOTOĞRAF İKONU (sadece fotoğraf varsa). -->
                             <Label Grid.Row="1" Grid.Column="1" 
                    Text="{x:Static helpers:IconFont.Camera}" 
                    FontFamily="FASolid" 
