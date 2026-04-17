@@ -7,7 +7,7 @@ namespace OtoServisApp.Views;
 public partial class NotificationsView : ContentPage
 {
     private readonly ApiService _apiService;
-    private bool _isSelectAllUpdating = false;
+    private bool _isUpdatingSelection = false;
 
     public ObservableCollection<BildirimResponse> Bildirimler { get; set; } = new();
 
@@ -94,12 +94,11 @@ public partial class NotificationsView : ContentPage
                 }
             }
 
-            // Seçili öğe yoksa sil butonunu gizle
-            _isSelectAllUpdating = true;
+            // Seçili öğe yoksa sil butonunu gizle ve hepsini seç checkbox'ını kaldır
+            _isUpdatingSelection = true;
             ChkSelectAll.IsChecked = false;
-            _isSelectAllUpdating = false;
+            _isUpdatingSelection = false;
             DeleteSelectedBorder.IsVisible = false;
-
         }
         catch (Exception ex)
         {
@@ -138,12 +137,10 @@ public partial class NotificationsView : ContentPage
 
         // UI'ı hemen güncelle (okundu olarak işaretle)
         bildirim.okundu_mu = true;
-        // Kartın görünümü otomatik yenilenecek (DataTrigger sayesinde)
 
         // Arka planda API'ye bildir
         _ = _apiService.BildirimOkunduIsaretleAsync(bildirim.id);
     }
-
 
     private async void OnSingleDeleteInvoked(object sender, EventArgs e)
     {
@@ -163,48 +160,50 @@ public partial class NotificationsView : ContentPage
             Bildirimler.Remove(bildirim);
             _toplamKayit--;
             ToplamBildirimLabel.Text = $"{_toplamKayit} bildirim";
+
+            // Seçim durumlarını sıfırla
+            _isUpdatingSelection = true;
+            ChkSelectAll.IsChecked = false;
+            _isUpdatingSelection = false;
+            DeleteSelectedBorder.IsVisible = false;
+
             if (Bildirimler.Count == 0 && _mevcutSayfa > 1)
             {
-                // Sayfa boşaldıysa bir önceki sayfaya dön
                 await BildirimleriYukle(_mevcutSayfa - 1);
             }
         }
 
         LoadingOverlay.IsVisible = false;
-        UpdateDeleteButtonVisibility();
     }
 
     private void OnItemCheckChanged(object sender, CheckedChangedEventArgs e)
     {
-        // Sadece sil butonunun görünürlüğünü güncelle
+        if (_isUpdatingSelection) return;
+
+        // Sil butonu görünürlüğünü güncelle
         DeleteSelectedBorder.IsVisible = Bildirimler.Any(b => b.IsSelected);
 
-        // Hepsini seç checkbox'ını güncelle (event döngüsünü önlemek için _isSelectAllUpdating kullan)
-        if (_isSelectAllUpdating) return;
-
+        // Hepsini seç checkbox'ını güncelle
         bool hepsiSecili = Bildirimler.Any() && Bildirimler.All(b => b.IsSelected);
         if (ChkSelectAll.IsChecked != hepsiSecili)
         {
-            _isSelectAllUpdating = true;
+            _isUpdatingSelection = true;
             ChkSelectAll.IsChecked = hepsiSecili;
-            _isSelectAllUpdating = false;
+            _isUpdatingSelection = false;
         }
     }
 
     private void OnSelectAllCheckedChanged(object sender, CheckedChangedEventArgs e)
     {
-        if (_isSelectAllUpdating) return;
+        if (_isUpdatingSelection) return;
 
+        _isUpdatingSelection = true;
         bool yeniDeger = e.Value;
         foreach (var item in Bildirimler)
             item.IsSelected = yeniDeger;
 
         DeleteSelectedBorder.IsVisible = yeniDeger && Bildirimler.Any();
-    }
-
-    private void UpdateDeleteButtonVisibility()
-    {
-        DeleteSelectedBorder.IsVisible = Bildirimler.Any(b => b.IsSelected);
+        _isUpdatingSelection = false;
     }
 
     private async void OnDeleteSelectedTapped(object sender, TappedEventArgs e)
@@ -229,10 +228,11 @@ public partial class NotificationsView : ContentPage
         ToplamBildirimLabel.Text = $"{_toplamKayit} bildirim";
 
         LoadingOverlay.IsVisible = false;
-        DeleteSelectedBorder.IsVisible = false;
-        _isSelectAllUpdating = true;
+
+        _isUpdatingSelection = true;
         ChkSelectAll.IsChecked = false;
-        _isSelectAllUpdating = false;
+        DeleteSelectedBorder.IsVisible = false;
+        _isUpdatingSelection = false;
 
         if (Bildirimler.Count == 0 && _mevcutSayfa > 1)
         {
