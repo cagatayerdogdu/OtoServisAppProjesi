@@ -9,33 +9,34 @@
 
     <Grid RowDefinitions="Auto, *, Auto">
 
-        <!-- ÜST ÇUBUK: Seçim ve Toplam Sayı -->
-        <Border Grid.Row="0" BackgroundColor="#F8FAFC" Padding="15,10" StrokeThickness="0">
-            <Grid ColumnDefinitions="*, Auto, Auto">
+        <!-- ÜST ARAÇ ÇUBUĞU (Hepsini Seç + Toplam + Sil Butonu) -->
+        <Border Grid.Row="0" BackgroundColor="#FAFAFA" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10" Margin="10,10,10,5">
+            <Grid ColumnDefinitions="Auto, *, Auto">
+                <!-- Hepsini Seç -->
                 <HorizontalStackLayout Grid.Column="0" Spacing="10" VerticalOptions="Center">
                     <CheckBox x:Name="ChkSelectAll" CheckedChanged="OnSelectAllCheckedChanged" Color="#00BCD4"/>
                     <Label Text="Hepsini Seç" FontAttributes="Bold" VerticalOptions="Center" TextColor="#334155"/>
                 </HorizontalStackLayout>
 
-                <Label Grid.Column="1" x:Name="ToplamBildirimLabel" Text="0 bildirim" FontSize="12" TextColor="#666666" VerticalOptions="Center" Margin="0,0,15,0"/>
+                <!-- Toplam Bildirim Sayısı -->
+                <Label Grid.Column="1" x:Name="ToplamBildirimLabel" Text="0 bildirim" FontSize="12" TextColor="#666666" HorizontalOptions="Center" VerticalOptions="Center"/>
 
-                <Border Grid.Column="2" BackgroundColor="#00BCD4" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="35" Padding="0">
+                <!-- Seçilenleri Sil Butonu (Sadece seçili öğe varsa görünür) -->
+                <Border Grid.Column="2" BackgroundColor="#EF4444" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="35" Padding="15,0" IsVisible="False" x:Name="DeleteSelectedBorder">
                     <Border.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnDeleteSelectedTapped" />
                     </Border.GestureRecognizers>
-                    <Label x:Name="BtnDeleteSelectedLabel" Text="Seçilenleri Sil" TextColor="White" FontSize="13" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" Padding="15,0" InputTransparent="True" IsVisible="False"/>
+                    <Label Text="Seçilenleri Sil" TextColor="White" FontSize="13" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" InputTransparent="True" />
                 </Border>
             </Grid>
         </Border>
 
         <!-- BİLDİRİM LİSTESİ -->
-        <CollectionView Grid.Row="1" x:Name="NotificationList" Margin="15"
-                        RemainingItemsThreshold="5"
-                        RemainingItemsThresholdReached="OnThresholdReached">
+        <CollectionView x:Name="NotificationList" Grid.Row="1" Margin="15,5,15,0">
             <CollectionView.EmptyView>
                 <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="10" Margin="0,100,0,0">
-                    <Label Text="{x:Static helpers:IconFont.Bell}" FontFamily="FASolid" FontSize="50" TextColor="#888888" HorizontalOptions="Center" Opacity="0.5"/>
-                    <Label Text="Henüz yeni bir bildiriminiz yok." TextColor="#888888" FontSize="16"/>
+                    <Label Text="{x:Static helpers:IconFont.Bell}" FontFamily="FASolid" FontSize="50" TextColor="#BDC3C7" HorizontalOptions="Center" Opacity="0.6"/>
+                    <Label Text="Henüz yeni bir bildiriminiz yok." TextColor="#7F8C8D" FontSize="16"/>
                 </VerticalStackLayout>
             </CollectionView.EmptyView>
 
@@ -53,7 +54,7 @@
 
                             <Border x:Name="CardBorder" StrokeShape="RoundRectangle 12" Padding="15" StrokeThickness="1.5">
                                 <Border.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="OnNotificationTapped" NumberOfTapsRequired="1" />
+                                    <TapGestureRecognizer Tapped="OnNotificationTapped" CommandParameter="{Binding .}" />
                                 </Border.GestureRecognizers>
 
                                 <Border.Style>
@@ -77,10 +78,10 @@
 
                                 <Grid ColumnDefinitions="Auto, *">
                                     <CheckBox Grid.Column="0" 
-                                      IsChecked="{Binding IsSelected}" 
-                                      Color="#00BCD4" 
-                                      VerticalOptions="Center"
-                                      CheckedChanged="OnItemCheckChanged"/>
+                                              IsChecked="{Binding IsSelected}" 
+                                              Color="#00BCD4" 
+                                              VerticalOptions="Center"
+                                              CheckedChanged="OnItemCheckChanged"/>
 
                                     <VerticalStackLayout Grid.Column="1" Spacing="5" Margin="10,0,0,0">
                                         <HorizontalStackLayout Spacing="10">
@@ -126,10 +127,10 @@
 
         <!-- LOADING OVERLAY -->
         <Grid x:Name="LoadingOverlay" BackgroundColor="#CCFFFFFF" IsVisible="False" InputTransparent="False" Grid.RowSpan="3">
-            <Border BackgroundColor="White" Stroke="#E0E0E0" StrokeShape="RoundRectangle 15" Padding="30" HorizontalOptions="Center" VerticalOptions="Center">
+            <Border BackgroundColor="White" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 15" Padding="30" HorizontalOptions="Center" VerticalOptions="Center">
                 <VerticalStackLayout Spacing="15" HorizontalOptions="Center">
                     <ActivityIndicator IsRunning="{Binding Source={x:Reference LoadingOverlay}, Path=IsVisible}" Color="#00BCD4" WidthRequest="50" HeightRequest="50" HorizontalOptions="Center"/>
-                    <Label x:Name="LoadingTitle" Text="Bildirimler Yükleniyor..." FontSize="16" FontAttributes="Bold" TextColor="#333333" HorizontalOptions="Center"/>
+                    <Label x:Name="LoadingTitle" Text="İşlem Yapılıyor..." FontSize="16" FontAttributes="Bold" TextColor="#333333" HorizontalOptions="Center"/>
                     <Label x:Name="LoadingSubText" Text="Lütfen işlem bitene kadar bekleyiniz." FontSize="13" TextColor="#666666" HorizontalTextAlignment="Center" HorizontalOptions="Center"/>
                 </VerticalStackLayout>
             </Border>

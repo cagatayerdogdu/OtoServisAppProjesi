@@ -584,15 +584,14 @@ namespace OtoServisApp.Services
         }
 
         // DeepSeek Bildirimleri sayfalı getirme Lazy Loading
-        public async Task<(List<BildirimResponse> bildirimler, int toplamKayit)> KullaniciBildirimleriniSayfaliGetirAsync(
+        public async Task<(List<BildirimResponse> bildirimler, int toplamKayit)> BildirimleriSayfaliGetirAsync(
                     int kullaniciId,
                     int skip = 0,
-                    int limit = 20
-            )
+                    int limit = 20)
         {
             try
             {
-                string url = $"/bildirimler/sayfali/{kullaniciId}?skip={skip}&limit={limit}";
+                string url = $"/bildirimler/{kullaniciId}/sayfali?skip={skip}&limit={limit}";
                 var response = await _httpClient.GetAsync(url).ConfigureAwait(false);
 
                 if (response.IsSuccessStatusCode)
@@ -604,7 +603,7 @@ namespace OtoServisApp.Services
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Sayfalı bildirim çekme hatası: {ex.Message}");
+                Debug.WriteLine($"Sayfalı bildirim hatası: {ex.Message}");
             }
             return (new List<BildirimResponse>(), 0);
         }
