@@ -113,25 +113,27 @@
                                     </HorizontalStackLayout>
                                 </Border>
 
-                                <!-- Talep Tarihi + Fotoğraf İkonu (alt satır) -->
-                                <Grid ColumnDefinitions="*, Auto" VerticalOptions="End">
+                                <!-- ALT SATIR: Talep Tarihi + Fotoğraf İkonu -->
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <!-- Sol taraf: Talep Tarihi -->
                                     <HorizontalStackLayout Grid.Column="0" Spacing="5" VerticalOptions="Center">
                                         <Label Text="{x:Static helpers:IconFont.CalendarAlt}" FontFamily="FASolid" FontSize="12" TextColor="#666666"/>
                                         <Label Text="İstediğiniz Tarih:" TextColor="#666666" FontSize="12"/>
                                         <Label Text="{Binding talep_tarihi, Mode=OneWay}" TextColor="#111111" FontSize="12" FontAttributes="Bold"/>
                                     </HorizontalStackLayout>
 
-                                    <!-- Fotoğraf İkonu - sağ alt köşeye yapıştırıldı -->
+                                    <!-- Sağ taraf: Fotoğraf İkonu - kartın sağ alt köşesine yapışık -->
                                     <Label Grid.Column="1" 
            Text="{x:Static helpers:IconFont.Camera}" 
            FontFamily="FASolid" 
-           FontSize="18" 
+           FontSize="20" 
            TextColor="#4CAF50" 
            HorizontalOptions="End" 
            VerticalOptions="End"
-           Margin="0,0,-5,-5"
+           Margin="0,0,-10,-10"
            IsVisible="{Binding foto_var_mi, Mode=OneWay}" />
                                 </Grid>
+                                
                             </VerticalStackLayout>
 
                             <!-- SAĞ TARAF: DETAY BUTONU (DİKEY ORTALI) -->
