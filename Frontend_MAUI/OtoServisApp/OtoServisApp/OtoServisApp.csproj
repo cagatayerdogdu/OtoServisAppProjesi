@@ -94,9 +94,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Views\AdminServiceView.xaml.cs">
+      <DependentUpon>AdminServiceView.xaml</DependentUpon>
+    </Compile>
     <Compile Update="Views\MyServiceRequestDetailView.xaml.cs">
       <DependentUpon>MyServiceRequestDetailView.xaml</DependentUpon>
     </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <MauiXaml Update="Views\AdminRequestDetailView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
   </ItemGroup>
 
 </Project>

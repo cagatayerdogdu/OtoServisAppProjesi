@@ -16,7 +16,7 @@ public partial class AdminDashboardView : ContentPage
     private async void OnManageRequestsTapped(object sender, EventArgs e)
     {
         // Talepler ekranına geçiş yap
-        await Navigation.PushAsync(new AdminRequestsView());
+        await Navigation.PushAsync(new AdminServiceView());    // AdminRequestsView
     }
 
     private async void OnPastRequestsTapped(object sender, EventArgs e)
