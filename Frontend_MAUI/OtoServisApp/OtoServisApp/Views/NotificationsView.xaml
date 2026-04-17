@@ -22,7 +22,7 @@
                 <Label Grid.Column="1" x:Name="ToplamBildirimLabel" Text="0 bildirim" FontSize="12" TextColor="#666666" HorizontalOptions="Center" VerticalOptions="Center"/>
 
                 <!-- Seçilenleri Sil Butonu (Sadece seçili öğe varsa görünür) -->
-                <Border Grid.Column="2" BackgroundColor="#EF4444" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="35" Padding="15,0" IsVisible="False" x:Name="DeleteSelectedBorder">
+                <Border Grid.Column="2" BackgroundColor="#00BCD4" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="35" Padding="15,0" IsVisible="False" x:Name="DeleteSelectedBorder">
                     <Border.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnDeleteSelectedTapped" />
                     </Border.GestureRecognizers>

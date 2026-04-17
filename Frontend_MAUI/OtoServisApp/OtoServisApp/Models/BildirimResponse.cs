@@ -9,8 +9,22 @@ namespace OtoServisApp.Models
         public int id { get; set; }
         public string baslik { get; set; }
         public string mesaj { get; set; }
-        public bool okundu_mu { get; set; }
+        // public bool okundu_mu { get; set; }
         public DateTime olusturulma_tarihi { get; set; }
+
+        private bool _okundu_mu;
+        public bool okundu_mu
+        {
+            get => _okundu_mu;
+            set
+            {
+                if (_okundu_mu != value)
+                {
+                    _okundu_mu = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
 
         private bool _isSelected;
         public bool IsSelected

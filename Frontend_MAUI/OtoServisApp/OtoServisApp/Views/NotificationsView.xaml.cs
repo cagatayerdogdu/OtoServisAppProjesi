@@ -95,10 +95,11 @@ public partial class NotificationsView : ContentPage
             }
 
             // Seçili öğe yoksa sil butonunu gizle
-            DeleteSelectedBorder.IsVisible = false;
             _isSelectAllUpdating = true;
             ChkSelectAll.IsChecked = false;
             _isSelectAllUpdating = false;
+            DeleteSelectedBorder.IsVisible = false;
+
         }
         catch (Exception ex)
         {
@@ -143,6 +144,7 @@ public partial class NotificationsView : ContentPage
         _ = _apiService.BildirimOkunduIsaretleAsync(bildirim.id);
     }
 
+
     private async void OnSingleDeleteInvoked(object sender, EventArgs e)
     {
         var swipeItem = sender as SwipeItemView;
@@ -174,7 +176,11 @@ public partial class NotificationsView : ContentPage
 
     private void OnItemCheckChanged(object sender, CheckedChangedEventArgs e)
     {
-        UpdateDeleteButtonVisibility();
+        // Sadece sil butonunun görünürlüğünü güncelle
+        DeleteSelectedBorder.IsVisible = Bildirimler.Any(b => b.IsSelected);
+
+        // Hepsini seç checkbox'ını güncelle (event döngüsünü önlemek için _isSelectAllUpdating kullan)
+        if (_isSelectAllUpdating) return;
 
         bool hepsiSecili = Bildirimler.Any() && Bildirimler.All(b => b.IsSelected);
         if (ChkSelectAll.IsChecked != hepsiSecili)
@@ -193,7 +199,7 @@ public partial class NotificationsView : ContentPage
         foreach (var item in Bildirimler)
             item.IsSelected = yeniDeger;
 
-        UpdateDeleteButtonVisibility();
+        DeleteSelectedBorder.IsVisible = yeniDeger && Bildirimler.Any();
     }
 
     private void UpdateDeleteButtonVisibility()
