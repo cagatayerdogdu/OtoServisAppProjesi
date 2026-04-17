@@ -101,6 +101,14 @@
                                         <Label Text="{Binding tahmini_tutar, StringFormat='{0} ₺', Mode=OneWay}" TextColor="#004D40" FontSize="14" FontAttributes="Bold"/>
                                     </HorizontalStackLayout>
 
+                                    <!-- Talep Tarihi -->
+                                    <HorizontalStackLayout Spacing="5">
+                                        <Label Text="{x:Static helpers:IconFont.CalendarAlt}" FontFamily="FASolid" FontSize="12" TextColor="#666666"/>
+                                        <Label Text="İstediğiniz Tarih:" TextColor="#666666" FontSize="12"/>
+                                        <Label Text="{Binding talep_tarihi, Mode=OneWay}" TextColor="#111111" FontSize="12" FontAttributes="Bold"/>
+                                    </HorizontalStackLayout>
+                                </VerticalStackLayout>
+                                    
                                     <!-- Düzeltme Talebi Uyarısı -->
                                     <Border IsVisible="{Binding duzeltme_istendi_mi, Mode=OneWay}" 
                             BackgroundColor="#FFEBEE" 
@@ -114,14 +122,6 @@
                                             <Label Text="Bu talep için düzeltme isteğiniz inceleniyor." TextColor="#C62828" FontSize="11" FontAttributes="Bold" VerticalOptions="Center"/>
                                         </HorizontalStackLayout>
                                     </Border>
-
-                                    <!-- Talep Tarihi -->
-                                    <HorizontalStackLayout Spacing="5">
-                                        <Label Text="{x:Static helpers:IconFont.CalendarAlt}" FontFamily="FASolid" FontSize="12" TextColor="#666666"/>
-                                        <Label Text="İstediğiniz Tarih:" TextColor="#666666" FontSize="12"/>
-                                        <Label Text="{Binding talep_tarihi, Mode=OneWay}" TextColor="#111111" FontSize="12" FontAttributes="Bold"/>
-                                    </HorizontalStackLayout>
-                                </VerticalStackLayout>
 
                                 <!-- Detay Butonu -->
                                 <Border Grid.Column="1" 
@@ -148,7 +148,7 @@
                    TextColor="#4CAF50" 
                    HorizontalOptions="End" 
                    VerticalOptions="End"
-                   Margin="0,0,-5,-5"
+                   Margin="0,0,0,0"
                    IsVisible="{Binding foto_var_mi, Mode=OneWay}"
                    InputTransparent="True" />
                         </Grid>
