@@ -130,7 +130,7 @@
            TextColor="#4CAF50" 
            HorizontalOptions="End" 
            VerticalOptions="End"
-           Margin="0,0,-10,-10"
+           Margin="10,10,-25,-25"
            IsVisible="{Binding foto_var_mi, Mode=OneWay}" />
                                 </Grid>
                                 
