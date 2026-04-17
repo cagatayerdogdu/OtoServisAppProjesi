@@ -70,6 +70,7 @@
             </CollectionView.EmptyView>
 
             <CollectionView.ItemTemplate>
+
                 <DataTemplate x:DataType="models:ServisTalebi">
                     <Border BackgroundColor="#FAFAFA" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 12" Padding="15" Margin="0,0,0,15">
                         <Grid ColumnDefinitions="*, Auto">
@@ -113,27 +114,12 @@
                                     </HorizontalStackLayout>
                                 </Border>
 
-                                <!-- ALT SATIR: Talep Tarihi + Fotoğraf İkonu -->
-                                <Grid ColumnDefinitions="*, Auto">
-                                    <!-- Sol taraf: Talep Tarihi -->
-                                    <HorizontalStackLayout Grid.Column="0" Spacing="5" VerticalOptions="Center">
-                                        <Label Text="{x:Static helpers:IconFont.CalendarAlt}" FontFamily="FASolid" FontSize="12" TextColor="#666666"/>
-                                        <Label Text="İstediğiniz Tarih:" TextColor="#666666" FontSize="12"/>
-                                        <Label Text="{Binding talep_tarihi, Mode=OneWay}" TextColor="#111111" FontSize="12" FontAttributes="Bold"/>
-                                    </HorizontalStackLayout>
-
-                                    <!-- Sağ taraf: Fotoğraf İkonu - kartın sağ alt köşesine yapışık -->
-                                    <Label Grid.Column="1" 
-           Text="{x:Static helpers:IconFont.Camera}" 
-           FontFamily="FASolid" 
-           FontSize="20" 
-           TextColor="#4CAF50" 
-           HorizontalOptions="End" 
-           VerticalOptions="End"
-           Margin="-5,-5,-20,-20"
-           IsVisible="{Binding foto_var_mi, Mode=OneWay}" />
-                                </Grid>
-                                
+                                <!-- Talep Tarihi -->
+                                <HorizontalStackLayout Spacing="5">
+                                    <Label Text="{x:Static helpers:IconFont.CalendarAlt}" FontFamily="FASolid" FontSize="12" TextColor="#666666"/>
+                                    <Label Text="İstediğiniz Tarih:" TextColor="#666666" FontSize="12"/>
+                                    <Label Text="{Binding talep_tarihi, Mode=OneWay}" TextColor="#111111" FontSize="12" FontAttributes="Bold"/>
+                                </HorizontalStackLayout>
                             </VerticalStackLayout>
 
                             <!-- SAĞ TARAF: DETAY BUTONU (DİKEY ORTALI) -->
@@ -153,8 +139,20 @@
                        VerticalOptions="Center" HorizontalOptions="Center" InputTransparent="True" />
                             </Border>
                         </Grid>
+
+                        <!-- FOTOĞRAF İKONU (AbsoluteLayout ile sağ alt köşeye yapıştır) -->
+                        <AbsoluteLayout HorizontalOptions="Fill" VerticalOptions="Fill">
+                            <Label Text="{x:Static helpers:IconFont.Camera}" 
+                   FontFamily="FASolid" 
+                   FontSize="20" 
+                   TextColor="#4CAF50" 
+                   AbsoluteLayout.LayoutBounds="1, 1, AutoSize, AutoSize"
+                   AbsoluteLayout.LayoutFlags="PositionProportional"
+                   IsVisible="{Binding foto_var_mi, Mode=OneWay}" />
+                        </AbsoluteLayout>
                     </Border>
                 </DataTemplate>
+
             </CollectionView.ItemTemplate>
         </CollectionView>
 
