@@ -118,7 +118,7 @@
                                     <!-- Talep Tarihi -->
                                     <HorizontalStackLayout Spacing="5">
                                         <Label Text="{x:Static helpers:IconFont.CalendarAlt}" FontFamily="FASolid" FontSize="12" TextColor="#666666"/>
-                                        <Label Text="İstediğiniz Tarih:" TextColor="#666666" FontSize="12"/>
+                                        <Label Text="İstediğiniz Tarih:" TextColor="#666666" FontSize="13"/>
                                         <Label Text="{Binding talep_tarihi, Mode=OneWay}" TextColor="#111111" FontSize="12" FontAttributes="Bold"/>
                                     </HorizontalStackLayout>
                                 </VerticalStackLayout>
