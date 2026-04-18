@@ -1,5 +1,6 @@
 ﻿using OtoServisApp.Models;
 using OtoServisApp.Services;
+using System.Collections.Concurrent;
 
 namespace OtoServisApp.Views;
 
@@ -7,12 +8,14 @@ public partial class AdminPastRequestsView : ContentPage
 {
     private readonly ApiService _apiService;
     private List<ServisTalebi> _orijinalTalepler;
+    private List<Hizmet> _tumHizmetler;
+    private List<Marka> _tumMarkalar;
 
     private List<string> _durumFiltreleri = new List<string> { "Tümü", "Tamamlandı", "İptal Edildi" };
     private string _secilenDurum = "Tümü";
     private string _aktifArama = "";
 
-    private int _sayfaBoyutu = 20;
+    private int _sayfaBoyutu = 10;
     private int _mevcutSayfa = 1;
     private int _toplamSayfa = 1;
     private int _toplamKayit = 0;
@@ -66,6 +69,13 @@ public partial class AdminPastRequestsView : ContentPage
 
         try
         {
+            // İlk yüklemede referans verileri al
+            if (_tumHizmetler == null || _tumMarkalar == null)
+            {
+                _tumHizmetler = await _apiService.HizmetleriGetirAsync();
+                _tumMarkalar = await _apiService.MarkalariGetirAsync();
+            }
+
             var (yeniTalepler, toplamKayit) = await _apiService.AdminGecmisTalepleriSayfaliGetirAsync(
                 skip: skip,
                 limit: _sayfaBoyutu,
@@ -85,12 +95,20 @@ public partial class AdminPastRequestsView : ContentPage
                 GuncelleButonDurumlari();
             });
 
-            // Liste tamamen değiştiriliyor (ekleme yok)
-            _orijinalTalepler = yeniTalepler ?? new List<ServisTalebi>();
+            if (yeniTalepler != null && yeniTalepler.Any())
+            {
+                // Hizmet adı ve araç adı bilgilerini zenginleştir
+                await TalepleriZenginlestir(yeniTalepler);
+                _orijinalTalepler = yeniTalepler;
+            }
+            else
+            {
+                _orijinalTalepler = new List<ServisTalebi>();
+            }
+
             MainThread.BeginInvokeOnMainThread(() =>
             {
                 PastRequestsList.ItemsSource = _orijinalTalepler;
-                // Liste başına kaydır
                 PastRequestsList.ScrollTo(0);
             });
         }
@@ -103,6 +121,45 @@ public partial class AdminPastRequestsView : ContentPage
         {
             _yukleniyor = false;
         }
+    }
+
+    private async Task TalepleriZenginlestir(List<ServisTalebi> talepler)
+    {
+        if (talepler == null || !talepler.Any()) return;
+
+        var aracHavuzu = new ConcurrentDictionary<int, Arac>();
+
+        var gorevler = talepler.Select(async talep =>
+        {
+            var hizmet = _tumHizmetler?.FirstOrDefault(h => h.id == talep.hizmet_id);
+            if (hizmet != null) talep.hizmet_adi = hizmet.ad;
+
+            if (!aracHavuzu.TryGetValue(talep.arac_id, out var arac))
+            {
+                arac = await _apiService.AracGetirAsync(talep.arac_id);
+                if (arac != null) aracHavuzu.TryAdd(talep.arac_id, arac);
+            }
+
+            if (arac != null)
+            {
+                string gosterimAd = "";
+                if (arac.marka_id != null && arac.model_id != null && _tumMarkalar != null)
+                {
+                    var marka = _tumMarkalar.FirstOrDefault(m => m.id == arac.marka_id);
+                    var model = marka?.modeller?.FirstOrDefault(m => m.id == arac.model_id);
+                    if (marka != null && model != null) gosterimAd = $"{marka.ad} {model.ad}";
+                }
+                if (string.IsNullOrWhiteSpace(gosterimAd) && !string.IsNullOrWhiteSpace(arac.ozel_marka))
+                    gosterimAd = $"{arac.ozel_marka} {arac.ozel_model}";
+                talep.arac_adi_tam = string.IsNullOrWhiteSpace(gosterimAd) ? $"Araç ID: {arac.id}" : gosterimAd;
+            }
+            else
+            {
+                talep.arac_adi_tam = "Sistemden Silinmiş Araç";
+            }
+        });
+
+        await Task.WhenAll(gorevler);
     }
 
     private void GuncelleButonDurumlari()

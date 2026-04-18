@@ -12,7 +12,7 @@ public partial class AdminServiceView : ContentPage
     private List<Marka> _tumMarkalar;
     private List<ServisTalebi> _orijinalTalepler;
 
-    private int _sayfaBoyutu = 20;
+    private int _sayfaBoyutu = 10;
     private int _mevcutSayfa = 1;
     private int _toplamSayfa = 1;
     private int _toplamKayit = 0;
