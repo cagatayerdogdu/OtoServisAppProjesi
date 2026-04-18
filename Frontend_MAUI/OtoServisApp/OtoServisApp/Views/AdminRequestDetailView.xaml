@@ -137,37 +137,42 @@
             </VerticalStackLayout>
         </ScrollView>
 
-        <!-- YÜZEN DURUM MENÜSÜ -->
-        <AbsoluteLayout x:Name="FloatingMenuOverlay" IsVisible="False" BackgroundColor="Transparent" ZIndex="999" InputTransparent="False">
-            <Grid AbsoluteLayout.LayoutBounds="0,0,1,1" AbsoluteLayout.LayoutFlags="All" BackgroundColor="Transparent">
-                <Grid.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="OnFloatingMenuClose" />
-                </Grid.GestureRecognizers>
-            </Grid>
 
-            <Border x:Name="FloatingItemDurumMenusu" BackgroundColor="White" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="0" ZIndex="1" AbsoluteLayout.LayoutBounds="0,0,130,200" AbsoluteLayout.LayoutFlags="None">
-                <CollectionView x:Name="FloatingDurumListesi" WidthRequest="120" SelectionMode="Single" SelectionChanged="OnFloatingDurumSecildi" VerticalOptions="Start">
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate x:DataType="x:String">
-                            <VerticalStackLayout Padding="10">
-                                <VisualStateManager.VisualStateGroups>
-                                    <VisualStateGroup Name="CommonStates">
-                                        <VisualState Name="Normal" />
-                                        <VisualState Name="Selected">
-                                            <VisualState.Setters>
-                                                <Setter Property="BackgroundColor" Value="Transparent" />
-                                            </VisualState.Setters>
-                                        </VisualState>
-                                    </VisualStateGroup>
-                                </VisualStateManager.VisualStateGroups>
-                                <Label Text="{Binding .}" FontSize="12" TextColor="#111111"/>
-                                <BoxView HeightRequest="1" Color="#EEEEEE" Margin="0,5,0,0"/>
-                            </VerticalStackLayout>
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
+        <!-- BOTTOM SHEET DURUM MENÜSÜ -->
+        <Grid x:Name="BottomSheetMenu" 
+      BackgroundColor="White" 
+      RowDefinitions="Auto, *" 
+      IsVisible="False"
+      ZIndex="999"
+      VerticalOptions="End">
+
+            <!-- Başlık / Kapatma Çubuğu -->
+            <Border Grid.Row="0" BackgroundColor="#F5F5F5" Padding="10">
+                <Grid ColumnDefinitions="*, Auto">
+                    <Label Text="Durum Seçin" FontAttributes="Bold" TextColor="#333" VerticalOptions="Center"/>
+                    <Label Grid.Column="1" Text="✕" FontSize="20" TextColor="#888" Padding="10,0">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnCloseBottomSheet" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                </Grid>
             </Border>
-        </AbsoluteLayout>
+
+            <!-- Seçenek Listesi -->
+            <CollectionView Grid.Row="1" x:Name="BottomSheetDurumListesi" 
+                    SelectionMode="Single" 
+                    SelectionChanged="OnBottomSheetDurumSecildi"
+                    HeightRequest="250">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                        <VerticalStackLayout Padding="15,12" Spacing="0">
+                            <Label Text="{Binding .}" FontSize="16" TextColor="#111111"/>
+                            <BoxView HeightRequest="1" Color="#EEEEEE" Margin="0,8,0,0"/>
+                        </VerticalStackLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Grid>
 
         <!-- LOADING OVERLAY -->
         <Grid x:Name="LoadingOverlay" BackgroundColor="#CCFFFFFF" IsVisible="False" InputTransparent="False">

@@ -28,8 +28,9 @@ public partial class AdminRequestDetailView : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        // Durum listesini hazırla
-        FloatingDurumListesi.ItemsSource = new List<string> { "Bekliyor", "Onaylandı", "İşlemde", "Tamamlandı", "İptal Edildi" };
+
+        // Bottom Sheet için durum listesini hazırla
+        BottomSheetDurumListesi.ItemsSource = new List<string> { "Bekliyor", "Onaylandı", "İşlemde", "Tamamlandı", "İptal Edildi" };
     }
 
     /// <summary>
@@ -40,87 +41,15 @@ public partial class AdminRequestDetailView : ContentPage
     /// </summary>
     private void OnDurumSecimTapped(object sender, TappedEventArgs e)
     {
-        var border = sender as Border;
-        if (border == null) return;
+        BottomSheetMenu.IsVisible = true;
+    }
 
-        // Menü öğelerinin listesini al (5 öğe)
-        var items = new List<string> { "Bekliyor", "Onaylandı", "İşlemde", "Tamamlandı", "İptal Edildi" };
-        FloatingDurumListesi.ItemsSource = items;
-
-        // Her bir öğenin yüksekliğini yaklaşık hesapla (Label + Padding + BoxView)
-        // VerticalStackLayout Padding="10" + Label yaklaşık 20 + BoxView 1 + Margin = ~45 piksel
-        double itemHeight = 45;
-        double totalHeight = items.Count * itemHeight;
-        double menuWidth = 130;
-        double menuHeight = totalHeight;
-
-        // Butonun ekrandaki konumunu al
-        double buton_X = 0;
-        double buton_Y = 0;
-        double butonHeight = border.Height;
-
-#if IOS
-    var iosBorder = border.Handler?.PlatformView as UIKit.UIView;
-    var iosOverlay = FloatingMenuOverlay.Handler?.PlatformView as UIKit.UIView;
-    if (iosBorder != null && iosOverlay != null)
+    private void OnCloseBottomSheet(object sender, TappedEventArgs e)
     {
-        var rect = iosBorder.ConvertRectToView(iosBorder.Bounds, iosOverlay);
-        buton_X = rect.X;
-        buton_Y = rect.Y;
-    }
-#elif ANDROID
-    var androidBorder = border.Handler?.PlatformView as Android.Views.View;
-    var androidOverlay = FloatingMenuOverlay.Handler?.PlatformView as Android.Views.View;
-    if (androidBorder != null && androidOverlay != null)
-    {
-        int[] locBorder = new int[2];
-        androidBorder.GetLocationOnScreen(locBorder);
-        int[] locOverlay = new int[2];
-        androidOverlay.GetLocationOnScreen(locOverlay);
-        double density = DeviceDisplay.MainDisplayInfo.Density;
-        buton_X = (locBorder[0] - locOverlay[0]) / density;
-        buton_Y = (locBorder[1] - locOverlay[1]) / density;
-    }
-#endif
-
-        // Ekran boyutları
-        double screenHeight = DeviceDisplay.MainDisplayInfo.Height / DeviceDisplay.MainDisplayInfo.Density;
-        double screenWidth = DeviceDisplay.MainDisplayInfo.Width / DeviceDisplay.MainDisplayInfo.Density;
-
-        // Varsayılan: menüyü butonun altına yerleştir
-        double menuY = buton_Y + butonHeight;
-
-        // Alt boşluk kontrolü: Menü ekranın altına taşarsa butonun üstüne al
-        if (menuY + menuHeight > screenHeight - 10) // 10px kenar boşluğu
-        {
-            menuY = buton_Y - menuHeight;
-        }
-
-        // Üst boşluk kontrolü: Eğer üste de sığmıyorsa ekranın üstüne yasla (çok nadir)
-        if (menuY < 10)
-        {
-            menuY = 10;
-        }
-
-        // Sağ kenar taşması kontrolü
-        if (buton_X + menuWidth > screenWidth - 10)
-        {
-            buton_X = screenWidth - menuWidth - 10;
-        }
-
-        // Menü boyutlarını ve konumunu ayarla
-        FloatingItemDurumMenusu.HeightRequest = menuHeight;
-        AbsoluteLayout.SetLayoutBounds(FloatingItemDurumMenusu, new Microsoft.Maui.Graphics.Rect(buton_X, menuY, menuWidth, menuHeight));
-
-        FloatingMenuOverlay.IsVisible = true;
+        BottomSheetMenu.IsVisible = false;
     }
 
-    private void OnFloatingMenuClose(object sender, EventArgs e)
-    {
-        FloatingMenuOverlay.IsVisible = false;
-    }
-
-    private void OnFloatingDurumSecildi(object sender, SelectionChangedEventArgs e)
+    private void OnBottomSheetDurumSecildi(object sender, SelectionChangedEventArgs e)
     {
         var secilen = e.CurrentSelection.FirstOrDefault() as string;
         if (!string.IsNullOrEmpty(secilen))
@@ -128,7 +57,8 @@ public partial class AdminRequestDetailView : ContentPage
             _talep.durum = secilen;
             KartDurumLabel.Text = secilen;
         }
-        FloatingMenuOverlay.IsVisible = false;
+        BottomSheetMenu.IsVisible = false;
+        BottomSheetDurumListesi.SelectedItem = null;
     }
 
     private async void OnUpdateTapped(object sender, TappedEventArgs e)
