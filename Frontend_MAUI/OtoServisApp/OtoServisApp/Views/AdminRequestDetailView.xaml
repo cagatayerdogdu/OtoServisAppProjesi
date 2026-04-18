@@ -137,7 +137,6 @@
             </VerticalStackLayout>
         </ScrollView>
 
-
         <!-- ŞIK BOTTOM SHEET DURUM MENÜSÜ -->
         <Grid x:Name="BottomSheetMenu" 
       BackgroundColor="#80000000" 
@@ -162,7 +161,7 @@
                 </Border.Shadow>
 
                 <VerticalStackLayout Spacing="0">
-                    <!-- Başlık Çubuğu (tutma çizgisi + kapat) -->
+                    <!-- Başlık Çubuğu -->
                     <Grid Padding="15,10,15,5">
                         <BoxView HeightRequest="4" 
                          WidthRequest="40" 
@@ -171,15 +170,13 @@
                          HorizontalOptions="Center" 
                          VerticalOptions="Center"/>
 
-                        <Label Grid.Column="0" 
-                       Text="Durum Seçin" 
+                        <Label Text="Durum Seçin" 
                        FontSize="16" 
                        FontAttributes="Bold" 
                        TextColor="#222222" 
                        HorizontalOptions="Center" 
                        VerticalOptions="Center"/>
 
-                        <!-- Kapatma İkonu -->
                         <Label Text="{x:Static helpers:IconFont.Times}" 
                        FontFamily="FASolid" 
                        FontSize="18" 
@@ -201,23 +198,21 @@
                             Margin="0,5,0,10">
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="x:String">
-                                <!-- Her bir satır -->
+                                <!-- TEK KÖK ÖĞE: Grid -->
                                 <Grid Padding="20,12" ColumnDefinitions="*, Auto">
                                     <Label Grid.Column="0" 
                                    Text="{Binding .}" 
                                    FontSize="16" 
                                    TextColor="#333333" 
                                    VerticalOptions="Center"/>
-                                    <!-- Seçili olduğunda tik işareti (isteğe bağlı) -->
                                     <Label Grid.Column="1" 
                                    Text="{x:Static helpers:IconFont.Check}" 
                                    FontFamily="FASolid" 
                                    FontSize="14" 
                                    TextColor="#00BCD4" 
-                                   IsVisible="False" 
-                                   x:Name="SeciliTik"/>
+                                   VerticalOptions="Center"
+                                   IsVisible="False"/>
                                 </Grid>
-                                <BoxView HeightRequest="1" Color="#F0F0F0" Margin="20,0"/>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                     </CollectionView>
