@@ -28,8 +28,6 @@ public partial class AdminRequestDetailView : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-
-        // Bottom Sheet için durum listesini hazırla
         BottomSheetDurumListesi.ItemsSource = new List<string> { "Bekliyor", "Onaylandı", "İşlemde", "Tamamlandı", "İptal Edildi" };
     }
 

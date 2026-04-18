@@ -38,5 +38,7 @@
         public const string CheckSquare = "\uf14a"; // ☑️ Seçili Kutu
         public const string Square = "\uf0c8";      // ⬜ Boş Kutu
         public const string ExclamationCircle = "\uf06a";
+        public const string Times = "\uf00d";      // ✕ Kapatma (Çarpı)
+        public const string Check = "\uf00c";      // ✓ Onay (Tik)
     }
 }
