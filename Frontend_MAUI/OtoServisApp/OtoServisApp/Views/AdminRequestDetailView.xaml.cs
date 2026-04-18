@@ -34,20 +34,22 @@ public partial class AdminRequestDetailView : ContentPage
 
     /// <summary>
     /// Mevcut Durum butonuna tıklanınca yüzen durum menüsünü açar.
-    /// Menü varsayılan olarak butonun altında açılır.
-    /// Eğer altta yeterli boşluk yoksa (menü ekran dışına taşarsa) butonun üstünde açılır.
+    /// Menü varsayılan olarak butonun ALTINDA açılır.
+    /// Eğer altta yeterli boşluk yoksa butonun ÜSTÜNDE açılır.
+    /// Menü yüksekliği içeriğe göre otomatik belirlenir.
     /// </summary>
     private void OnDurumSecimTapped(object sender, TappedEventArgs e)
     {
         var border = sender as Border;
         if (border == null) return;
 
+        // Menüyü görünür yap (içerik zaten dolu)
         FloatingMenuOverlay.IsVisible = true;
 
-        // Menü boyutları (liste 5 elemanlı olduğu için 200 yeterli)
+        // Menü genişliği (isteğe bağlı ayarlanabilir)
         double menuWidth = 130;
-        double menuHeight = 200;
 
+        // Butonun ekrandaki mutlak konumunu al
         double buton_X = 0;
         double buton_Y = 0;
         double butonHeight = border.Height;
@@ -73,30 +75,40 @@ public partial class AdminRequestDetailView : ContentPage
         double density = DeviceDisplay.MainDisplayInfo.Density;
         buton_X = (locBorder[0] - locOverlay[0]) / density;
         buton_Y = (locBorder[1] - locOverlay[1]) / density;
-        // Android'de buton yüksekliğini doğru almak için density'e bölmeye gerek yok, zaten DP cinsinden
-        butonHeight = border.Height;
     }
 #endif
 
-        // Ekran yüksekliğini al
+        // Menü içeriğinin gerçek yüksekliğini hesapla (CollectionView otomatik boyutlanacak)
+        // Önce menüyü geçici olarak yerleştirip ölçüm yapmak yerine, sabit bir tahmin kullanabiliriz:
+        // 5 öğe × yaklaşık 40 piksel = 200 piksel. Ancak güvenli olsun diye 250 alalım.
+        double menuHeight = 250; // biraz fazla olsun, CollectionView kendi içinde kaydırma yapar
+
+        // Ekran boyutlarını al
         double screenHeight = DeviceDisplay.MainDisplayInfo.Height / DeviceDisplay.MainDisplayInfo.Density;
+        double screenWidth = DeviceDisplay.MainDisplayInfo.Width / DeviceDisplay.MainDisplayInfo.Density;
 
         // Varsayılan: menüyü butonun altına yerleştir
         double menuY = buton_Y + butonHeight;
 
-        // Eğer menü ekranın altına taşarsa (yani alt kenara sığmazsa), butonun üstüne al
+        // Eğer menü ekranın altına taşarsa, butonun üstüne al
         if (menuY + menuHeight > screenHeight)
         {
             menuY = buton_Y - menuHeight;
         }
 
-        // Sağ kenar taşması kontrolü (isteğe bağlı)
-        double screenWidth = DeviceDisplay.MainDisplayInfo.Width / DeviceDisplay.MainDisplayInfo.Density;
+        // Üste de sığmazsa (çok nadir), ekranın en üstüne yasla
+        if (menuY < 0)
+        {
+            menuY = 10;
+        }
+
+        // Sağ kenar taşması kontrolü
         if (buton_X + menuWidth > screenWidth)
         {
             buton_X = screenWidth - menuWidth - 10;
         }
 
+        // Menüyü konumlandır (yükseklik için AutoSize kullanmıyoruz, sabit 250 yeterli)
         AbsoluteLayout.SetLayoutBounds(FloatingItemDurumMenusu, new Microsoft.Maui.Graphics.Rect(buton_X, menuY, menuWidth, menuHeight));
     }
 

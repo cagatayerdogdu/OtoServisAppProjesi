@@ -146,7 +146,7 @@
             </Grid>
 
             <Border x:Name="FloatingItemDurumMenusu" BackgroundColor="White" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="5" ZIndex="1" AbsoluteLayout.LayoutBounds="0,0,130,200" AbsoluteLayout.LayoutFlags="None">
-                <CollectionView x:Name="FloatingDurumListesi" HeightRequest="200" WidthRequest="120" SelectionMode="Single" SelectionChanged="OnFloatingDurumSecildi">
+                <CollectionView x:Name="FloatingDurumListesi" WidthRequest="120" SelectionMode="Single" SelectionChanged="OnFloatingDurumSecildi">
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="x:String">
                             <VerticalStackLayout Padding="10">
