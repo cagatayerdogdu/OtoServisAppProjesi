@@ -117,11 +117,26 @@
                             <Entry x:Name="TutarEntry" Text="{Binding tahmini_tutar}" Keyboard="Numeric" FontSize="16" FontAttributes="Bold" TextColor="#E91E63" HorizontalTextAlignment="Center" WidthRequest="100"/>
                         </VerticalStackLayout>
 
-                        <Border Grid.Column="2" BackgroundColor="#4CAF50" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="45" WidthRequest="100" VerticalOptions="End">
+                        <Border Grid.Column="2" 
+        BackgroundColor="#4CAF50" 
+        Stroke="Transparent" 
+        StrokeThickness="0" 
+        StrokeShape="RoundRectangle 8" 
+        HeightRequest="45" 
+        Padding="20,0" 
+        VerticalOptions="End" 
+        HorizontalOptions="Center">
                             <Border.GestureRecognizers>
                                 <TapGestureRecognizer Tapped="OnUpdateTapped" />
                             </Border.GestureRecognizers>
-                            <Label Text="Güncelle" TextColor="White" FontAttributes="Bold" FontSize="14" VerticalOptions="Center" HorizontalOptions="Center" InputTransparent="True" />
+                            <Label Text="Güncelle" 
+           TextColor="White" 
+           FontAttributes="Bold" 
+           FontSize="14" 
+           VerticalOptions="Center" 
+           HorizontalOptions="Center" 
+           InputTransparent="True" 
+           LineBreakMode="NoWrap" />
                         </Border>
                     </Grid>
                 </Border>
