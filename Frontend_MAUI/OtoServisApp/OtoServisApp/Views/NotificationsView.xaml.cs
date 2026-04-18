@@ -11,7 +11,7 @@ public partial class NotificationsView : ContentPage
 
     public ObservableCollection<BildirimResponse> Bildirimler { get; set; } = new();
 
-    private int _sayfaBoyutu = 10;
+    private int _sayfaBoyutu = 15;
     private int _mevcutSayfa = 1;
     private int _toplamSayfa = 1;
     private int _toplamKayit = 0;

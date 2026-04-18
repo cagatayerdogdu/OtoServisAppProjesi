@@ -14,7 +14,7 @@ public partial class MyServiceView : ContentPage
     private List<ServisTalebi> _orijinalTalepler;
 
     // Sayfalama için parametrik değer
-    private int _sayfaBoyutu = 10;
+    private int _sayfaBoyutu = 15;
     private int _mevcutSayfa = 1;
     private int _toplamSayfa = 1;
     private int _toplamKayit = 0;

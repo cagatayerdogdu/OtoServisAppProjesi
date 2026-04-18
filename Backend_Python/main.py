@@ -1564,22 +1564,26 @@ def admin_gecmis_talepleri_getir(
 
     if arama:
         arama = arama.lower()
+        # Join'leri düzgün şekilde ekleyelim
         query = query.join(models.Kullanici, models.ServisTalebi.kullanici_id == models.Kullanici.id)\
                      .join(models.Arac, models.ServisTalebi.arac_id == models.Arac.id)\
                      .join(models.Hizmet, models.ServisTalebi.hizmet_id == models.Hizmet.id)\
-                     .filter(
-                         (models.Kullanici.ad_soyad.ilike(f"%{arama}%")) |
-                         (models.Arac.ozel_marka.ilike(f"%{arama}%")) |
-                         (models.Arac.ozel_model.ilike(f"%{arama}%")) |
-                         (models.Hizmet.ad.ilike(f"%{arama}%"))
-                     )
+                     .outerjoin(models.Marka, models.Arac.marka_id == models.Marka.id)\
+                     .outerjoin(models.Model, models.Arac.model_id == models.Model.id)
+
+        query = query.filter(
+            (models.Kullanici.ad_soyad.ilike(f"%{arama}%")) |
+            (models.Arac.ozel_marka.ilike(f"%{arama}%")) |
+            (models.Arac.ozel_model.ilike(f"%{arama}%")) |
+            (models.Marka.ad + " " + models.Model.ad).ilike(f"%{arama}%") |
+            (models.Hizmet.ad.ilike(f"%{arama}%"))
+        )
 
     toplam_kayit = query.count()
 
     talepler = query.order_by(models.ServisTalebi.talep_tarihi.desc())\
                     .offset(skip).limit(limit).all()
 
-    # İlişkili verileri ekle
     sonuc = []
     for t in talepler:
         kullanici = db.query(models.Kullanici).filter(models.Kullanici.id == t.kullanici_id).first()
@@ -1598,15 +1602,8 @@ def admin_gecmis_talepleri_getir(
 
         talep_dict = {c.name: getattr(t, c.name) for c in t.__table__.columns}
         talep_dict["kullanici_ad_soyad"] = kullanici.ad_soyad if kullanici else "Bilinmiyor"
-        talep_dict["kullanici_telefon"] = kullanici.telefon if kullanici else "Belirtilmemiş"
         talep_dict["arac_adi_tam"] = arac_adi
         talep_dict["hizmet_adi"] = hizmet.ad if hizmet else ""
-
-        # İptal eden adı
-        iptal_eden = None
-        if t.iptal_eden_id:
-            iptal_eden = db.query(models.Kullanici).filter(models.Kullanici.id == t.iptal_eden_id).first()
-        talep_dict["iptal_eden_ad_soyad"] = iptal_eden.ad_soyad if iptal_eden else None
 
         if t.talep_tarihi:
             talep_dict["talep_tarihi"] = t.talep_tarihi.strftime("%Y-%m-%d %H:%M")
@@ -1614,6 +1611,11 @@ def admin_gecmis_talepleri_getir(
             talep_dict["tamamlanma_tarihi"] = t.tamamlanma_tarihi.isoformat()
         if t.silinme_tarihi:
             talep_dict["silinme_tarihi"] = t.silinme_tarihi.isoformat()
+
+        iptal_eden = None
+        if t.iptal_eden_id:
+            iptal_eden = db.query(models.Kullanici).filter(models.Kullanici.id == t.iptal_eden_id).first()
+        talep_dict["iptal_eden_ad_soyad"] = iptal_eden.ad_soyad if iptal_eden else None
 
         sonuc.append(talep_dict)
 
