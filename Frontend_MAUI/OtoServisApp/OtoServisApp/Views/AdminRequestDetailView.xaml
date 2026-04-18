@@ -137,25 +137,25 @@
             </VerticalStackLayout>
         </ScrollView>
 
-        <!-- ŞIK BOTTOM SHEET DURUM MENÜSÜ -->
+        <!-- DAR VE ŞIK BOTTOM SHEET -->
         <Grid x:Name="BottomSheetMenu" 
       BackgroundColor="#80000000" 
       IsVisible="False" 
       ZIndex="999"
       InputTransparent="False">
 
-            <!-- Arka plana tıklayınca kapatma -->
             <Grid.GestureRecognizers>
                 <TapGestureRecognizer Tapped="OnCloseBottomSheet" />
             </Grid.GestureRecognizers>
 
-            <!-- İçerik Kartı -->
+            <!-- İçerik Kartı - Maksimum genişlik 400, ortalanmış -->
             <Border BackgroundColor="White" 
             StrokeThickness="0" 
             StrokeShape="RoundRectangle 20,20,0,0" 
             Padding="0" 
             VerticalOptions="End"
-            HorizontalOptions="Fill">
+            HorizontalOptions="Center"
+            MaximumWidthRequest="400">
                 <Border.Shadow>
                     <Shadow Brush="#40000000" Offset="0,-2" Radius="10" Opacity="0.3"/>
                 </Border.Shadow>
@@ -190,25 +190,24 @@
                         </Label>
                     </Grid>
 
-                    <!-- Seçenek Listesi -->
+                    <!-- Seçenek Listesi - daha az yükseklik -->
                     <CollectionView x:Name="BottomSheetDurumListesi" 
                             SelectionMode="Single" 
                             SelectionChanged="OnBottomSheetDurumSecildi"
-                            HeightRequest="280"
+                            HeightRequest="220"
                             Margin="0,5,0,10">
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="x:String">
-                                <!-- TEK KÖK ÖĞE: Grid -->
-                                <Grid Padding="20,12" ColumnDefinitions="*, Auto">
+                                <Grid Padding="20,8" ColumnDefinitions="*, Auto">
                                     <Label Grid.Column="0" 
                                    Text="{Binding .}" 
-                                   FontSize="16" 
+                                   FontSize="15" 
                                    TextColor="#333333" 
                                    VerticalOptions="Center"/>
                                     <Label Grid.Column="1" 
                                    Text="{x:Static helpers:IconFont.Check}" 
                                    FontFamily="FASolid" 
-                                   FontSize="14" 
+                                   FontSize="13" 
                                    TextColor="#00BCD4" 
                                    VerticalOptions="Center"
                                    IsVisible="False"/>
