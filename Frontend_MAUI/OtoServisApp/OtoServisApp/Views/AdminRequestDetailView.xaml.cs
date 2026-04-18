@@ -32,6 +32,11 @@ public partial class AdminRequestDetailView : ContentPage
         FloatingDurumListesi.ItemsSource = new List<string> { "Bekliyor", "Onaylandı", "İşlemde", "Tamamlandı", "İptal Edildi" };
     }
 
+    /// <summary>
+    /// Mevcut Durum butonuna tıklanınca yüzen durum menüsünü açar.
+    /// Menü varsayılan olarak butonun altında açılır.
+    /// Eğer altta yeterli boşluk yoksa (menü ekran dışına taşarsa) butonun üstünde açılır.
+    /// </summary>
     private void OnDurumSecimTapped(object sender, TappedEventArgs e)
     {
         var border = sender as Border;
@@ -39,34 +44,60 @@ public partial class AdminRequestDetailView : ContentPage
 
         FloatingMenuOverlay.IsVisible = true;
 
+        // Menü boyutları (liste 5 elemanlı olduğu için 200 yeterli)
+        double menuWidth = 130;
+        double menuHeight = 200;
+
         double buton_X = 0;
         double buton_Y = 0;
+        double butonHeight = border.Height;
 
 #if IOS
-        var iosBorder = border.Handler?.PlatformView as UIKit.UIView;
-        var iosOverlay = FloatingMenuOverlay.Handler?.PlatformView as UIKit.UIView;
-        if (iosBorder != null && iosOverlay != null)
-        {
-            var rect = iosBorder.ConvertRectToView(iosBorder.Bounds, iosOverlay);
-            buton_X = rect.X;
-            buton_Y = rect.Y + border.Height;
-        }
+    var iosBorder = border.Handler?.PlatformView as UIKit.UIView;
+    var iosOverlay = FloatingMenuOverlay.Handler?.PlatformView as UIKit.UIView;
+    if (iosBorder != null && iosOverlay != null)
+    {
+        var rect = iosBorder.ConvertRectToView(iosBorder.Bounds, iosOverlay);
+        buton_X = rect.X;
+        buton_Y = rect.Y;
+    }
 #elif ANDROID
-        var androidBorder = border.Handler?.PlatformView as Android.Views.View;
-        var androidOverlay = FloatingMenuOverlay.Handler?.PlatformView as Android.Views.View;
-        if (androidBorder != null && androidOverlay != null)
-        {
-            int[] locBorder = new int[2];
-            androidBorder.GetLocationOnScreen(locBorder);
-            int[] locOverlay = new int[2];
-            androidOverlay.GetLocationOnScreen(locOverlay);
-            double density = DeviceDisplay.MainDisplayInfo.Density;
-            buton_X = (locBorder[0] - locOverlay[0]) / density;
-            buton_Y = ((locBorder[1] - locOverlay[1]) / density) + border.Height;
-        }
+    var androidBorder = border.Handler?.PlatformView as Android.Views.View;
+    var androidOverlay = FloatingMenuOverlay.Handler?.PlatformView as Android.Views.View;
+    if (androidBorder != null && androidOverlay != null)
+    {
+        int[] locBorder = new int[2];
+        androidBorder.GetLocationOnScreen(locBorder);
+        int[] locOverlay = new int[2];
+        androidOverlay.GetLocationOnScreen(locOverlay);
+        double density = DeviceDisplay.MainDisplayInfo.Density;
+        buton_X = (locBorder[0] - locOverlay[0]) / density;
+        buton_Y = (locBorder[1] - locOverlay[1]) / density;
+        // Android'de buton yüksekliğini doğru almak için density'e bölmeye gerek yok, zaten DP cinsinden
+        butonHeight = border.Height;
+    }
 #endif
 
-        AbsoluteLayout.SetLayoutBounds(FloatingItemDurumMenusu, new Microsoft.Maui.Graphics.Rect(buton_X, buton_Y, 130, 200));
+        // Ekran yüksekliğini al
+        double screenHeight = DeviceDisplay.MainDisplayInfo.Height / DeviceDisplay.MainDisplayInfo.Density;
+
+        // Varsayılan: menüyü butonun altına yerleştir
+        double menuY = buton_Y + butonHeight;
+
+        // Eğer menü ekranın altına taşarsa (yani alt kenara sığmazsa), butonun üstüne al
+        if (menuY + menuHeight > screenHeight)
+        {
+            menuY = buton_Y - menuHeight;
+        }
+
+        // Sağ kenar taşması kontrolü (isteğe bağlı)
+        double screenWidth = DeviceDisplay.MainDisplayInfo.Width / DeviceDisplay.MainDisplayInfo.Density;
+        if (buton_X + menuWidth > screenWidth)
+        {
+            buton_X = screenWidth - menuWidth - 10;
+        }
+
+        AbsoluteLayout.SetLayoutBounds(FloatingItemDurumMenusu, new Microsoft.Maui.Graphics.Rect(buton_X, menuY, menuWidth, menuHeight));
     }
 
     private void OnFloatingMenuClose(object sender, EventArgs e)

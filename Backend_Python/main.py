@@ -696,7 +696,7 @@ def mail_abonelik_iptal(kullanici_id: int, db: Session = Depends(get_db)):
                 <p style="font-size: 16px; color: #333; line-height: 1.5;">Sayın <b>{kullanici.ad_soyad}</b>,<br>e-posta bildirimleri kapatıldı.</p>
                 <p style="font-size: 16px; color: #333;">Artık hatırlatma e-postaları almayacaksınız.</p>
                 <br>
-                <p style="font-size: 13px; color: #7F8C8D; border-top: 1px solid #eee; padding-top: 15px;">
+                <p style="font-size: 18px; color: #7F8C8D; border-top: 1px solid #eee; padding-top: 15px;">
                     Fikrinizi değiştirirseniz, uygulamadaki profil ayarlarından tekrar açabilirsiniz.
                 </p>
             </div>
