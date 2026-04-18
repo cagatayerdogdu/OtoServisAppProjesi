@@ -85,22 +85,14 @@ public partial class AdminPastRequestsView : ContentPage
                 GuncelleButonDurumlari();
             });
 
-            if (yeniTalepler != null && yeniTalepler.Any())
+            // Liste tamamen değiştiriliyor (ekleme yok)
+            _orijinalTalepler = yeniTalepler ?? new List<ServisTalebi>();
+            MainThread.BeginInvokeOnMainThread(() =>
             {
-                _orijinalTalepler = new List<ServisTalebi>(yeniTalepler);
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    PastRequestsList.ItemsSource = _orijinalTalepler.ToList();
-                });
-            }
-            else
-            {
-                _orijinalTalepler?.Clear();
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    PastRequestsList.ItemsSource = null;
-                });
-            }
+                PastRequestsList.ItemsSource = _orijinalTalepler;
+                // Liste başına kaydır
+                PastRequestsList.ScrollTo(0);
+            });
         }
         catch (Exception ex)
         {
@@ -132,15 +124,6 @@ public partial class AdminPastRequestsView : ContentPage
     {
         if (_yukleniyor) return;
         if (_mevcutSayfa < _toplamSayfa)
-        {
-            await TalepleriYukle(_mevcutSayfa + 1);
-        }
-    }
-
-    private async void OnThresholdReached(object sender, EventArgs e)
-    {
-        // Lazy loading: sonraki sayfayı otomatik yükle
-        if (!_yukleniyor && _mevcutSayfa < _toplamSayfa)
         {
             await TalepleriYukle(_mevcutSayfa + 1);
         }

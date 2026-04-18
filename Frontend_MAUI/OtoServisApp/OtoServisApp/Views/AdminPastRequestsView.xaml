@@ -50,9 +50,7 @@
         </Border>
 
         <!-- TALEP LİSTESİ (Lazy Loading) -->
-        <CollectionView x:Name="PastRequestsList" Grid.Row="1" Margin="15,10,15,0"
-                        RemainingItemsThreshold="5"
-                        RemainingItemsThresholdReached="OnThresholdReached">
+        <CollectionView x:Name="PastRequestsList" Grid.Row="1" Margin="15,10,15,0">
             <CollectionView.EmptyView>
                 <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Start" Spacing="10" Margin="0,50,0,0">
                     <Label Text="{x:Static helpers:IconFont.Search}" FontFamily="FASolid" FontSize="50" TextColor="#BDC3C7" HorizontalOptions="Center" Opacity="0.6"/>
