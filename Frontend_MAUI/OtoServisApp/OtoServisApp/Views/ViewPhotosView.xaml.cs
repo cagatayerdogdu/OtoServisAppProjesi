@@ -31,7 +31,7 @@ public partial class ViewPhotosView : ContentPage
         }
         else
         {
-            await DisplayAlert("Bilgi", "Bu talebe ait fotoğraf bulunamadı.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Bu talebe ait fotoğraf bulunamadı.", "Bilgi");
             await Navigation.PopAsync();
         }
     }
@@ -64,18 +64,19 @@ public partial class ViewPhotosView : ContentPage
 
         if (foto != null)
         {
-            bool onay = await DisplayAlert("Onay", "Bu fotoğrafı kalıcı olarak silmek istediğinize emin misiniz?", "Evet, Sil", "Vazgeç");
+            bool? onaySonuc = await ModernAlertService.ShowDeleteConfirmationAsync("Bu fotoğrafı kalıcı olarak silmek istediğinize emin misiniz?", "Onay");
+            bool onay = onaySonuc == true;
             if (onay)
             {
                 bool silindi = await _apiService.FotografSilAsync(foto.id);
                 if (silindi)
                 {
-                    await DisplayAlert("Başarılı", "Fotoğraf başarıyla silindi.", "Tamam");
+                    await ModernAlertService.ShowInfoAsync("Fotoğraf başarıyla silindi.", "Başarılı");
                     await FotograflariYukle(); // Listeyi ekrandan tazele
                 }
                 else
                 {
-                    await DisplayAlert("Hata", "Fotoğraf silinirken bir sorun oluştu.", "Tamam");
+                    await ModernAlertService.ShowInfoAsync("Fotoğraf silinirken bir sorun oluştu.", "Hata");
                 }
             }
         }

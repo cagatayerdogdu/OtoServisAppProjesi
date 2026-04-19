@@ -37,7 +37,7 @@ public partial class CreateServiceRequestView : ContentPage
         // MADDE 80 (YENİ REVİZE): Sadece bilgi ver, sayfadan atma!
         if (_aktifKullanici.araclar == null || !_aktifKullanici.araclar.Any())
         {
-            await DisplayAlert("Bilgilendirme", "Servis talebi oluşturabilmek için sisteme kayıtlı bir aracınız olması gerekir. Şu an ekranı inceleyebilirsiniz ancak talep oluşturmadan önce lütfen bir araç ekleyin.", "Anladım");
+            await ModernAlertService.ShowInfoAsync("Servis talebi oluşturabilmek için sisteme kayıtlı bir aracınız olması gerekir. Şu an ekranı inceleyebilirsiniz ancak talep oluşturmadan önce lütfen bir araç ekleyin.", "Bilgilendirme");
         }
 
         // YENİ REVİZE: Arayüzün (UI) donmasını ve uygulamanın çökmesini engellemek için 
@@ -158,14 +158,14 @@ public partial class CreateServiceRequestView : ContentPage
         // Önce aracın sistemde var olup olmadığına bakalım (Hiç aracı yoksa)
         if (_aktifKullanici.araclar == null || !_aktifKullanici.araclar.Any())
         {
-            await DisplayAlert("İşlem Başarısız", "Sisteme kayıtlı aracınız bulunmadığı için servis talebi oluşturamazsınız. Lütfen 'Araçlarım' sekmesinden bir araç ekleyip tekrar deneyin.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Sisteme kayıtlı aracınız bulunmadığı için servis talebi oluşturamazsınız. Lütfen 'Araçlarım' sekmesinden bir araç ekleyip tekrar deneyin.", "İşlem Başarısız");
             return; // İşlemi burada kes
         }
 
         // Aracı var ama listeden seçmeyi unuttuysa veya diğer alanlar boşsa
         if (_secilenArac == null || _secilenHizmet == null || string.IsNullOrEmpty(AddressEditor.Text))
         {
-            await DisplayAlert("Uyarı", "Lütfen araç, hizmet ve adres alanlarını eksiksiz doldurun.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Lütfen araç, hizmet ve adres alanlarını eksiksiz doldurun.", "Uyarı");
             return;
         }
 
@@ -235,11 +235,11 @@ public partial class CreateServiceRequestView : ContentPage
 
                 if (yuklenemeyen > 0)
                 {
-                    await DisplayAlert("Kısmi Başarılı", $"Servis talebiniz oluşturuldu ancak bazı fotoğraflar yüklenemedi:\n{hataMesajlari}\nDaha sonra talebi düzenle (Taleplerim/Durum Takibi) ekranından tekrar yüklemeyi deneyebilirsiniz.", "Anladım");
+                    await ModernAlertService.ShowInfoAsync($"Servis talebiniz oluşturuldu ancak bazı fotoğraflar yüklenemedi:\n{hataMesajlari}\nDaha sonra talebi düzenle (Taleplerim/Durum Takibi) ekranından tekrar yüklemeyi deneyebilirsiniz.", "Kısmi Başarılı");
                 }
                 else
                 {
-                    await DisplayAlert("Başarılı", "Servis talebiniz ve fotoğraflarınız başarıyla alınmıştır. En kısa sürede sizinle iletişime geçeceğiz.", "Tamam");
+                    await ModernAlertService.ShowInfoAsync("Servis talebiniz ve fotoğraflarınız başarıyla alınmıştır. En kısa sürede sizinle iletişime geçeceğiz.", "Başarılı");
                 }
 
                 await Navigation.PopAsync();
@@ -255,7 +255,8 @@ public partial class CreateServiceRequestView : ContentPage
                     // Özel soru ekranını göstermeden önce Overlay'i kapatıyoruz ki soru gözüksün
                     LoadingOverlay.IsVisible = false;
 
-                    bool cevap = await DisplayAlert("Mevcut Talep Uyarısı", sonuc, "Evet", "Vazgeç");
+                    bool? cevapSonuc = await ModernAlertService.ShowAsync("Mevcut Talep Uyarısı", sonuc, "EvetIptal");
+                    bool cevap = cevapSonuc == true;
                     if (cevap)
                     {
                         var silinecekHizmet = _orijinalHizmetler.FirstOrDefault(h => h.id == _secilenHizmet.id);
@@ -277,7 +278,7 @@ public partial class CreateServiceRequestView : ContentPage
                 }
                 else
                 {
-                    await DisplayAlert("Hata Oluştu", sonuc, "Tamam");
+                    await ModernAlertService.ShowInfoAsync(sonuc, "Hata Oluştu");
                 }
             }
         }
@@ -285,7 +286,7 @@ public partial class CreateServiceRequestView : ContentPage
         {
             SubmitButton.IsEnabled = true;
             SubmitButton.Text = "TALEBİ OLUŞTUR";
-            await DisplayAlert("Hata", "İşlem sırasında hata: " + ex.Message, "Tamam");
+            await ModernAlertService.ShowInfoAsync("İşlem sırasında hata: " + ex.Message, "Hata");
         }
         finally
         {
@@ -300,7 +301,7 @@ public partial class CreateServiceRequestView : ContentPage
     {
         if (SecilenFotograflar.Count >= MaksimumFotoSayisi)
         {
-            await DisplayAlert("Bilgi", $"En fazla {MaksimumFotoSayisi} adet fotoğraf ekleyebilirsiniz.", "Tamam");
+            await ModernAlertService.ShowInfoAsync($"En fazla {MaksimumFotoSayisi} adet fotoğraf ekleyebilirsiniz.", "Bilgi");
             return;
         }
 
@@ -326,7 +327,7 @@ public partial class CreateServiceRequestView : ContentPage
                     }
                     else
                     {
-                        await DisplayAlert("Bilgi", $"Maksimum {MaksimumFotoSayisi} fotoğraf sınırına ulaşıldı. Diğerleri eklenemedi.", "Tamam");
+                        await ModernAlertService.ShowInfoAsync($"Maksimum {MaksimumFotoSayisi} fotoğraf sınırına ulaşıldı. Diğerleri eklenemedi.", "Bilgi");
                         break;
                     }
                 }
@@ -334,7 +335,7 @@ public partial class CreateServiceRequestView : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Hata", "Fotoğraflar seçilirken bir hata oluştu: " + ex.Message, "Tamam");
+            await ModernAlertService.ShowInfoAsync("Fotoğraflar seçilirken bir hata oluştu: " + ex.Message, "Hata");
         }
     }
 

@@ -47,7 +47,7 @@ public partial class ProfileView : ContentPage
             string yeniSifre = YeniSifreEntry.Text?.Trim();
             if (string.IsNullOrEmpty(yeniSifre) || yeniSifre.Length < 6)
             {
-                await DisplayAlert("Uyarı", "Lütfen yeni bir şifre giriniz. Şifreniz en az 6 haneli olmalıdır.", "Tamam");
+                await ModernAlertService.ShowInfoAsync("Lütfen yeni bir şifre giriniz. Şifreniz en az 6 haneli olmalıdır.", "Uyarı");
                 return;
             }
 
@@ -61,19 +61,19 @@ public partial class ProfileView : ContentPage
 
                 if (res.IsSuccessStatusCode)
                 {
-                    await DisplayAlert("Başarılı", "Hesabınız başarıyla aktif edildi. Şimdi giriş yapabilirsiniz.", "Tamam");
+                    await ModernAlertService.ShowInfoAsync("Hesabınız başarıyla aktif edildi. Şimdi giriş yapabilirsiniz.", "Başarılı");
                     Application.Current.MainPage = new NavigationPage(new LoginView());
                 }
                 else
                 {
-                    await DisplayAlert("Hata", "Aktivasyon sırasında bir sorun oluştu.", "Tamam");
+                    await ModernAlertService.ShowInfoAsync("Aktivasyon sırasında bir sorun oluştu.", "Hata");
                     UpdateButton.IsEnabled = true;
                     UpdateButton.Text = "KULLANICIMI AKTİF ET";
                 }
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Hata", "Bağlantı hatası: " + ex.Message, "Tamam");
+                await ModernAlertService.ShowInfoAsync("Bağlantı hatası: " + ex.Message, "Hata");
                 UpdateButton.IsEnabled = true;
                 UpdateButton.Text = "KULLANICIMI AKTİF ET";
             }
@@ -87,7 +87,7 @@ public partial class ProfileView : ContentPage
 
         if (string.IsNullOrEmpty(yeniAd) || string.IsNullOrEmpty(yeniTelefon))
         {
-            await DisplayAlert("Uyarı", "Ad Soyad ve Telefon alanları zorunludur.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Ad Soyad ve Telefon alanları zorunludur.", "Uyarı");
             return;
         }
 
@@ -121,7 +121,7 @@ public partial class ProfileView : ContentPage
             _aktifKullanici.telefon = sonuc.telefon;
             _aktifKullanici.adres = sonuc.adres;
 
-            await DisplayAlert("Başarılı", "Bilgileriniz başarıyla güncellendi.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Bilgileriniz başarıyla güncellendi.", "Başarılı");
 
             // İşlem bitince Ana Sayfaya (bir önceki sayfaya) yumuşak bir geçişle geri dön
             await Navigation.PopAsync();
@@ -177,7 +177,8 @@ public partial class ProfileView : ContentPage
     private async void OnHesapSilClicked(object sender, EventArgs e)
     {
         // Kullanıcıya son bir kez emin misin diye soruyoruz
-        bool eminMi = await DisplayAlert("Dikkat!", "Hesabınızı silmek istediğinize emin misiniz? Bu işlem geri alınamaz.", "Evet, Sil", "Vazgeç");
+        bool? eminMiSonuc = await ModernAlertService.ShowDeleteConfirmationAsync("Hesabınızı silmek istediğinize emin misiniz? Bu işlem geri alınamaz.", "Dikkat!");
+        bool eminMi = eminMiSonuc == true;
 
         if (eminMi)
         {
@@ -186,14 +187,14 @@ public partial class ProfileView : ContentPage
 
             if (basarili)
             {
-                await DisplayAlert("Başarılı", "Hesabınız silindi. Sizi özleyeceğiz...", "Tamam");
+                await ModernAlertService.ShowInfoAsync("Hesabınız silindi. Sizi özleyeceğiz...", "Başarılı");
 
                 // Kullanıcıyı sildiğimiz için uygulamadan atıp Login ekranına yönlendiriyoruz
                 Application.Current.MainPage = new NavigationPage(new LoginView());
             }
             else
             {
-                await DisplayAlert("Hata", "Silme işlemi sırasında bir sorun oluştu.", "Tamam");
+                await ModernAlertService.ShowInfoAsync("Silme işlemi sırasında bir sorun oluştu.", "Hata");
             }
         }
     }
@@ -255,11 +256,11 @@ public partial class ProfileView : ContentPage
         // Sadece kullanıcı bildirimleri KAPATMAK istediğinde (False olduğunda) araya girip uyarı veriyoruz
         if (!yeniDurum)
         {
-            bool eminMi = await DisplayAlert(
-                "E-Posta Bildirimleri",
-                "Araç bakımlarınız için size özel hazırladığımız hatırlatmaları ve önemli fırsatları kaçırmanızı istemeyiz. Yine de e-posta bildirimlerini kapatmak istediğinize emin misiniz?",
-                "Evet, Kapat",
-                "Vazgeç");
+            bool? eminMiSonuc = await ModernAlertService.ShowAsync(
+    "E-Posta Bildirimleri",
+    "Araç bakımlarınız için size özel hazırladığımız hatırlatmaları ve önemli fırsatları kaçırmanızı istemeyiz. Yine de e-posta bildirimlerini kapatmak istediğinize emin misiniz?",
+    "EvetHayir");
+            bool eminMi = eminMiSonuc == true;
 
             if (!eminMi)
             {
@@ -291,7 +292,7 @@ public partial class ProfileView : ContentPage
                 MailIzniSwitch.IsToggled = !yeniDurum;
                 _isMailSwitchProgrammaticChange = false;
 
-                await DisplayAlert("Hata", "Bildirim ayarı güncellenemedi, lütfen bağlantınızı kontrol edin.", "Tamam");
+                await ModernAlertService.ShowInfoAsync("Bildirim ayarı güncellenemedi, lütfen bağlantınızı kontrol edin.", "Hata");
             }
         }
         catch (Exception ex)
@@ -301,6 +302,9 @@ public partial class ProfileView : ContentPage
             _isMailSwitchProgrammaticChange = false;
 
             System.Diagnostics.Debug.WriteLine($"Mail izni güncellenirken hata: {ex.Message}");
+
+            // Kullanıcıya hata mesajını göster
+            await ModernAlertService.ShowInfoAsync("Mail izni güncellenirken bir hata oluştu. Lütfen tekrar deneyin.", "Hata");
         }
     }
     // --- YENİ REVİZE BİTİŞİ ---

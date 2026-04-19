@@ -47,7 +47,7 @@ public partial class AdminPastRequestsView : ContentPage
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Hata", "Veriler yüklenirken bir sorun oluştu.", "Tamam");
+                await ModernAlertService.ShowInfoAsync("Veriler yüklenirken bir sorun oluştu.", "Hata");
             }
             finally
             {
@@ -94,7 +94,7 @@ public partial class AdminPastRequestsView : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Hata", "Veriler yüklenirken bir sorun oluştu.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Veriler yüklenirken bir sorun oluştu.", "Hata");
             System.Diagnostics.Debug.WriteLine($"Geçmiş talepler yükleme hatası: {ex.Message}");
         }
         finally

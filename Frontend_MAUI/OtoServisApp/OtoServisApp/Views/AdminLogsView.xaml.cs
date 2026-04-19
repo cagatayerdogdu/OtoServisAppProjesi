@@ -177,7 +177,7 @@ public partial class AdminLogsView : ContentPage
             await Clipboard.Default.SetTextAsync(log.detay);
 
             // Kullanıcıya kopyalandığına dair ufak bir bildirim verelim
-            await DisplayAlert("Kopyalandı", "Hata detayı panoya kopyalandı. Şimdi dilediğiniz yere yapıştırıp aratabilirsiniz.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Hata detayı panoya kopyalandı. Şimdi dilediğiniz yere yapıştırıp aratabilirsiniz.", "Kopyalandı");
         }
     }
 }

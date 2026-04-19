@@ -65,7 +65,7 @@ public partial class AdminPriceManagementView : ContentPage
                 // UI thread'inde alert göster
                 await MainThread.InvokeOnMainThreadAsync(async () =>
                 {
-                    await DisplayAlert("API Hatası", $"Veriler alınamadı. Durum: {response.StatusCode}", "Tamam");
+                    await ModernAlertService.ShowInfoAsync($"Veriler alınamadı. Durum: {response.StatusCode}", "API Hatası");
                 });
             }
         }
@@ -73,7 +73,7 @@ public partial class AdminPriceManagementView : ContentPage
         {
             await MainThread.InvokeOnMainThreadAsync(async () =>
             {
-                await DisplayAlert("Hata", "Hizmetler yüklenirken bir hata oluştu.", "Tamam");
+                await ModernAlertService.ShowInfoAsync("Hizmetler yüklenirken bir hata oluştu.", "Hata");
             });
             System.Diagnostics.Debug.WriteLine($"Hata: {ex}");
         }
@@ -111,7 +111,7 @@ public partial class AdminPriceManagementView : ContentPage
 
         decimal yeniFiyat = secilenHizmet.varsayilan_fiyat;
 
-        bool onay = await DisplayAlert("Onay", $"'{secilenHizmet.ad}' hizmetinin fiyatını {yeniFiyat} ₺ olarak güncellemek istediğinize emin misiniz?", "Evet", "Hayır");
+        bool onay = await ModernAlertService.ShowConfirmationAsync($"'{secilenHizmet.ad}' hizmetinin fiyatını {yeniFiyat} ₺ olarak güncellemek istediğinize emin misiniz?", "Onay");
         if (!onay) return;
 
         try
@@ -123,7 +123,7 @@ public partial class AdminPriceManagementView : ContentPage
             if (response.IsSuccessStatusCode)
             {
                 // await DisplayAlert("Başarılı", "Fiyat başarıyla güncellendi.", "Tamam");
-                await MainThread.InvokeOnMainThreadAsync(() => DisplayAlert("Başarılı", "Fiyat başarıyla güncellendi.", "Tamam"));
+                await ModernAlertService.ShowInfoAsync("Fiyat başarıyla güncellendi.", "Başarılı");
 
                 // Güncellemeden sonra arama kutusunu temizleyip listeyi tazele
                 if (HizmetSearchEntry != null)
@@ -135,13 +135,13 @@ public partial class AdminPriceManagementView : ContentPage
             else
             {
                 // await DisplayAlert("Hata", "Fiyat güncellenemedi.", "Tamam");
-                await MainThread.InvokeOnMainThreadAsync(() => DisplayAlert("Hata", "Fiyat güncellenemedi.", "Tamam"));
+                await ModernAlertService.ShowInfoAsync("Fiyat güncellenemedi.", "Hata");
             }
         }
         catch (Exception)
         {
             // await DisplayAlert("Hata", "Bağlantı hatası oluştu.", "Tamam");
-            await MainThread.InvokeOnMainThreadAsync(() => DisplayAlert("Hata", "Bağlantı hatası oluştu.", "Tamam"));
+            await ModernAlertService.ShowInfoAsync("Bağlantı hatası oluştu.", "Hata");
         }
     }
 }

@@ -23,7 +23,7 @@ public partial class ResetPasswordView : ContentPage
         // --- YENİ REVİZE BAŞLANGICI: Şifre Uzunluk Kontrolü (Madde 71) ---
         if (!string.IsNullOrEmpty(sifre1) && sifre1.Length < 6)
         {
-            await DisplayAlert("Uyarı", "Güvenliğiniz için yeni şifreniz en az 6 karakterden oluşmalıdır.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Güvenliğiniz için yeni şifreniz en az 6 karakterden oluşmalıdır.", "Uyarı");
             NewPasswordEntry.Text = string.Empty;
             ConfirmPasswordEntry.Text = string.Empty;
             NewPasswordEntry.Focus();
@@ -33,13 +33,13 @@ public partial class ResetPasswordView : ContentPage
 
         if (string.IsNullOrEmpty(sifre1) || string.IsNullOrEmpty(sifre2))
         {
-            await DisplayAlert("Hata", "Lütfen şifre alanlarını doldurun.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Lütfen şifre alanlarını doldurun.", "Hata");
             return;
         }
 
         if (sifre1 != sifre2)
         {
-            await DisplayAlert("Hata", "Şifreler uyuşmuyor, lütfen kontrol edin.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Şifreler uyuşmuyor, lütfen kontrol edin.", "Hata");
             return;
         }
 
@@ -50,13 +50,13 @@ public partial class ResetPasswordView : ContentPage
 
         if (basarili)
         {
-            await DisplayAlert("Başarılı", "Şifreniz güncellendi! Artık yeni şifrenizle giriş yapabilirsiniz.", "Harika");
+            await ModernAlertService.ShowInfoAsync("Şifreniz güncellendi! Artık yeni şifrenizle giriş yapabilirsiniz.", "Başarılı");
             // Kullanıcıyı en baştaki Giriş sayfasına geri yolluyoruz
             await Navigation.PopToRootAsync();
         }
         else
         {
-            await DisplayAlert("Hata", "Şifre güncellenirken bir sorun oluştu.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Şifre güncellenirken bir sorun oluştu.", "Hata");
             SaveButton.IsEnabled = true;
             SaveButton.Text = "ŞİFREYİ GÜNCELLE";
         }

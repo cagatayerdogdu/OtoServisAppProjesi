@@ -52,7 +52,7 @@ public partial class AdminServiceView : ContentPage
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Hata", "Veriler yüklenirken bir sorun oluştu.", "Tamam");
+                await ModernAlertService.ShowInfoAsync("Veriler yüklenirken bir sorun oluştu.", "Hata");
             }
             finally
             {
@@ -117,7 +117,7 @@ public partial class AdminServiceView : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Hata", "Veriler yüklenirken bir sorun oluştu.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Veriler yüklenirken bir sorun oluştu.", "Hata");
             Debug.WriteLine($"Admin talepler yükleme hatası: {ex.Message}");
         }
         finally
@@ -259,7 +259,7 @@ public partial class AdminServiceView : ContentPage
         if (!string.IsNullOrWhiteSpace(adres))
         {
             await Clipboard.Default.SetTextAsync(adres);
-            await DisplayAlert("Kopyalandı", "Adres panoya kopyalandı.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Adres panoya kopyalandı.", "Kopyalandı");
         }
     }
 

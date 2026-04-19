@@ -79,13 +79,13 @@ public partial class AdminRequestDetailView : ContentPage
 
         if (basarili)
         {
-            await DisplayAlert("Başarılı", "Talep güncellendi.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Talep güncellendi.", "Başarılı");
             MessagingCenter.Send<object>(this, "TalepGuncellendi");
             await Navigation.PopAsync();
         }
         else
         {
-            await DisplayAlert("Hata", "Güncellenirken bir sorun oluştu.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Güncellenirken bir sorun oluştu.", "Hata");
         }
 
         LoadingOverlay.IsVisible = false;
@@ -126,13 +126,13 @@ public partial class AdminRequestDetailView : ContentPage
                 if (sonuc == "OK") basarili++;
             }
 
-            await DisplayAlert("Başarılı", $"{basarili} fotoğraf yüklendi.", "Tamam");
+            await ModernAlertService.ShowInfoAsync($"{basarili} fotoğraf yüklendi.", "Başarılı");
             // Fotoğraf durumu güncellensin diye sayfayı yenileyebiliriz ama detayda çok gerekli değil.
             _talep.foto_var_mi = true; // anlık güncelleme
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Hata", $"Fotoğraf eklenemedi: {ex.Message}", "Tamam");
+            await ModernAlertService.ShowInfoAsync($"Fotoğraf eklenemedi: {ex.Message}", "Hata");
         }
         finally
         {
@@ -146,7 +146,7 @@ public partial class AdminRequestDetailView : ContentPage
         if (!string.IsNullOrWhiteSpace(adres))
         {
             await Clipboard.Default.SetTextAsync(adres);
-            await DisplayAlert("Kopyalandı", "Adres panoya kopyalandı.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Adres panoya kopyalandı.", "Kopyalandı");
         }
     }
 

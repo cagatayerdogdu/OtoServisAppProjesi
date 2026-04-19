@@ -78,8 +78,8 @@ public partial class AdminUserManagementView : ContentPage
         }
         catch (Exception ex)
         {
-            MainThread.BeginInvokeOnMainThread(() => {
-                DisplayAlert("Kullanıcı Listesi Hatası", ex.Message, "Tamam");
+            MainThread.BeginInvokeOnMainThread(async () => {
+                await ModernAlertService.ShowInfoAsync(ex.Message, "Kullanıcı Listesi Hatası");
             });
             _uiGuncelleniyor = false;
         }
@@ -119,7 +119,7 @@ public partial class AdminUserManagementView : ContentPage
         var button = sender as Button;
         if (button?.CommandParameter is not KullaniciSadelestirilmis k) return;
 
-        bool onayla = await DisplayAlert("Güncelleme Onayı", $"{k.ad_soyad} kullanıcısının bilgilerini kaydetmek istiyor musunuz?", "Evet", "Hayır");
+        bool onayla = await ModernAlertService.ShowConfirmationAsync($"{k.ad_soyad} kullanıcısının bilgilerini kaydetmek istiyor musunuz?", "Güncelleme Onayı");
         if (!onayla) return;
 
         try
@@ -136,17 +136,17 @@ public partial class AdminUserManagementView : ContentPage
 
             if (res.IsSuccessStatusCode)
             {
-                await DisplayAlert("Başarılı", "Kullanıcı başarıyla güncellendi.", "Tamam");
+                await ModernAlertService.ShowInfoAsync("Kullanıcı başarıyla güncellendi.", "Başarılı");
                 await VerileriGetir(); // Listeyi yenile ki silinme_tarihi UI'a yansısın
             }
             else
             {
-                await DisplayAlert("Hata", "Güncelleme başarısız oldu.", "Tamam");
+                await ModernAlertService.ShowInfoAsync("Güncelleme başarısız oldu.", "Hata");
             }
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Hata", ex.Message, "Tamam");
+            await ModernAlertService.ShowInfoAsync(ex.Message, "Hata");
         }
     }
 } // Sınıf Kapanışı

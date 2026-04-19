@@ -32,7 +32,7 @@ public partial class MyServiceRequestDetailView : ContentPage
         {
             if (_talep.durum == "Tamamlandı" || _talep.durum == "İptal Edildi")
             {
-                await DisplayAlert("İşlem Engellendi", "Bu talep sonlandığı için üzerinde değişiklik yapılamaz.", "Tamam");
+                await ModernAlertService.ShowInfoAsync("Bu talep sonlandığı için üzerinde değişiklik yapılamaz.", "İşlem Engellendi");
                 return;
             }
             await Navigation.PushAsync(new EditServiceRequestView(_talep, _aktifKullanici));
@@ -45,11 +45,12 @@ public partial class MyServiceRequestDetailView : ContentPage
         {
             if (_talep.durum != "Bekliyor")
             {
-                await DisplayAlert("İşlem Engellendi", "Sadece 'Bekliyor' durumundaki talepler iptal edilebilir.", "Tamam");
+                await ModernAlertService.ShowInfoAsync("Sadece 'Bekliyor' durumundaki talepler iptal edilebilir.", "İşlem Engellendi");
                 return;
             }
 
-            bool eminMisin = await DisplayAlert("Onay", "Bu servis talebini iptal etmek (silmek) istediğinize emin misiniz?", "Evet, İptal Et", "Vazgeç");
+            bool? eminMisinSonuc = await ModernAlertService.ShowDeleteConfirmationAsync("Bu servis talebini iptal etmek (silmek) istediğinize emin misiniz?", "Onay");
+            bool eminMisin = eminMisinSonuc == true;
             if (eminMisin)
             {
                 LoadingOverlay.IsVisible = true;
@@ -61,13 +62,13 @@ public partial class MyServiceRequestDetailView : ContentPage
                     bool basarili = await _apiService.ServisTalebiSilAsync(_talep.id);
                     if (basarili)
                     {
-                        await DisplayAlert("Başarılı", "Talebiniz iptal edildi.", "Tamam");
+                        await ModernAlertService.ShowInfoAsync("Talebiniz iptal edildi.", "Başarılı");
                         MessagingCenter.Send<object>(this, "TalepGuncellendi");
                         await Navigation.PopAsync();
                     }
                     else
                     {
-                        await DisplayAlert("Hata", "Talebiniz iptal edilirken bir sorun oluştu.", "Tamam");
+                        await ModernAlertService.ShowInfoAsync("Talebiniz iptal edilirken bir sorun oluştu.", "Hata");
                     }
                 }
                 finally

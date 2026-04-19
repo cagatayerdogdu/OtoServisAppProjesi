@@ -84,7 +84,7 @@ public partial class EditServiceRequestView : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Hata", "Veriler yüklenirken bir sorun oluştu.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Veriler yüklenirken bir sorun oluştu.", "Hata");
             System.Diagnostics.Debug.WriteLine($"Yükleme Hatası: {ex.Message}");
         }
         finally
@@ -183,7 +183,7 @@ public partial class EditServiceRequestView : ContentPage
     private async void OnKaydetTapped(object sender, TappedEventArgs e)
     {
         // 1. Doğrulama (Hatalıysa işlemi anında kes)
-        if (!GirdileriDogrula()) return;
+        if (!await GirdileriDogrula()) return;
 
         // 2. Arayüzü Kilitle ve Kullanıcıya Bilgi Ver
         LoadingOverlay.IsVisible = true;
@@ -200,7 +200,7 @@ public partial class EditServiceRequestView : ContentPage
 
             if (!guncellemeBasarili)
             {
-                await DisplayAlert("Hata", "Güncelleme sırasında bir sorun oluştu, lütfen tekrar deneyin.", "Tamam");
+                await ModernAlertService.ShowInfoAsync("Güncelleme sırasında bir sorun oluştu, lütfen tekrar deneyin.", "Hata");
                 return; // İşlemi kes
             }
 
@@ -210,18 +210,18 @@ public partial class EditServiceRequestView : ContentPage
             // 5. Sonuç Mesajını Göster ve Çık
             if (!string.IsNullOrEmpty(fotoHataMesajlari))
             {
-                await DisplayAlert("Kısmi Başarılı", $"Talebiniz güncellendi ancak bazı fotoğraflar yüklenemedi:\n{fotoHataMesajlari}", "Anladım");
+                await ModernAlertService.ShowInfoAsync($"Talebiniz güncellendi ancak bazı fotoğraflar yüklenemedi:\n{fotoHataMesajlari}", "Kısmi Başarılı");
             }
             else
             {
-                await DisplayAlert("Başarılı", "Talep bilgileriniz ve fotoğraflarınız başarıyla güncellendi.", "Tamam");
+                await ModernAlertService.ShowInfoAsync("Talep bilgileriniz ve fotoğraflarınız başarıyla güncellendi.", "Başarılı");
             }
             MessagingCenter.Send<object>(this, "TalepGuncellendi");
             await Navigation.PopAsync(); // Önceki ekrana dön
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Hata", "Beklenmeyen bir hata oluştu: " + ex.Message, "Tamam");
+            await ModernAlertService.ShowInfoAsync("Beklenmeyen bir hata oluştu: " + ex.Message, "Hata");
         }
         finally
         {
@@ -233,18 +233,18 @@ public partial class EditServiceRequestView : ContentPage
     // =====================================================================================
     // 2. YARDIMCI METOT: Sadece form doğrulamasını yapar
     // =====================================================================================
-    private bool GirdileriDogrula()
+    private async Task<bool> GirdileriDogrula()
     {
         if (_talep.durum == "Bekliyor")
         {
-            if (_secilenHizmet == null) { DisplayAlert("Uyarı", "Lütfen bir hizmet seçin.", "Tamam"); return false; }
-            if (_secilenArac == null) { DisplayAlert("Uyarı", "Lütfen Araç seçimini yapın.", "Tamam"); return false; }
+            if (_secilenHizmet == null) { await ModernAlertService.ShowInfoAsync("Lütfen bir hizmet seçin.", "Uyarı"); return false; }
+            if (_secilenArac == null) { await ModernAlertService.ShowInfoAsync("Lütfen Araç seçimini yapın.", "Uyarı"); return false; }
         }
         else if (_talep.durum == "Onaylandı" || _talep.durum == "İşlemde")
         {
             if (string.IsNullOrWhiteSpace(DuzeltmeNotuEditor.Text))
             {
-                DisplayAlert("Uyarı", "Lütfen düzeltmek istediğiniz alanları yazın.", "Tamam"); return false;
+                await ModernAlertService.ShowInfoAsync("Lütfen düzeltmek istediğiniz alanları yazın.", "Uyarı"); return false;
             }
         }
         return true;
@@ -355,7 +355,7 @@ public partial class EditServiceRequestView : ContentPage
 
         if (eklenebilirSayi <= 0)
         {
-            await DisplayAlert("Bilgi", $"En fazla {MaksimumFotoSayisi} adet fotoğraf ekleyebilirsiniz.", "Tamam");
+            await ModernAlertService.ShowInfoAsync($"En fazla {MaksimumFotoSayisi} adet fotoğraf ekleyebilirsiniz.", "Bilgi");
             return;
         }
 
@@ -381,7 +381,7 @@ public partial class EditServiceRequestView : ContentPage
                     }
                     else
                     {
-                        await DisplayAlert("Sınır Aşıldı", $"Maksimum {MaksimumFotoSayisi} fotoğrafa ulaşıldı, diğerleri göz ardı edildi.", "Tamam");
+                        await ModernAlertService.ShowInfoAsync($"Maksimum {MaksimumFotoSayisi} fotoğrafa ulaşıldı, diğerleri göz ardı edildi.", "Sınır Aşıldı");
                         break;
                     }
                 }
@@ -389,7 +389,7 @@ public partial class EditServiceRequestView : ContentPage
         }
         catch (Exception)
         {
-            await DisplayAlert("İptal", "Fotoğraf seçimi iptal edildi veya bir sorun oluştu.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Fotoğraf seçimi iptal edildi veya bir sorun oluştu.", "İptal");
         }
     }
 

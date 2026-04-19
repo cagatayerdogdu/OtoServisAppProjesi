@@ -46,7 +46,7 @@ public partial class AdminUserTrackingView : ContentPage
                 // DEBUG: Liste null mı kontrol et
                 if (data?.liste == null)
                 {
-                    await DisplayAlert("Hata", "Deserialize sonucu liste null", "Tamam");
+                    await ModernAlertService.ShowInfoAsync("Deserialize sonucu liste null", "Hata");
                     return;
                 }
 
@@ -69,12 +69,12 @@ public partial class AdminUserTrackingView : ContentPage
             }
             else
             {
-                await DisplayAlert("API Hatası", $"Durum: {res.StatusCode}\n{content}", "Tamam");
+                await ModernAlertService.ShowInfoAsync($"Durum: {res.StatusCode}\n{content}", "API Hatası");
             }
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Dönüştürme Hatası", $"Detay: {ex.Message}", "Tamam");
+            await ModernAlertService.ShowInfoAsync($"Detay: {ex.Message}", "Dönüştürme Hatası");
         }
     }
 
@@ -85,11 +85,11 @@ public partial class AdminUserTrackingView : ContentPage
 
         if (!m.mail_istiyor_mu)
         {
-            await DisplayAlert("Uyarı", "Bu kullanıcı e-posta bildirimlerini kapatmıştır (KVKK). Hatırlatma gönderilemez.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Bu kullanıcı e-posta bildirimlerini kapatmıştır (KVKK). Hatırlatma gönderilemez.", "Uyarı");
             return;
         }
 
-        bool onayla = await DisplayAlert("Hatırlatma", $"{m.ad_soyad} kullanıcısına hatırlatma gönderilsin mi?", "Gönder", "İptal");
+        bool onayla = await ModernAlertService.ShowConfirmationAsync($"{m.ad_soyad} kullanıcısına hatırlatma gönderilsin mi?", "Hatırlatma");
         if (!onayla) return;
 
         try
@@ -99,19 +99,19 @@ public partial class AdminUserTrackingView : ContentPage
 
             if (res.IsSuccessStatusCode)
             {
-                await DisplayAlert("Başarılı", "Hatırlatma maili gönderildi.", "Tamam");
+                await ModernAlertService.ShowInfoAsync("Hatırlatma maili gönderildi.", "Başarılı");
 
                 // KRİTİK DOKUNUŞ: Listeyi API'den tekrar çek ki yeni tarih ekrana yansısın
                 await Yukle();
             }
             else
-                await DisplayAlert("Uyarı", "Gönderim yapılamadı (KVKK veya sistem hatası).", "Tamam");
+                await ModernAlertService.ShowInfoAsync("Gönderim yapılamadı (KVKK veya sistem hatası).", "Uyarı");
 
             
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Hata", "İşlem sırasında hata: " + ex.Message, "Tamam");
+            await ModernAlertService.ShowInfoAsync("İşlem sırasında hata: " + ex.Message, "Hata");
         }
     }
 

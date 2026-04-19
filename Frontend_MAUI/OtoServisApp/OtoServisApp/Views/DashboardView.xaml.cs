@@ -51,7 +51,7 @@ public partial class DashboardView : ContentPage
     {
         if (_aktifKullanici.id == 0)
         {
-            await DisplayAlert("Üyelik Gerekiyor", "Araç eklemek ve araçlarınızı yönetmek için lütfen ücretsiz üye olun.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Araç eklemek ve araçlarınızı yönetmek için lütfen ücretsiz üye olun.", "Üyelik Gerekiyor");
             // return; // İçeri girmesini engeller
         }
         // await Navigation.PushAsync(new VehiclesView(_aktifKullanici));
@@ -67,7 +67,7 @@ public partial class DashboardView : ContentPage
     {
         if (_aktifKullanici.id == 0)
         {
-            await DisplayAlert("Üyelik Gerekiyor", "Size özel fiyatlar ve hizmetler sunabilmemiz için lütfen ücretsiz üye olun.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Size özel fiyatlar ve hizmetler sunabilmemiz için lütfen ücretsiz üye olun.", "Üyelik Gerekiyor");
             // return;içeri girebilsin. bunu aktif edersek kapıda uyarı alıp dışarıda kalır.
         }
         await Navigation.PushAsync(new CreateServiceRequestView(_aktifKullanici));
@@ -79,7 +79,7 @@ public partial class DashboardView : ContentPage
     {
         if (_aktifKullanici.id == 0)
         {
-            await DisplayAlert("Üyelik Gerekiyor", "Servis taleplerinizi takip etmek için lütfen ücretsiz üye olun.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Servis taleplerinizi takip etmek için lütfen ücretsiz üye olun.", "Üyelik Gerekiyor");
             // return;içeri girebilsin. bunu aktif edersek kapıda uyarı alıp dışarıda kalır.
         }
         //await Navigation.PushAsync(new MyServiceRequestsView(_aktifKullanici));
@@ -166,21 +166,13 @@ public partial class DashboardView : ContentPage
             }
             else
             {
-                // API'den dönen hatayı ekrana basıyoruz
                 var error = await response.Content.ReadAsStringAsync();
-                await MainThread.InvokeOnMainThreadAsync(() =>
-                {
-                    DisplayAlert("API Hatası", $"Durum: {response.StatusCode}\nMesaj: {error}", "Tamam");
-                });
+                await ModernAlertService.ShowInfoAsync($"Durum: {response.StatusCode}\nMesaj: {error}", "API Hatası");
             }
         }
         catch (Exception ex)
         {
-            // Bağlantı kopması veya kod hatasını ekrana basıyoruz
-            await MainThread.InvokeOnMainThreadAsync(() =>
-            {
-                DisplayAlert("Bağlantı Hatası", $"Detay: {ex.Message}", "Tamam");
-            });
+            await ModernAlertService.ShowInfoAsync($"Detay: {ex.Message}", "Bağlantı Hatası");
         }
     }
 

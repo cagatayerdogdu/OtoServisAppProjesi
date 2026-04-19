@@ -18,7 +18,7 @@ public partial class ForgotPasswordView : ContentPage
 
         if (string.IsNullOrEmpty(eposta))
         {
-            await DisplayAlert("Uyarı", "Lütfen e-posta adresinizi girin.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Lütfen e-posta adresinizi girin.", "Uyarı");
             return;
         }
 
@@ -29,7 +29,7 @@ public partial class ForgotPasswordView : ContentPage
         // Bu kısım mail tanımları olduktan sonra hayata geçecek
         if (sonuc == "OK")
         {
-            await DisplayAlert("Başarılı", "Şifre sıfırlama talimatları e-posta adresinize gönderildi.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Şifre sıfırlama talimatları e-posta adresinize gönderildi.", "Başarılı");
             // Direkt ana giriş ekranına geri dön
             await Navigation.PopAsync();
         }
@@ -44,7 +44,7 @@ public partial class ForgotPasswordView : ContentPage
         */
         else
         {
-            await DisplayAlert("Hata", sonuc, "Tamam");
+            await ModernAlertService.ShowInfoAsync(sonuc, "Hata");
         }
 
         ResetButton.IsEnabled = true;

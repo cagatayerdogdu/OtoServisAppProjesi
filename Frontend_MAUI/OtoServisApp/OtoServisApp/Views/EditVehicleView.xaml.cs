@@ -185,14 +185,14 @@ public partial class EditVehicleView : ContentPage
     {
         if (string.IsNullOrEmpty(KmEntry.Text) || string.IsNullOrEmpty(YilEntry.Text))
         {
-            await DisplayAlert("Uyarı", "Yıl ve Kilometre boş bırakılamaz.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Yıl ve Kilometre boş bırakılamaz.", "Uyarı");
             return;
         }
 
         // Eğer buton aktifse (yani araç serviste değilse) marka/model boş geçilemez
         if (SecilenMarkaButonu.IsEnabled && (_secilenMarka == null || _secilenModel == null))
         {
-            await DisplayAlert("Uyarı", "Lütfen Marka ve Model seçiniz.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Lütfen Marka ve Model seçiniz.", "Uyarı");
             return;
         }
 
@@ -213,12 +213,12 @@ public partial class EditVehicleView : ContentPage
 
         if (basarili)
         {
-            await DisplayAlert("Başarılı", "Araç bilgileri güncellendi.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Araç bilgileri güncellendi.", "Başarılı");
             await Navigation.PopAsync();
         }
         else
         {
-            await DisplayAlert("Hata", "Güncellenirken bir sorun oluştu.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Güncellenirken bir sorun oluştu.", "Hata");
             UpdateButton.IsEnabled = true;
             UpdateButton.Text = "GÜNCELLE";
         }

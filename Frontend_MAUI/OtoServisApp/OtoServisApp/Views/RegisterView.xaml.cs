@@ -24,7 +24,7 @@ public partial class RegisterView : ContentPage
 
         if (!string.IsNullOrEmpty(sifre) && sifre.Length < 6)
         {
-            await DisplayAlert("Uyarı", "Güvenliğiniz için şifreniz en az 6 karakterden oluşmalıdır.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Güvenliğiniz için şifreniz en az 6 karakterden oluşmalıdır.", "Uyarı");
             PasswordEntry.Text = string.Empty;
             SifreTekrarEntry.Text = string.Empty;
             PasswordEntry.Focus();
@@ -36,25 +36,26 @@ public partial class RegisterView : ContentPage
             var addr = new System.Net.Mail.MailAddress(EmailEntry.Text);
             if (addr.Address != EmailEntry.Text)
             {
-                await DisplayAlert("Hata", "Lütfen geçerli bir e-posta adresi giriniz.", "Tamam");
+                await ModernAlertService.ShowInfoAsync("Lütfen geçerli bir e-posta adresi giriniz.", "Hata");
                 return;
             }
         }
         catch
         {
-            await DisplayAlert("Hata", "Lütfen geçerli bir e-posta adresi giriniz.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Hata", "Lütfen geçerli bir e-posta adresi giriniz.");
+
             return;
         }
 
         if (string.IsNullOrEmpty(adSoyad) || string.IsNullOrEmpty(telefon) || string.IsNullOrEmpty(eposta) || string.IsNullOrEmpty(sifre) || string.IsNullOrEmpty(sifreTekrar))
         {
-            await DisplayAlert("Hata", "Lütfen tüm alanları doldurun.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Lütfen tüm alanları doldurun.", "Hata");
             return;
         }
 
         if (sifre != sifreTekrar)
         {
-            await DisplayAlert("Hata", "Girdiğiniz şifreler birbiriyle eşleşmiyor. Lütfen kontrol edin.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Girdiğiniz şifreler birbiriyle eşleşmiyor. Lütfen kontrol edin.", "Hata");
             SifreTekrarEntry.Text = string.Empty;
             SifreTekrarEntry.Focus();
             return;
@@ -82,17 +83,17 @@ public partial class RegisterView : ContentPage
 
             if (sonuc == "OK")
             {
-                await DisplayAlert("Başarılı", "Hesabınız oluşturuldu. Şimdi giriş yapabilirsiniz.", "Harika!");
+                await ModernAlertService.ShowInfoAsync("Hesabınız oluşturuldu. Şimdi giriş yapabilirsiniz.", "Başarılı");
                 await Navigation.PopAsync(); 
             }
             else
             {
-                await DisplayAlert("Kayıt İşlemi Durduruldu", sonuc, "Tamam");
+                await ModernAlertService.ShowInfoAsync(sonuc, "Kayıt İşlemi Durduruldu");
             }
         }
         catch (Exception)
         {
-            await DisplayAlert("Hata", "Beklenmeyen bir hata oluştu.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Beklenmeyen bir hata oluştu.", "Hata");
         }
         finally
         {

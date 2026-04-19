@@ -70,7 +70,7 @@ public partial class VehiclesView : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Hata", "Araç verileri yüklenirken bir sorun oluştu.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Araç verileri yüklenirken bir sorun oluştu.", "Hata");
             System.Diagnostics.Debug.WriteLine($"Yükleme Hatası: {ex.Message}");
         }
         //finally
@@ -148,20 +148,22 @@ public partial class VehiclesView : ContentPage
             // KURAL 1: "Bekliyor" durumunda talep varsa SİLDİRME!
             if (aracaAitTalepler.Any(t => t.durum == "Bekliyor"))
             {
-                await DisplayAlert("İşlem Engellendi", "Bu araca ait 'Bekliyor' durumunda bir servis talebiniz bulunmaktadır. Aracı silebilmek için lütfen önce ilgili servis talebini iptal ediniz.", "Tamam");
+                await ModernAlertService.ShowInfoAsync("Bu araca ait 'Bekliyor' durumunda bir servis talebiniz bulunmaktadır. Aracı silebilmek için lütfen önce ilgili servis talebini iptal ediniz.", "İşlem Engellendi");
                 return;
             }
 
             // KURAL 2: Bekliyor dışında (Geçmiş) talebi varsa ŞIK BİR UYARI VER!
             if (aracaAitTalepler.Any())
             {
-                bool devam = await DisplayAlert("Uyarı", "Silmek istediğiniz araca ait geçmiş servis talepleri bulunmaktadır. Tanımlı aracınızı yine de silmek istiyor musunuz?\n\n(Servis Talepleriniz etkilenmeyecektir.)", "Evet, Sil", "Vazgeç");
+                bool? devamSonuc = await ModernAlertService.ShowDeleteConfirmationAsync("Silmek istediğiniz araca ait geçmiş servis talepleri bulunmaktadır. Tanımlı aracınızı yine de silmek istiyor musunuz?\n\n(Servis Talepleriniz etkilenmeyecektir.)", "Uyarı");
+                bool devam = devamSonuc == true;
                 if (!devam) return;
             }
             else
             {
                 // Hiç talebi yoksa normal standart uyarıyı ver
-                bool eminMisin = await DisplayAlert("Onay", $"{secilenArac.marka_model_yazi} aracınızı silmek istediğinize emin misiniz?", "Evet, Sil", "Vazgeç");
+                bool? eminMisinSonuc = await ModernAlertService.ShowDeleteConfirmationAsync($"{secilenArac.marka_model_yazi} aracınızı silmek istediğinize emin misiniz?", "Onay");
+                bool eminMisin = eminMisinSonuc == true;
                 if (!eminMisin) return;
             }
 
@@ -169,7 +171,7 @@ public partial class VehiclesView : ContentPage
             bool basarili = await _apiService.AracSilAsync(secilenArac.id);
             if (basarili)
             {
-                await DisplayAlert("Başarılı", "Araç başarıyla silindi.", "Tamam");
+                await ModernAlertService.ShowInfoAsync("Araç başarıyla silindi.", "Başarılı");
                 // Kullanıcının YENİ araç listesini (silinmiş olan hariç) API'den çek
                 _aktifKullanici.araclar = await _apiService.KullaniciAraclariniGetirAsync(_aktifKullanici.id);
                 // Marka ve modelleri isimlerle eşleştirip ekrana bas

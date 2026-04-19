@@ -50,7 +50,7 @@ public partial class AddVehicleView : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Hata", "Listeler yüklenirken bir sorun oluştu.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Hata", "Listeler yüklenirken bir sorun oluştu.");
             System.Diagnostics.Debug.WriteLine($"Yükleme Hatası: {ex.Message}");
         }
         finally

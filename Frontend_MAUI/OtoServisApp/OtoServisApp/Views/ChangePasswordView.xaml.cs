@@ -23,14 +23,14 @@ public partial class ChangePasswordView : ContentPage
 
         if (string.IsNullOrEmpty(eskiSifre) || string.IsNullOrEmpty(yeniSifre) || string.IsNullOrEmpty(yeniSifreTekrar))
         {
-            await DisplayAlert("Uyarı", "Lütfen tüm alanları doldurun.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Lütfen tüm alanları doldurun.", "Uyarı");
             return;
         }
 
         // --- YENİ REVİZE BAŞLANGICI: Şifre Uzunluk Kontrolü (Madde 71) ---
         if (yeniSifre.Length < 6)
         {
-            await DisplayAlert("Uyarı", "Güvenliğiniz için yeni şifreniz en az 6 karakterden oluşmalıdır.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Güvenliğiniz için yeni şifreniz en az 6 karakterden oluşmalıdır.", "Uyarı");
             NewPasswordEntry.Text = string.Empty;
             ConfirmPasswordEntry.Text = string.Empty;
             NewPasswordEntry.Focus();
@@ -40,7 +40,7 @@ public partial class ChangePasswordView : ContentPage
 
         if (yeniSifre != yeniSifreTekrar)
         {
-            await DisplayAlert("Hata", "Yeni şifreler birbiriyle uyuşmuyor.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Yeni şifreler birbiriyle uyuşmuyor.", "Hata");
 
             // Kullanıcı dostu UX: Sadece tekrar kutusunu temizleyip oraya odaklan
             ConfirmPasswordEntry.Text = string.Empty;
@@ -55,14 +55,14 @@ public partial class ChangePasswordView : ContentPage
 
         if (sonuc == "OK")
         {
-            await DisplayAlert("Başarılı", "Şifreniz güvenli bir şekilde güncellendi.", "Harika");
+            await ModernAlertService.ShowInfoAsync("Şifreniz güvenli bir şekilde güncellendi.", "Başarılı");
 
             // Kullanıcıyı dışarı atmıyoruz, sadece bir önceki ekrana (Profile) döndürüyoruz!
             await Navigation.PopAsync();
         }
         else
         {
-            await DisplayAlert("İşlem Başarısız", sonuc, "Tamam");
+            await ModernAlertService.ShowInfoAsync(sonuc, "İşlem Başarısız");
             SaveButton.IsEnabled = true;
             SaveButton.Text = "ŞİFREYİ GÜNCELLE";
         }

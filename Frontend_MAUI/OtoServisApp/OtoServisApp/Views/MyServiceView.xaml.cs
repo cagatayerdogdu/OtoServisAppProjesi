@@ -54,7 +54,7 @@ public partial class MyServiceView : ContentPage
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Hata", "Talep verileri yüklenirken bir sorun oluştu.", "Tamam");
+                await ModernAlertService.ShowInfoAsync("Talep verileri yüklenirken bir sorun oluştu.", "Hata");
             }
             finally
             {
@@ -120,7 +120,7 @@ public partial class MyServiceView : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Hata", "Veriler yüklenirken bir sorun oluştu.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Veriler yüklenirken bir sorun oluştu.", "Hata");
             Debug.WriteLine($"Yükleme hatası: {ex.Message}");
         }
         finally

@@ -3,6 +3,7 @@ using OtoServisApp.Models;
 using System;
 namespace OtoServisApp.Views;
 using System.Text.Json;
+using OtoServisApp.Services;
 
 
 public partial class LoginView : ContentPage
@@ -23,14 +24,13 @@ public partial class LoginView : ContentPage
 #if ANDROID || IOS
         if (Microsoft.Maui.Networking.Connectivity.Current.NetworkAccess != Microsoft.Maui.Networking.NetworkAccess.Internet)
         {
-            await DisplayAlert("Bağlantı Hatası", "Lütfen internet bağlantınızı kontrol edin.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Lütfen internet bağlantınızı kontrol edin.", "Bağlantı Hatası");
             return;
         }
 #endif
-
         if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
         {
-            await DisplayAlert("Uyarı", "Lütfen e-posta ve şifrenizi giriniz.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Lütfen e-posta ve şifrenizi giriniz.", "Uyarı");
             return;
         }
 
@@ -78,7 +78,7 @@ public partial class LoginView : ContentPage
 
                     if (pasifKullanici != null)
                     {
-                        bool aktifEt = await DisplayAlert("Hesap Pasif", "Hesabınız pasif durumdadır. Yeni şifre belirleyerek tekrar aktif etmek istiyor musunuz?", "Evet", "Hayır");
+                        bool aktifEt = await ModernAlertService.ShowConfirmationAsync("Hesabınız pasif durumdadır. Yeni şifre belirleyerek tekrar aktif etmek istiyor musunuz?", "Hesap Pasif");
                         if (aktifEt)
                         {
                             // UI İşlemi olduğu için Ana Thread'e alıyoruz
@@ -93,13 +93,13 @@ public partial class LoginView : ContentPage
                 {
                     string pasifHata = pEx.InnerException != null ? pEx.InnerException.Message : pEx.Message;
                     System.Diagnostics.Debug.WriteLine($"Pasif kullanıcı bilgisi çekilirken hata: {pasifHata}");
-                    await DisplayAlert("Giriş Başarısız", gercekHata, "Tamam");
+                    await ModernAlertService.ShowInfoAsync(gercekHata, "Giriş Başarısız");
                 }
             }
             else
             {
                 // Artık "Invocation" yerine buraya gerçek hata mesajı düşecek
-                await DisplayAlert("Giriş Başarısız", gercekHata, "Tamam");
+                await ModernAlertService.ShowInfoAsync(gercekHata, "Giriş Başarısız");
 
                 if (gercekHata.ToLower().Contains("şifre"))
                 {
@@ -163,15 +163,15 @@ public partial class LoginView : ContentPage
 
         // --- YENİ REVİZE BAŞLANGICI: Bildirim İzni İsteme (Madde 48) ---
 #if ANDROID
-    // Sadece Android 13 (API 33) ve üzeri için bu izin penceresi zorunludur
-    if (DeviceInfo.Version.Major >= 13)
-    {
-        var status = await Permissions.CheckStatusAsync<Permissions.PostNotifications>();
-        if (status != PermissionStatus.Granted)
+        // Sadece Android 13 (API 33) ve üzeri için bu izin penceresi zorunludur
+        if (DeviceInfo.Version.Major >= 13)
         {
-            await Permissions.RequestAsync<Permissions.PostNotifications>();
+            var status = await Permissions.CheckStatusAsync<Permissions.PostNotifications>();
+            if (status != PermissionStatus.Granted)
+            {
+                await Permissions.RequestAsync<Permissions.PostNotifications>();
+            }
         }
-    }
 #endif
         // --- YENİ REVİZE BİTİŞİ ---
 
@@ -179,10 +179,10 @@ public partial class LoginView : ContentPage
 #if ANDROID || IOS
         if (Microsoft.Maui.Networking.Connectivity.Current.NetworkAccess != Microsoft.Maui.Networking.NetworkAccess.Internet)
         {
-            await DisplayAlert("Bağlantı Hatası", "Lütfen internet bağlantınızı kontrol edin.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Lütfen internet bağlantınızı kontrol edin.", "Bağlantı Hatası");
         }
 #endif
-    
+
         // Cihazın şifreli kasasına bakıyoruz, kayıt var mı?
         string kayitliEposta = await SecureStorage.Default.GetAsync("kayitli_eposta");
         string kayitliSifre = await SecureStorage.Default.GetAsync("kayitli_sifre");
@@ -204,7 +204,7 @@ public partial class LoginView : ContentPage
 #if ANDROID || IOS
         if (Microsoft.Maui.Networking.Connectivity.Current.NetworkAccess != Microsoft.Maui.Networking.NetworkAccess.Internet)
         {
-            await DisplayAlert("Bağlantı Hatası", "Lütfen internet bağlantınızı kontrol edin.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Lütfen internet bağlantınızı kontrol edin.", "Bağlantı Hatası");
         }
 #endif
 

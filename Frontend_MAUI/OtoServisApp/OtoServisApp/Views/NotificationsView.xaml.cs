@@ -43,7 +43,7 @@ public partial class NotificationsView : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Hata", "Bildirimler yüklenirken bir sorun oluştu.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Bildirimler yüklenirken bir sorun oluştu.", "Hata");
         }
         finally
         {
@@ -102,7 +102,7 @@ public partial class NotificationsView : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Hata", "Bildirimler yüklenirken bir sorun oluştu.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Bildirimler yüklenirken bir sorun oluştu.", "Hata");
         }
         finally
         {
@@ -148,7 +148,8 @@ public partial class NotificationsView : ContentPage
         var bildirim = swipeItem?.BindingContext as BildirimResponse;
         if (bildirim == null) return;
 
-        bool onay = await DisplayAlert("Onay", "Bu bildirimi silmek istiyor musunuz?", "Evet", "Vazgeç");
+        bool? onaySonuc = await ModernAlertService.ShowDeleteConfirmationAsync("Bu bildirimi silmek istiyor musunuz?", "Onay");
+        bool onay = onaySonuc == true;
         if (!onay) return;
 
         LoadingOverlay.IsVisible = true;
@@ -211,7 +212,8 @@ public partial class NotificationsView : ContentPage
         var secilenler = Bildirimler.Where(b => b.IsSelected).ToList();
         if (!secilenler.Any()) return;
 
-        bool onay = await DisplayAlert("Onay", $"{secilenler.Count} adet bildirimi silmek istiyor musunuz?", "Evet", "İptal");
+        bool? onaySonuc = await ModernAlertService.ShowAsync("Onay", $"{secilenler.Count} adet bildirimi silmek istiyor musunuz?", "EvetIptal");
+        bool onay = onaySonuc == true;
         if (!onay) return;
 
         LoadingOverlay.IsVisible = true;

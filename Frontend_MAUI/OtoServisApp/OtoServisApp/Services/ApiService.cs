@@ -528,7 +528,7 @@ namespace OtoServisApp.Services
             {
                 MainThread.BeginInvokeOnMainThread(async () =>
                 {
-                    await App.Current.MainPage.DisplayAlert("Log Çekme Hatası", ex.Message, "Tamam");
+                    await ModernAlertService.ShowInfoAsync(ex.Message, "Log Çekme Hatası");
                 });
                 return null;
             }
@@ -639,7 +639,7 @@ namespace OtoServisApp.Services
                         }
                         else
                         {
-                            await Application.Current.MainPage.DisplayAlert("API Hatası", "Token telefondan alındı ama Python API'ye ulaşıp kaydedilemedi!", "Tamam");
+                            await ModernAlertService.ShowInfoAsync("Token telefondan alındı ama Python API'ye ulaşıp kaydedilemedi!", "API Hatası");
                         }
                     });
                 }
@@ -647,7 +647,7 @@ namespace OtoServisApp.Services
                 {
                     MainThread.BeginInvokeOnMainThread(async () =>
                     {
-                        await Application.Current.MainPage.DisplayAlert("Cihaz Hatası", "Google cihazınız için Token üretemedi (Boş döndü).", "Tamam");
+                        await ModernAlertService.ShowInfoAsync("Google cihazınız için Token üretemedi (Boş döndü).", "Cihaz Hatası");
                     });
                 }
             }
@@ -655,7 +655,7 @@ namespace OtoServisApp.Services
             {
                 MainThread.BeginInvokeOnMainThread(async () =>
                 {
-                    await Application.Current.MainPage.DisplayAlert("Sistem Hatası", $"FCM Çöktü: {ex.Message}", "Tamam");
+                    await ModernAlertService.ShowInfoAsync($"FCM Çöktü: {ex.Message}", "Sistem Hatası");
                 });
             }
 #else

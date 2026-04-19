@@ -2,6 +2,7 @@
 using OtoServisApp.Helpers;
 using Microsoft.Maui.Controls.PlatformConfiguration;
 using Microsoft.Maui.Controls.PlatformConfiguration.AndroidSpecific;
+using OtoServisApp.Services;
 
 namespace OtoServisApp.Views;
 
@@ -110,7 +111,7 @@ public partial class MainTabbedPage : Microsoft.Maui.Controls.TabbedPage
         // ÇAKIŞMA ÇÖZÜMÜ: Doğrudan sayfanın kendi DisplayAlert metodunu Dispatcher ile güvenli şekilde çağırıyoruz
         Dispatcher.Dispatch(async () =>
         {
-            await DisplayAlert("Çıkış", "Uygulamadan çıkmak için tekrar geri kaydırın.", "Tamam");
+            await ModernAlertService.ShowInfoAsync("Uygulamadan çıkmak için tekrar geri kaydırın.", "Çıkış");
         });
 
         // 2 saniye içinde tekrar kaydırmazsa durumu sıfırla
