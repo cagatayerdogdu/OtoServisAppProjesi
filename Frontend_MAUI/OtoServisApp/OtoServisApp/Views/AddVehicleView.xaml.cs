@@ -194,7 +194,7 @@ public partial class AddVehicleView : ContentPage
             string.IsNullOrEmpty(YearEntry.Text) || string.IsNullOrEmpty(KmEntry.Text))
         {
             //await DisplayAlert("Uyarı", "Lütfen tüm bilgileri eksiksiz doldurun.", "Tamam");
-            ModernUyariGoster("Uyarı!");
+            await ModernAlertService.ShowInfoAsync("Uyarı!", "Lütfen tüm bilgileri eksiksiz doldurun.");
             return;
         }
 
@@ -221,34 +221,24 @@ public partial class AddVehicleView : ContentPage
                 _aktifKullanici.araclar.Add(eklenenArac);
 
                 //await DisplayAlert("Başarılı", "Aracınız başarıyla eklendi.", "Tamam");
-                ModernUyariGoster("Aracınız başarıyla kaydedildi.");
+                //ModernUyariGoster("Aracınız başarıyla kaydedildi.");
+                await ModernAlertService.ShowInfoAsync("Aracınız başarıyla kaydedildi.", "Başarılı");
                 //await Navigation.PopAsync();
             }
             else
             {
                 //await DisplayAlert("Hata", "Araç eklenirken bir sorun oluştu.", "Tamam");
-                ModernUyariGoster("Hata");
+                //ModernUyariGoster("Hata");
+                await ModernAlertService.ShowInfoAsync("Hata!", "Araç eklenirken bir sorun oluştu.");
                 SaveButton.IsEnabled = true;
                 SaveButton.Text = "ARACI KAYDET";
             }
         }
         catch (Exception ex)
         {
-            ModernUyariGoster("Araç eklenirken bir sorun oluştu. " + ex.ToString());
+            //ModernUyariGoster("Araç eklenirken bir sorun oluştu. " + ex.ToString());
+            await ModernAlertService.ShowInfoAsync("Araç eklenirken bir sorun oluştu. " + ex.ToString(), "Hata");
         }
 
-    }
-
-    private void ModernUyariGoster(string mesaj)
-    {
-        UyariMesaji.Text = mesaj;
-        ModernUyariEkrani.IsVisible = true;
-    }
-
-    private async void ModernUyariKapat_Clicked(object sender, EventArgs e)
-    {
-        ModernUyariEkrani.IsVisible = false;
-        // Asıl sayfadan çıkış işlemini KULLANICI TAMAM'A BASINCA yapıyoruz!
-        await Navigation.PopAsync(); 
     }
 }

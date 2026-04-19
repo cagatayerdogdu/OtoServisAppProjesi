@@ -112,22 +112,6 @@
             </VerticalStackLayout>
         </ScrollView>
 
-        <Grid x:Name="ModernUyariEkrani" BackgroundColor="#80000000" IsVisible="False" ZIndex="999">
-            <Border BackgroundColor="#00BCD4" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 20" Padding="20" HorizontalOptions="Center" VerticalOptions="Center" WidthRequest="300">
-                <Border.Shadow>
-                    <Shadow Brush="Black" Offset="0,5" Radius="15" Opacity="0.3" />
-                </Border.Shadow>
-                <VerticalStackLayout Spacing="15">
-                    <Label x:Name="UyariMesaji" Text="İşlem Başarılı!" TextColor="White" FontSize="16" FontAttributes="Bold" HorizontalTextAlignment="Center" />
-
-                    <Border BackgroundColor="White" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 10" Padding="0">
-                        <Button Text="Tamam" BackgroundColor="Transparent" TextColor="#00BCD4" BorderWidth="0" FontAttributes="Bold" Clicked="ModernUyariKapat_Clicked" Margin="0" Padding="0"/>
-                    </Border>
-
-                </VerticalStackLayout>
-            </Border>
-        </Grid>
-
         <Grid x:Name="LoadingOverlay" BackgroundColor="#CCFFFFFF" IsVisible="False" InputTransparent="False" Grid.RowSpan="2">
             <Border BackgroundColor="White" Stroke="#E0E0E0" StrokeShape="RoundRectangle 15" Padding="30" HorizontalOptions="Center" VerticalOptions="Center">
                 <VerticalStackLayout Spacing="15" HorizontalOptions="Center">

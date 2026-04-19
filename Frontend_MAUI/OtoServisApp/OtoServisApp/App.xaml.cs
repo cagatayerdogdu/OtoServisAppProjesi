@@ -124,6 +124,9 @@ namespace OtoServisApp
             MainPage = new MainTabbedPage(kullanici);
             // Başına Views. ekleyerek tam yolunu gösteriyoruz en üsste using kullandım alttakinin yerine
             //MainPage = new Views.MainTabbedPage(kullanici);
+
+            // ModernAlertService'i yeni ana sayfaya bağla
+            ModernAlertService.Initialize(MainPage);
         }
     }
 }
