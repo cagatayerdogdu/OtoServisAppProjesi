@@ -7,37 +7,52 @@ namespace OtoServisApp.Services;
 public static class ModernAlertService
 {
     private static ModernAlertView _alertView;
+    private static Page _currentPage;
 
+    /// <summary>
+    /// Verilen sayfaya ModernAlertView'i ekler. Eğer daha önce başka bir sayfaya eklenmişse, oradan kaldırıp yenisine taşır.
+    /// </summary>
     public static void Initialize(Page page)
     {
-        // Eğer zaten oluşturulmuşsa tekrar ekleme
-        if (_alertView != null) return;
+        if (page == null) return;
 
-        _alertView = new ModernAlertView();
+        // Eğer alertView daha önce oluşturulmamışsa oluştur
+        if (_alertView == null)
+            _alertView = new ModernAlertView();
 
-        // Sayfanın içeriğini Grid'e dönüştür ve alertView'i en üst katmana ekle
-        if (page is ContentPage contentPage)
+        // Eğer aynı sayfaya zaten ekliyse tekrar ekleme
+        if (_currentPage == page) return;
+
+        // Önceki sayfadan kaldır
+        if (_currentPage is ContentPage oldContentPage)
         {
-            var originalContent = contentPage.Content;
+            var oldGrid = oldContentPage.Content as Grid;
+            if (oldGrid != null && oldGrid.Children.Contains(_alertView))
+                oldGrid.Children.Remove(_alertView);
+        }
+
+        // Yeni sayfaya ekle
+        if (page is ContentPage newContentPage)
+        {
+            var originalContent = newContentPage.Content;
             var grid = new Grid();
+
             if (originalContent != null)
-            {
-                // Mevcut içeriği Grid'in ilk çocuğu olarak ekle
                 grid.Children.Add(originalContent);
-            }
-            // AlertView'i Grid'in ikinci çocuğu olarak ekle (üstte görünür)
+
             grid.Children.Add(_alertView);
-            contentPage.Content = grid;
+            newContentPage.Content = grid;
         }
-        else if (page is NavigationPage navPage && navPage.CurrentPage is ContentPage currentPage)
+        else if (page is NavigationPage navPage && navPage.CurrentPage is ContentPage navCurrentPage)
         {
-            // NavigationPage için mevcut sayfayı hedef al
-            Initialize(currentPage);
+            Initialize(navCurrentPage);
         }
-        else if (page is TabbedPage tabbedPage && tabbedPage.CurrentPage is ContentPage currentTabPage)
+        else if (page is TabbedPage tabbedPage && tabbedPage.CurrentPage is ContentPage tabCurrentPage)
         {
-            Initialize(currentTabPage);
+            Initialize(tabCurrentPage);
         }
+
+        _currentPage = page;
     }
 
     public static Task<bool?> ShowAsync(string baslik, string mesaj, string butonTipi = "Tamam")

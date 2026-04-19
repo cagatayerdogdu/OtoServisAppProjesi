@@ -35,12 +35,17 @@ namespace OtoServisApp
             // MainPage = new AppShell();
             // MainPage = new Views.LoginView(); // Kendi yazdığımız login ekranına girmesini sağlıyourz.
             // MainPage = new NavigationPage(new Views.LoginView());
-            var navPage = new NavigationPage(new Views.LoginView());
+            var navPage = new NavigationPage(new LoginView());
 
             // Üst barın arka plan rengini turkuaz (Primary), yazı rengini beyaz yapıyoruz
             navPage.BarBackgroundColor = Color.FromArgb("#00BCD4");
             navPage.BarTextColor = Colors.White;
             MainPage = navPage;
+
+            Microsoft.Maui.Controls.Application.Current.PageAppearing += (sender, e) =>
+            {
+                ModernAlertService.Initialize(Current.MainPage);
+            };
 
             // UYGULAMA AÇIKKEN GELEN BİLDİRİMLERİ EKRANDA GÖSTERME KODU
             CrossFirebaseCloudMessaging.Current.NotificationReceived += (sender, args) =>
@@ -118,12 +123,23 @@ namespace OtoServisApp
         public void NavigateToMainTabbedPage(Kullanici kullanici)
         {
             // Sayfaların alt alta butonlarla değil, altta şık ikonlarla görünmesi için:
-            MainPage = new MainTabbedPage(kullanici);
+            //MainPage = new MainTabbedPage(kullanici);
+            var mainTabbedPage = new MainTabbedPage(kullanici);
+            MainPage = mainTabbedPage;
             // Başına Views. ekleyerek tam yolunu gösteriyoruz en üsste using kullandım alttakinin yerine
             //MainPage = new Views.MainTabbedPage(kullanici);
 
             // ModernAlertService'i yeni ana sayfaya bağla
-            ModernAlertService.Initialize(MainPage);
+            ModernAlertService.Initialize(mainTabbedPage);
+        }
+
+        protected override void OnStart()
+        {
+            // Eğer MainPage zaten bir şeyse ve Login değilse initialize et
+            if (MainPage is not LoginView)
+            {
+                ModernAlertService.Initialize(MainPage);
+            }
         }
     }
 }
