@@ -222,7 +222,7 @@ public partial class AddVehicleView : ContentPage
                 //await DisplayAlert("Başarılı", "Aracınız başarıyla eklendi.", "Tamam");
                 //ModernUyariGoster("Aracınız başarıyla kaydedildi.");
                 await ModernAlertService.ShowInfoAsync("Aracınız başarıyla kaydedildi.", "Başarılı");
-                //await Navigation.PopAsync();
+                await Navigation.PopAsync();
             }
             else
             {
@@ -235,9 +235,10 @@ public partial class AddVehicleView : ContentPage
         }
         catch (Exception ex)
         {
-            //ModernUyariGoster("Araç eklenirken bir sorun oluştu. " + ex.ToString());
-            await ModernAlertService.ShowInfoAsync("Araç eklenirken bir sorun oluştu. " + ex.ToString(), "Hata");
-        }
+            //ModernUyariGoster("Araç eklenirken bir sorun oluştu. " + ex.ToString()); await ModernAlertService.ShowInfoAsync("Araç eklenirken bir sorun oluştu. " + ex.ToString(), "Hata");
+            SaveButton.IsEnabled = true;      
+            SaveButton.Text = "ARACI KAYDET";
+    }
 
     }
 }

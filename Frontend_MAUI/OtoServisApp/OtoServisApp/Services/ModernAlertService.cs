@@ -9,56 +9,55 @@ public static class ModernAlertService
     private static ModernAlertView _alertView;
     private static Page _currentPage;
 
-    /// <summary>
-    /// Verilen sayfaya ModernAlertView'i ekler. Eğer daha önce başka bir sayfaya eklenmişse, oradan kaldırıp yenisine taşır.
-    /// </summary>
     public static void Initialize(Page page)
+    {
+        _currentPage = page;
+        if (_alertView != null) return;
+
+        _alertView = new ModernAlertView();
+        AttachToPage(page);
+    }
+
+    private static void AttachToPage(Page page)
     {
         if (page == null) return;
 
-        // Eğer alertView daha önce oluşturulmamışsa oluştur
-        if (_alertView == null)
-            _alertView = new ModernAlertView();
-
-        // Eğer aynı sayfaya zaten ekliyse tekrar ekleme
-        if (_currentPage == page) return;
-
-        // Önceki sayfadan kaldır
-        if (_currentPage is ContentPage oldContentPage)
+        if (page is ContentPage cp)
         {
-            var oldGrid = oldContentPage.Content as Grid;
-            if (oldGrid != null && oldGrid.Children.Contains(_alertView))
-                oldGrid.Children.Remove(_alertView);
+            var grid = cp.Content as Grid;
+            if (grid == null)
+            {
+                var oldContent = cp.Content;
+                grid = new Grid();
+                if (oldContent != null)
+                    grid.Children.Add(oldContent);
+                cp.Content = grid;
+            }
+            if (!grid.Children.Contains(_alertView))
+                grid.Children.Add(_alertView);
         }
-
-        // Yeni sayfaya ekle
-        if (page is ContentPage newContentPage)
+        else if (page is NavigationPage nav && nav.CurrentPage != null)
         {
-            var originalContent = newContentPage.Content;
-            var grid = new Grid();
-
-            if (originalContent != null)
-                grid.Children.Add(originalContent);
-
-            grid.Children.Add(_alertView);
-            newContentPage.Content = grid;
+            AttachToPage(nav.CurrentPage);
         }
-        else if (page is NavigationPage navPage && navPage.CurrentPage is ContentPage navCurrentPage)
+        else if (page is TabbedPage tab && tab.CurrentPage != null)
         {
-            Initialize(navCurrentPage);
+            AttachToPage(tab.CurrentPage);
         }
-        else if (page is TabbedPage tabbedPage && tabbedPage.CurrentPage is ContentPage tabCurrentPage)
-        {
-            Initialize(tabCurrentPage);
-        }
-
-        _currentPage = page;
     }
 
     public static Task<bool?> ShowAsync(string baslik, string mesaj, string butonTipi = "Tamam")
     {
         if (_alertView == null)
             throw new InvalidOperationException("ModernAlertService başlatılmamış. Lütfen App.xaml.cs içinde Initialize çağırın.");
+
+        // Sayfa değişmiş olabilir, kontrol et ve yeniden bağla
+        var currentPage = Application.Current?.MainPage;
+        if (currentPage != null && currentPage != _currentPage)
+        {
+            _currentPage = currentPage;
+            AttachToPage(currentPage);
+        }
 
         return _alertView.ShowAsync(baslik, mesaj, butonTipi);
     }

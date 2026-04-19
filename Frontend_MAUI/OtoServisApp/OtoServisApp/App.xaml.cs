@@ -42,10 +42,7 @@ namespace OtoServisApp
             navPage.BarTextColor = Colors.White;
             MainPage = navPage;
 
-            Microsoft.Maui.Controls.Application.Current.PageAppearing += (sender, e) =>
-            {
-                ModernAlertService.Initialize(Current.MainPage);
-            };
+            ModernAlertService.Initialize(MainPage);
 
             // UYGULAMA AÇIKKEN GELEN BİLDİRİMLERİ EKRANDA GÖSTERME KODU
             CrossFirebaseCloudMessaging.Current.NotificationReceived += (sender, args) =>
