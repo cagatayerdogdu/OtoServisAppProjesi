@@ -177,12 +177,11 @@ public partial class AddVehicleView : ContentPage
         // MADDE 83: Misafir kullanıcı kontrolü (ID = 0 ise engelle ve yönlendir)
         if (_aktifKullanici.id == 0)
         {
-            bool cevap = await DisplayAlert("Üyelik Gerekli",
+            bool? cevap = await ModernAlertService.ShowAsync("Üyelik Gerekli",
                 "Misafir kullanıcı olarak araç kaydedemezsiniz. Avantajlardan yararlanmak ve aracınızı takip edebilmek için lütfen üye olun veya giriş yapın.",
-                "Giriş Yap / Kayıt Ol",
-                "Vazgeç");
+                "EvetIptal");
 
-            if (cevap)
+            if (cevap == true)   // Evet'e tıklanmışsa
             {
                 // Kullanıcıyı en başa, yani Login (Giriş) ekranına fırlatıyoruz
                 await Navigation.PopToRootAsync();

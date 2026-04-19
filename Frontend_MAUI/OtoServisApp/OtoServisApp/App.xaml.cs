@@ -47,11 +47,8 @@ namespace OtoServisApp
             {
                 MainThread.BeginInvokeOnMainThread(async () =>
                 {
-                    // Uygulama açıkken bildirim gelirse ekrana pop-up olarak basar
-                    await Current.MainPage.DisplayAlert(
-                        args.Notification.Title,
-                        args.Notification.Body,
-                        "Tamam");
+                    // Uygulama açıkken bildirim gelirse modern uyarı ile göster
+                    await ModernAlertService.ShowInfoAsync(args.Notification.Body, args.Notification.Title);
                 });
             };
         }
