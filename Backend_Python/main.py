@@ -2179,7 +2179,6 @@ def dashboard_istatistik(db: Session = Depends(get_db)):
     
     
 # ----------------- VİTRİN YÖNETİMİ -----------------
-# ----------------- VİTRİN YÖNETİMİ -----------------
 @app.get("/vitrin", response_model=List[schemas.TamamlananIsResponse])
 def vitrin_listesi(db: Session = Depends(get_db)):
     return db.query(models.TamamlananIs).order_by(models.TamamlananIs.id.desc()).all()
@@ -2276,8 +2275,8 @@ async def vitrin_guncelle(
             image = Image.open(io.BytesIO(contents))
             if image.mode in ("RGBA", "P"):
                 image = image.convert("RGB")
-            image.thumbnail((1200, 1200))
-            image.save(dosya_yolu, "JPEG", quality=85)
+            image.thumbnail((1024, 1024))
+            image.save(dosya_yolu, "JPEG", quality=75, optimize=True, progressive=False)
 
             vitrin_is.resim_url = f"/VitrinImg/{dosya_adi}"
 
