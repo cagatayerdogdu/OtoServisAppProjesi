@@ -13,5 +13,18 @@ public class TamamlananIs
     public DateTime OlusturulmaTarihi { get; set; }
     public DateTime? GuncellemeTarihi { get; set; }
 
-    public string TamResimUrl => $"{ApiConfig.BaseUrl.TrimEnd('/')}{ResimUrl}";
+    //public string TamResimUrl => $"{ApiConfig.BaseUrl.TrimEnd('/')}{ResimUrl}";
+
+    public string TamResimUrl
+    {
+        get
+        {
+            if (string.IsNullOrEmpty(ResimUrl))
+                return string.Empty;
+
+            var baseUrl = ApiConfig.BaseUrl.TrimEnd('/');
+            var resimUrl = ResimUrl.StartsWith('/') ? ResimUrl : "/" + ResimUrl;
+            return baseUrl + resimUrl;
+        }
+    }
 }
