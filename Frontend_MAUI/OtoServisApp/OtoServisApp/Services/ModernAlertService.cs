@@ -129,6 +129,7 @@ public static class ModernAlertService
 
         throw new InvalidOperationException("Sayfa tipi ContentPage değil.");
     }
-    // Eski kodlar hata vermesin diye boş Initialize metodu											
+
+    // Eski kodlar hata vermesin diye boş Initialize metodu										
     public static void Initialize(Page page) { }
 }

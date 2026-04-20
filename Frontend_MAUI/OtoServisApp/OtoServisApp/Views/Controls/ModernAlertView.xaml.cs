@@ -11,6 +11,7 @@ public partial class ModernAlertView : ContentView
     public ModernAlertView()
     {
         InitializeComponent();
+        InputTransparent = false; // Arka plan tıklamalarını engelle
     }
 
     public Task<bool?> ShowAsync(string baslik, string mesaj, string butonTipi = "Tamam")
@@ -113,5 +114,10 @@ public partial class ModernAlertView : ContentView
     {
         IsVisible = false;
         _tcs?.TrySetResult(null);
+    }
+
+    private void OnBackgroundTapped(object sender, TappedEventArgs e)
+    {
+        // Boş bırakıyoruz, arka plana tıklamayı yut, hiçbir işlem yapma ve arka plana geçme.
     }
 }
