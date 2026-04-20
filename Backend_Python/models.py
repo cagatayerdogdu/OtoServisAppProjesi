@@ -214,3 +214,21 @@ class ServisTalebiFotograf(Base):
 
     # ServisTalebi modelinle ilişkilendirme (İleride çekmek istersen diye)
     talep = relationship("ServisTalebi", backref="fotograflar")
+    
+
+# ==============================================================================
+# TABLO: TAMAMLANAN İŞLER TABLOSU
+# ==============================================================================
+class TamamlananIs(Base):
+    __tablename__ = "tamamlanan_isler"
+    __table_args__ = {'comment': 'Ana sayfa vitrininde gösterilen tamamlanmış iş örnekleri.'}
+
+    id = Column(Integer, primary_key=True, index=True)
+    baslik = Column(String(150), nullable=False)
+    aciklama = Column(Text, nullable=False)
+    etiket = Column(String(50), nullable=False)   # Örn: "✨ Seramik Kaplama"
+    tarih = Column(String(50), nullable=False)    # "Mart 2026" gibi string saklanacak
+    resim_url = Column(String(500), nullable=False)  # Sunucudaki tam yolu veya URL
+
+    olusturulma_tarihi = Column(DateTime, server_default=func.now())
+    guncelleme_tarihi = Column(DateTime, onupdate=func.now())

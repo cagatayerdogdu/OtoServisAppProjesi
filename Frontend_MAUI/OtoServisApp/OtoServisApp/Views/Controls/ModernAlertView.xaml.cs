@@ -51,8 +51,8 @@ public partial class ModernAlertView : ContentView
 
                 case "SilVazgec":
                     ButonlarGrid.IsVisible = true;
-                    ButonEkle("Sil", true, isPositive: false);  // "Sil" olumsuz kategoride
-                    ButonEkle("Vazgeç", false, isPositive: false);
+                    ButonEkle("Sil", true, isPositive: false); // "Sil" olumsuz kategoride kırmızı
+                    ButonEkle("Vazgeç", false, isPositive: true);   // mavi
                     break;
             }
 

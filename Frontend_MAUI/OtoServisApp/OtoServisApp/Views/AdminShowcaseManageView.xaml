@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:helpers="clr-namespace:OtoServisApp.Helpers"
+             x:Class="OtoServisApp.Views.AdminShowcaseManageView"
+             Title="Vitrin Yönetimi"
+             BackgroundColor="#F4F6F8">
+
+    <Grid RowDefinitions="Auto, *, Auto" Padding="15">
+        <VerticalStackLayout Grid.Row="0" Spacing="10">
+            <Label Text="Tamamlanan İşler" FontSize="20" FontAttributes="Bold" TextColor="#2C3E50"/>
+            <Border BackgroundColor="#00BCD4" StrokeShape="RoundRectangle 8" HeightRequest="45" HorizontalOptions="Fill">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnYeniEkleTapped"/>
+                </Border.GestureRecognizers>
+                <Label Text="+ Yeni İş Ekle" TextColor="White" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center"/>
+            </Border>
+        </VerticalStackLayout>
+
+        <CollectionView Grid.Row="1" x:Name="VitrinListesi" Margin="0,10">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border BackgroundColor="White" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10" Margin="0,5">
+                        <Grid ColumnDefinitions="Auto, *, Auto" ColumnSpacing="10">
+                            <Image Grid.Column="0" Source="{Binding TamResimUrl}" WidthRequest="60" HeightRequest="60" Aspect="AspectFill">
+                                <Image.Clip>
+                                    <RoundRectangleGeometry Rect="0,0,60,60" CornerRadius="8"/>
+                                </Image.Clip>
+                            </Image>
+                            <VerticalStackLayout Grid.Column="1" Spacing="5" VerticalOptions="Center">
+                                <Label Text="{Binding Baslik}" FontAttributes="Bold" FontSize="16"/>
+                                <Label Text="{Binding Etiket}" FontSize="12" TextColor="#00BCD4"/>
+                                <Label Text="{Binding Tarih}" FontSize="12" TextColor="#7F8C8D"/>
+                            </VerticalStackLayout>
+                            <HorizontalStackLayout Grid.Column="2" Spacing="10" VerticalOptions="Center">
+                                <Border BackgroundColor="#F39C12" StrokeShape="RoundRectangle 6" Padding="10,5">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnDuzenleTapped" CommandParameter="{Binding .}"/>
+                                    </Border.GestureRecognizers>
+                                    <Label Text="Düzenle" TextColor="White" FontSize="12"/>
+                                </Border>
+                                <Border BackgroundColor="#E74C3C" StrokeShape="RoundRectangle 6" Padding="10,5">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnSilTapped" CommandParameter="{Binding .}"/>
+                                    </Border.GestureRecognizers>
+                                    <Label Text="Sil" TextColor="White" FontSize="12"/>
+                                </Border>
+                            </HorizontalStackLayout>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <Grid Grid.Row="2" x:Name="DuzenlemeFormu" IsVisible="False" BackgroundColor="White" Padding="15" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto" RowSpacing="10">
+            <Label Grid.Row="0" Text="İş Düzenle / Ekle" FontSize="18" FontAttributes="Bold"/>
+
+            <Entry Grid.Row="1" x:Name="BaslikEntry" Placeholder="Başlık" />
+            <Editor Grid.Row="2" x:Name="AciklamaEditor" Placeholder="Açıklama" HeightRequest="80" />
+            <Entry Grid.Row="3" x:Name="EtiketEntry" Placeholder="Etiket (örn: ✨ Seramik Kaplama)" />
+            <Entry Grid.Row="4" x:Name="TarihEntry" Placeholder="Tarih (örn: Mart 2026)" />
+
+            <HorizontalStackLayout Grid.Row="5" Spacing="10">
+                <Button x:Name="FotoSecButton" Text="📷 Galeriden Seç" Clicked="OnGaleridenSecClicked" BackgroundColor="#3498DB" TextColor="White"/>
+                <Button x:Name="KameraButton" Text="📸 Fotoğraf Çek" Clicked="OnKameraCekClicked" BackgroundColor="#2ECC71" TextColor="White"/>
+            </HorizontalStackLayout>
+
+            <Image Grid.Row="6" x:Name="SecilenFotoImage" HeightRequest="150" Aspect="AspectFill" BackgroundColor="#ECF0F1">
+                <Image.Clip>
+                    <RoundRectangleGeometry Rect="0,0,200,150" CornerRadius="10"/>
+                </Image.Clip>
+            </Image>
+
+            <HorizontalStackLayout Grid.Row="7" Spacing="10" HorizontalOptions="Center">
+                <Button x:Name="KaydetButton" Text="Kaydet" Clicked="OnKaydetClicked" BackgroundColor="#00BCD4" TextColor="White" WidthRequest="120"/>
+                <Button Text="İptal" Clicked="OnIptalClicked" BackgroundColor="#95A5A6" TextColor="White" WidthRequest="120"/>
+            </HorizontalStackLayout>
+        </Grid>
+
+        <Grid x:Name="LoadingOverlay" BackgroundColor="#CCFFFFFF" IsVisible="False" Grid.RowSpan="3">
+            <Border BackgroundColor="White" StrokeShape="RoundRectangle 15" Padding="30" HorizontalOptions="Center" VerticalOptions="Center">
+                <VerticalStackLayout Spacing="15">
+                    <ActivityIndicator IsRunning="True" Color="#00BCD4" />
+                    <Label Text="İşlem Yapılıyor..." FontSize="16" TextColor="#333"/>
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+    </Grid>
+</ContentPage>

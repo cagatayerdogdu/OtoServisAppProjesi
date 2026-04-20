@@ -149,3 +149,25 @@ class TalepAdminGuncelle(BaseModel):
     yeni_durum: str
     tahmini_tutar: float
     islem_yapan_id: Optional[int] = None # Adminin kim olduğunu anlamak için
+    
+
+# ==============================================================================
+# TABLO: TAMAMLANAN İŞLER ŞEMASI
+# ==============================================================================
+class TamamlananIsBase(BaseModel):
+    baslik: str
+    aciklama: str
+    etiket: str
+    tarih: str
+    resim_url: str
+
+class TamamlananIsCreate(TamamlananIsBase):
+    pass
+
+class TamamlananIsResponse(TamamlananIsBase):
+    id: int
+    olusturulma_tarihi: datetime
+    guncelleme_tarihi: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True

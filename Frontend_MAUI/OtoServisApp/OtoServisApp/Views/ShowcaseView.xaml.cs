@@ -1,4 +1,5 @@
 ﻿using OtoServisApp.Models;
+using OtoServisApp.Services;
 
 namespace OtoServisApp.Views;
 
@@ -12,8 +13,20 @@ public partial class ShowcaseView : ContentPage
         InitializeComponent();
     }
 
-    private void VerileriYukle()
+    private async void VerileriYukle()
     {
+        try
+        {
+            var apiService = new ApiService();
+            var vitrinListesi = await apiService.VitrinListesiGetirAsync();
+            ShowcaseCarousel.ItemsSource = vitrinListesi;
+        }
+        catch (Exception ex)
+        {
+            await ModernAlertService.ShowInfoAsync("Vitrin yüklenemedi: " + ex.Message, "Hata");
+        }
+
+        /* // Manuel gösterim
         var vitrinListesi = new List<TamamlananIs>
         {
             new TamamlananIs {
@@ -38,8 +51,8 @@ public partial class ShowcaseView : ContentPage
                 Tarih = "Aralık 2025"
             }
         };
-
         ShowcaseCarousel.ItemsSource = vitrinListesi;
+        */
     }
 
     protected override async void OnAppearing()

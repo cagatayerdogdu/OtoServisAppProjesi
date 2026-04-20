@@ -47,6 +47,10 @@ os.makedirs("HasarImg", exist_ok=True) # Klasör yoksa otomatik oluşturur
 app.mount("/HasarImg", StaticFiles(directory="HasarImg"), name="HasarImg") # Klasörü dışa açar # Fotoğrafları internetten (URL üzerinden) erişilebilir hale getiriyoruz
 #################
 
+# Vitrinimizin klasörü
+os.makedirs("VitrinImg", exist_ok=True)
+app.mount("/VitrinImg", StaticFiles(directory="VitrinImg"), name="VitrinImg")
+#################
 # Firebase Başlatma (Eğer yoksa main.py'nin üst kısımlarına ekle)
 if not firebase_admin._apps:
     # Firebase Console -> Proje Ayarları -> Hizmet Hesapları -> Yeni Özel Anahtar Oluştur diyerek indirdiğin JSON dosyasının adını buraya yaz:
@@ -2176,6 +2180,126 @@ def dashboard_istatistik(db: Session = Depends(get_db)):
         "toplam_talep": oto_talep + manuel_talep_ek,
         "toplam_arac": oto_arac + manuel_arac_ek
     }
+    
+    
+# ----------------- VİTRİN YÖNETİMİ -----------------
+@app.get("/vitrin", response_model=List[schemas.TamamlananIsResponse])
+def vitrin_listesi(db: Session = Depends(get_db)):
+    """Vitrinde gösterilecek tüm tamamlanan işleri getirir (en son eklenen başta)."""
+    isler = db.query(models.TamamlananIs).order_by(models.TamamlananIs.id.desc()).all()
+    return isler
+
+@app.post("/admin/vitrin", response_model=schemas.TamamlananIsResponse)
+async def vitrin_ekle(
+    baslik: str = Form(...),
+    aciklama: str = Form(...),
+    etiket: str = Form(...),
+    tarih: str = Form(...),
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    """Yeni bir vitrin öğesi ekler. Fotoğraf yüklenir, kaydedilir ve veritabanına yazılır."""
+    # Dosyayı kaydet
+    dosya_uzanti = os.path.splitext(file.filename)[1]
+    if not dosya_uzanti:
+        dosya_uzanti = ".jpg"
+    dosya_adi = f"vitrin_{uuid.uuid4().hex}{dosya_uzanti}"
+    dosya_yolu = os.path.join("VitrinImg", dosya_adi)
+
+    try:
+        contents = await file.read()
+        image = Image.open(io.BytesIO(contents))
+        if image.mode in ("RGBA", "P"):
+            image = image.convert("RGB")
+        image.thumbnail((1200, 1200))  # Vitrin için uygun boyut
+        image.save(dosya_yolu, "JPEG", quality=85)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Fotoğraf kaydedilemedi: {str(e)}")
+
+    resim_url = f"/VitrinImg/{dosya_adi}"
+    yeni_is = models.TamamlananIs(
+        baslik=baslik,
+        aciklama=aciklama,
+        etiket=etiket,
+        tarih=tarih,
+        resim_url=resim_url
+    )
+    db.add(yeni_is)
+    db.commit()
+    db.refresh(yeni_is)
+
+    log_kaydet(db, "Vitrin Ekleme", f"'{baslik}' vitrine eklendi.", "INFO")
+    return yeni_is
+
+@app.put("/admin/vitrin/{is_id}", response_model=schemas.TamamlananIsResponse)
+async def vitrin_guncelle(
+    is_id: int,
+    baslik: str = Form(...),
+    aciklama: str = Form(...),
+    etiket: str = Form(...),
+    tarih: str = Form(...),
+    file: Optional[UploadFile] = File(None),
+    db: Session = Depends(get_db)
+):
+    """Vitrin öğesini günceller. Yeni fotoğraf gelirse eskiyi siler."""
+    vitrin_is = db.query(models.TamamlananIs).filter(models.TamamlananIs.id == is_id).first()
+    if not vitrin_is:
+        raise HTTPException(status_code=404, detail="Vitrin öğesi bulunamadı")
+
+    vitrin_is.baslik = baslik
+    vitrin_is.aciklama = aciklama
+    vitrin_is.etiket = etiket
+    vitrin_is.tarih = tarih
+
+    if file:
+        # Eski dosyayı sil
+        if vitrin_is.resim_url.startswith("/VitrinImg/"):
+            eski_dosya = os.path.join("VitrinImg", os.path.basename(vitrin_is.resim_url))
+            if os.path.exists(eski_dosya):
+                os.remove(eski_dosya)
+
+        # Yeni dosyayı kaydet
+        dosya_uzanti = os.path.splitext(file.filename)[1] or ".jpg"
+        dosya_adi = f"vitrin_{uuid.uuid4().hex}{dosya_uzanti}"
+        dosya_yolu = os.path.join("VitrinImg", dosya_adi)
+        try:
+            contents = await file.read()
+            image = Image.open(io.BytesIO(contents))
+            if image.mode in ("RGBA", "P"):
+                image = image.convert("RGB")
+            image.thumbnail((1200, 1200))
+            image.save(dosya_yolu, "JPEG", quality=85)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Fotoğraf güncellenemedi: {str(e)}")
+
+        vitrin_is.resim_url = f"/VitrinImg/{dosya_adi}"
+
+    db.commit()
+    db.refresh(vitrin_is)
+
+    log_kaydet(db, "Vitrin Güncelleme", f"'{baslik}' güncellendi.", "INFO")
+    return vitrin_is
+
+@app.delete("/admin/vitrin/{is_id}")
+def vitrin_sil(is_id: int, db: Session = Depends(get_db)):
+    """Vitrin öğesini ve ilişkili fotoğrafı siler."""
+    vitrin_is = db.query(models.TamamlananIs).filter(models.TamamlananIs.id == is_id).first()
+    if not vitrin_is:
+        raise HTTPException(status_code=404, detail="Vitrin öğesi bulunamadı")
+
+    # Dosyayı sil
+    if vitrin_is.resim_url.startswith("/VitrinImg/"):
+        dosya_yolu = os.path.join("VitrinImg", os.path.basename(vitrin_is.resim_url))
+        if os.path.exists(dosya_yolu):
+            os.remove(dosya_yolu)
+
+    db.delete(vitrin_is)
+    db.commit()
+    log_kaydet(db, "Vitrin Silme", f"'{vitrin_is.baslik}' vitrinden kaldırıldı.", "WARNING")
+    return {"mesaj": "Vitrin öğesi silindi"}
+#################################################################
+
+
 
 #################################################################
 ######################### ADMİN PANELİ ##########################

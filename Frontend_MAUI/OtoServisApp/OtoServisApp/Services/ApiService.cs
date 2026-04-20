@@ -958,6 +958,66 @@ namespace OtoServisApp.Services
             public int toplam_kayit { get; set; }
         }
 
+        /*********************************/
+        /****** Vitrinimiz Başlangıç *****/
+        /*********************************/
+        public async Task<List<TamamlananIs>> VitrinListesiGetirAsync()
+        {
+            try
+            {
+                return await _httpClient.GetFromJsonAsync<List<TamamlananIs>>("/vitrin") ?? new List<TamamlananIs>();
+            }
+            catch
+            {
+                return new List<TamamlananIs>();
+            }
+        }
+
+        public async Task<TamamlananIs> VitrinEkleAsync(string baslik, string aciklama, string etiket, string tarih, Stream fotoStream, string fotoDosyaAdi)
+        {
+            using var content = new MultipartFormDataContent();
+            content.Add(new StringContent(baslik), "baslik");
+            content.Add(new StringContent(aciklama), "aciklama");
+            content.Add(new StringContent(etiket), "etiket");
+            content.Add(new StringContent(tarih), "tarih");
+
+            var streamContent = new StreamContent(fotoStream);
+            streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/jpeg");
+            content.Add(streamContent, "file", fotoDosyaAdi);
+
+            var response = await _httpClient.PostAsync("/admin/vitrin", content);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<TamamlananIs>();
+        }
+
+        public async Task<TamamlananIs> VitrinGuncelleAsync(int id, string baslik, string aciklama, string etiket, string tarih, Stream? fotoStream = null, string? fotoDosyaAdi = null)
+        {
+            using var content = new MultipartFormDataContent();
+            content.Add(new StringContent(baslik), "baslik");
+            content.Add(new StringContent(aciklama), "aciklama");
+            content.Add(new StringContent(etiket), "etiket");
+            content.Add(new StringContent(tarih), "tarih");
+
+            if (fotoStream != null && !string.IsNullOrEmpty(fotoDosyaAdi))
+            {
+                var streamContent = new StreamContent(fotoStream);
+                streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/jpeg");
+                content.Add(streamContent, "file", fotoDosyaAdi);
+            }
+
+            var response = await _httpClient.PutAsync($"/admin/vitrin/{id}", content);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<TamamlananIs>();
+        }
+
+        public async Task<bool> VitrinSilAsync(int id)
+        {
+            var response = await _httpClient.DeleteAsync($"/admin/vitrin/{id}");
+            return response.IsSuccessStatusCode;
+        }
+
+        /****** Vitrinimiz Bitişi *****/
+
 
     } /* En Dıştaki public class ApiService bitişi */
 

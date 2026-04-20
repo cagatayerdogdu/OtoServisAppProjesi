@@ -94,6 +94,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <MauiXaml Update="Views\AdminShowcaseManageView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Update="Views\Controls\ModernAlertView.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
