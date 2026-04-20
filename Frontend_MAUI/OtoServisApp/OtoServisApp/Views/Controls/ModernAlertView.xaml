@@ -7,10 +7,8 @@
              InputTransparent="False"
              ZIndex="9999">
 
-    <!-- Arka plan tıklaması ile kapanmasını istemiyorsak InputTransparent="True" yapmıyoruz -->
     <Grid>
         <Border BackgroundColor="White"
-                Stroke="Transparent"
                 StrokeThickness="0"
                 StrokeShape="RoundRectangle 20"
                 Padding="25,20"
@@ -18,12 +16,9 @@
                 VerticalOptions="Center"
                 WidthRequest="320"
                 InputTransparent="False">
-            <Border.Shadow>
-                <Shadow Brush="#40000000" Offset="0,5" Radius="15" Opacity="0.4"/>
-            </Border.Shadow>
+            <!-- Gölge tamamen kaldırıldı -->
 
             <VerticalStackLayout Spacing="15" InputTransparent="False">
-                <!-- Başlık -->
                 <Label x:Name="BaslikLabel" 
                        Text="Başlık" 
                        FontSize="20" 
@@ -33,7 +28,6 @@
                        IsVisible="False"
                        InputTransparent="True"/>
 
-                <!-- Mesaj -->
                 <Label x:Name="MesajLabel" 
                        Text="Mesaj içeriği burada görünecek." 
                        FontSize="15" 
@@ -42,7 +36,6 @@
                        LineBreakMode="WordWrap"
                        InputTransparent="True"/>
 
-                <!-- Butonlar Grid'i -->
                 <Grid x:Name="ButonlarGrid" 
                       ColumnDefinitions="*, *" 
                       ColumnSpacing="10" 
@@ -50,10 +43,8 @@
                       IsVisible="False"
                       InputTransparent="False"/>
 
-                <!-- Tek buton (Tamam) için ayrı Border -->
                 <Border x:Name="TekButonBorder" 
                         BackgroundColor="#00BCD4" 
-                        Stroke="Transparent" 
                         StrokeThickness="0" 
                         StrokeShape="RoundRectangle 10" 
                         HeightRequest="45" 

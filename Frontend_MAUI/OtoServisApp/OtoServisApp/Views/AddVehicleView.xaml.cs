@@ -193,7 +193,7 @@ public partial class AddVehicleView : ContentPage
             string.IsNullOrEmpty(YearEntry.Text) || string.IsNullOrEmpty(KmEntry.Text))
         {
             //await DisplayAlert("Uyarı", "Lütfen tüm bilgileri eksiksiz doldurun.", "Tamam");
-            await ModernAlertService.ShowInfoAsync("Uyarı!", "Lütfen tüm bilgileri eksiksiz doldurun.");
+            await ModernAlertService.ShowInfoAsync("Lütfen tüm bilgileri eksiksiz doldurun.", "Uyarı!");
             return;
         }
 
@@ -228,7 +228,7 @@ public partial class AddVehicleView : ContentPage
             {
                 //await DisplayAlert("Hata", "Araç eklenirken bir sorun oluştu.", "Tamam");
                 //ModernUyariGoster("Hata");
-                await ModernAlertService.ShowInfoAsync("Hata!", "Araç eklenirken bir sorun oluştu.");
+                await ModernAlertService.ShowInfoAsync("Araç eklenirken bir sorun oluştu.", "Hata!");
                 SaveButton.IsEnabled = true;
                 SaveButton.Text = "ARACI KAYDET";
             }

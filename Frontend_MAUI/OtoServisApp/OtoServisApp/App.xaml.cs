@@ -55,7 +55,7 @@ namespace OtoServisApp
             };
 
             // Uygulama başlangıcında SecureStorage anahtarlarını kontrol et ve bozuksa temizle
-            Task.Run(async () => await SecureStorageHelper.CleanupCorruptedKeysAsync());
+            //Task.Run(async () => await SecureStorageHelper.CleanupCorruptedKeysAsync());
         }
         /*
         private void LogException(Exception ex, string type)
