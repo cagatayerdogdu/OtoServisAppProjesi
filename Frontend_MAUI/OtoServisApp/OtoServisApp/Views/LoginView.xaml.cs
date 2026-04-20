@@ -189,13 +189,26 @@ public partial class LoginView : ContentPage
         }
 #endif
 
-        // Cihazın şifreli kasasına bakıyoruz, kayıt var mı?
-        string kayitliEposta = await SecureStorage.Default.GetAsync("kayitli_eposta");
-        string kayitliSifre = await SecureStorage.Default.GetAsync("kayitli_sifre");
+        // --- GÜVENLİ SECURESTORAGE OKUMA (ÇÖKME KORUMALI) ---
+        string kayitliEposta = null;
+        string kayitliSifre = null;
+
+        try
+        {
+            // Cihazın şifreli kasasına bakıyoruz, kayıt var mı?
+            kayitliEposta = await SecureStorage.Default.GetAsync("kayitli_eposta");
+            kayitliSifre = await SecureStorage.Default.GetAsync("kayitli_sifre");
+        }
+        catch (Exception ex)
+        {
+            // Şifre çözme hatası (AEADBadTagException vb.) olursa depolanmış verileri temizle ve devam et
+            System.Diagnostics.Debug.WriteLine($"SecureStorage okuma hatası: {ex.Message}");
+            SecureStorage.Default.Remove("kayitli_eposta");
+            SecureStorage.Default.Remove("kayitli_sifre");
+        }
 
         if (!string.IsNullOrEmpty(kayitliEposta) && !string.IsNullOrEmpty(kayitliSifre))
         {
-            // Veri varsa kutuları doldur ve SESSİZCE giriş yap
             EmailEntry.Text = kayitliEposta;
             PasswordEntry.Text = kayitliSifre;
             BeniHatirlaCheckBox.IsChecked = true;
