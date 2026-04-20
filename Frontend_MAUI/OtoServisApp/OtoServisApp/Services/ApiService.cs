@@ -90,9 +90,10 @@ namespace OtoServisApp.Services
                     throw new Exception(temizMesaj);
                 }
             }
-            catch (HttpRequestException)
+            catch (HttpRequestException httpEx)
             {
-                throw new Exception("Sunucuya ulaşılamıyor. Lütfen internet bağlantınızı kontrol edin.");
+                Debug.WriteLine($"HTTP Hatası: {httpEx.Message}");
+                throw new Exception($"Sunucuya ulaşılamıyor. Lütfen internet bağlantınızı kontrol edin. Hata: {httpEx.Message}\");");
             }
             catch (Exception ex)
             {

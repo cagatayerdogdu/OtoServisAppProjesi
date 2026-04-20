@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, APIRouter
+from fastapi import FastAPI, Depends, HTTPException, APIRouter, Form, UploadFile, File
 from sqlalchemy.orm import Session
 import models, schemas
 from database import engine, get_db
@@ -33,7 +33,6 @@ import os
 import io
 import uuid
 from PIL import Image
-from fastapi import UploadFile, File
 from fastapi.staticfiles import StaticFiles
 
 ##########
