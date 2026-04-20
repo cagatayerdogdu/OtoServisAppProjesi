@@ -2,6 +2,7 @@
 using OtoServisApp.Services;
 using Microsoft.Maui.Media;
 using Microsoft.Maui.Storage;
+using System.Globalization;
 
 namespace OtoServisApp.Views;
 
@@ -189,9 +190,10 @@ public partial class AdminShowcaseManageView : ContentPage
     }
 
     private async void OnKaydetTapped(object sender, TappedEventArgs e)
-    {
-        // Açıklamayı otomatik büyük harf yap
-        AciklamaEditor.Text = AciklamaEditor.Text?.ToUpperInvariant();
+    {   
+        // Türkçe karakter desteği ile büyük harf yap
+        BaslikEntry.Text = BaslikEntry.Text?.ToUpper(new CultureInfo("tr-TR"));
+        AciklamaEditor.Text = AciklamaEditor.Text?.ToUpper(new CultureInfo("tr-TR"));
 
         // Başlık ve açıklama zorunlu
         if (string.IsNullOrWhiteSpace(BaslikEntry.Text) || string.IsNullOrWhiteSpace(AciklamaEditor.Text))
