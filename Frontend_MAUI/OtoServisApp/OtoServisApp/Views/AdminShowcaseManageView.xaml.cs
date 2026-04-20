@@ -90,8 +90,8 @@ public partial class AdminShowcaseManageView : ContentPage
     private void OnYeniEkleTapped(object sender, TappedEventArgs e)
     {
         _duzenlenenOge = null;
+        BaslikEntry.Text = AciklamaEditor.Text = "";
         TarihEntry.Text = DateTime.Now.ToString("MMMM yyyy", new System.Globalization.CultureInfo("tr-TR"));
-        BaslikEntry.Text = AciklamaEditor.Text = TarihEntry.Text = "";
         HizmetPicker.SelectedIndex = -1;
         _seciliFotografStream?.Dispose();
         _seciliFotografStream = null;
@@ -190,11 +190,21 @@ public partial class AdminShowcaseManageView : ContentPage
 
     private async void OnKaydetTapped(object sender, TappedEventArgs e)
     {
-        if (string.IsNullOrWhiteSpace(BaslikEntry.Text) || string.IsNullOrWhiteSpace(AciklamaEditor.Text) || string.IsNullOrWhiteSpace(TarihEntry.Text))
+        // Başlık ve açıklama zorunlu
+        if (string.IsNullOrWhiteSpace(BaslikEntry.Text) || string.IsNullOrWhiteSpace(AciklamaEditor.Text))
         {
-            await ModernAlertService.ShowInfoAsync("Başlık, açıklama ve tarih zorunludur.", "Uyarı");
+            await ModernAlertService.ShowInfoAsync("Başlık ve açıklama zorunludur.", "Uyarı");
             return;
         }
+
+        // Tarih boş ise otomatik ata
+        string tarih = TarihEntry.Text?.Trim();
+        if (string.IsNullOrWhiteSpace(tarih))
+        {
+            tarih = DateTime.Now.ToString("MMMM yyyy", new System.Globalization.CultureInfo("tr-TR"));
+            TarihEntry.Text = tarih;
+        }
+
         if (_duzenlenenOge == null && _seciliFotografStream == null)
         {
             await ModernAlertService.ShowInfoAsync("Lütfen bir fotoğraf seçin veya çekin.", "Uyarı");
@@ -215,17 +225,16 @@ public partial class AdminShowcaseManageView : ContentPage
 
         try
         {
-            if (_seciliFotografStream != null)
-                _seciliFotografStream.Position = 0;
+            if (_seciliFotografStream != null) _seciliFotografStream.Position = 0;
 
             if (_duzenlenenOge == null)
             {
-                await _apiService.VitrinEkleAsync(BaslikEntry.Text, AciklamaEditor.Text, etiket, TarihEntry.Text, secilenHizmet.id, _seciliFotografStream!, _seciliFotografDosyaAdi ?? "foto.jpg");
+                await _apiService.VitrinEkleAsync(BaslikEntry.Text, AciklamaEditor.Text, etiket, tarih, secilenHizmet.id, _seciliFotografStream!, _seciliFotografDosyaAdi ?? "foto.jpg");
                 await ModernAlertService.ShowInfoAsync("İş başarıyla eklendi.", "Başarılı");
             }
             else
             {
-                await _apiService.VitrinGuncelleAsync(_duzenlenenOge.Id, BaslikEntry.Text, AciklamaEditor.Text, etiket, TarihEntry.Text, secilenHizmet.id, _seciliFotografStream, _seciliFotografDosyaAdi);
+                await _apiService.VitrinGuncelleAsync(_duzenlenenOge.Id, BaslikEntry.Text, AciklamaEditor.Text, etiket, tarih, secilenHizmet.id, _seciliFotografStream, _seciliFotografDosyaAdi);
                 await ModernAlertService.ShowInfoAsync("İş başarıyla güncellendi.", "Başarılı");
             }
 
@@ -251,17 +260,79 @@ public partial class AdminShowcaseManageView : ContentPage
         _seciliFotografStream?.Dispose();
         _seciliFotografStream = null;
     }
-
+    
     private string GetIconForHizmet(string hizmetAd)
     {
+        // PERİYODİK BAKIM VE SIVILAR
         if (hizmetAd.Contains("Periyodik") || hizmetAd.Contains("Bakım")) return "🔧";
-        if (hizmetAd.Contains("Fren")) return "🛑";
-        if (hizmetAd.Contains("Motor")) return "⚙️";
-        if (hizmetAd.Contains("Seramik") || hizmetAd.Contains("Kaplama")) return "✨";
-        if (hizmetAd.Contains("Temiz")) return "🧼";
-        if (hizmetAd.Contains("Klima")) return "❄️";
-        if (hizmetAd.Contains("Amortisör") || hizmetAd.Contains("Süspansiyon")) return "🚗";
-        if (hizmetAd.Contains("Akü") || hizmetAd.Contains("Elektrik")) return "🔋";
+        if (hizmetAd.Contains("Kışlık")) return "❄️";
+        if (hizmetAd.Contains("Yazlık")) return "☀️";
+        if (hizmetAd.Contains("Ağır Bakım") || hizmetAd.Contains("Triger")) return "⚙️";
+        if (hizmetAd.Contains("Motor Yağı")) return "🛢️";
+        if (hizmetAd.Contains("Antifriz")) return "🧊";
+        if (hizmetAd.Contains("Fren Hidroliği")) return "🛑";
+        if (hizmetAd.Contains("Direksiyon Hidroliği")) return "🚗";
+        if (hizmetAd.Contains("Cam Suyu") || hizmetAd.Contains("Silecek")) return "💧";
+        if (hizmetAd.Contains("Ekspertiz") || hizmetAd.Contains("Check-Up")) return "🔍";
+
+        // FREN SİSTEMİ
+        if (hizmetAd.Contains("Fren Balata")) return "🛑";
+        if (hizmetAd.Contains("Fren Disk")) return "🛞";
+        if (hizmetAd.Contains("Fren Kaliper")) return "🔧";
+        if (hizmetAd.Contains("Fren Merkezi")) return "🧰";
+        if (hizmetAd.Contains("Fren Hortumu")) return "🛠️";
+        if (hizmetAd.Contains("ABS Sensörü")) return "📡";
+        if (hizmetAd.Contains("ABS Beyni")) return "🧠";
+        if (hizmetAd.Contains("El Freni Teli")) return "🅿️";
+
+        // MOTOR VE MEKANİK
+        if (hizmetAd.Contains("Buji")) return "🔥";
+        if (hizmetAd.Contains("Kızdırma Bujisi")) return "🌡️";
+        if (hizmetAd.Contains("Ateşleme Bobini")) return "⚡";
+        if (hizmetAd.Contains("DPF") || hizmetAd.Contains("Partikül")) return "💨";
+        if (hizmetAd.Contains("EGR")) return "🌫️";
+        if (hizmetAd.Contains("Enjektör")) return "💉";
+        if (hizmetAd.Contains("Motor Takozu")) return "🪨";
+        if (hizmetAd.Contains("Turbo")) return "🌀";
+        if (hizmetAd.Contains("Silindir Kapak Contası")) return "🧱";
+        if (hizmetAd.Contains("Termostat")) return "🌡️";
+        if (hizmetAd.Contains("Radyatör")) return "🧊";
+        if (hizmetAd.Contains("Su Pompası") || hizmetAd.Contains("Devirdaim")) return "💦";
+        if (hizmetAd.Contains("Yağ Kaçağı")) return "🛢️";
+        if (hizmetAd.Contains("Katalitik")) return "♻️";
+        if (hizmetAd.Contains("Boğaz Kelebeği")) return "🦋";
+
+        // ŞANZIMAN VE DEBRİYAJ
+        if (hizmetAd.Contains("Baskı Balata") || hizmetAd.Contains("Debriyaj")) return "⚙️";
+        if (hizmetAd.Contains("Otomatik Şanzıman")) return "🔄";
+        if (hizmetAd.Contains("DSG") || hizmetAd.Contains("EDC")) return "⚙️";
+        if (hizmetAd.Contains("Mekatronik")) return "🧠";
+        if (hizmetAd.Contains("Aks Lalesi") || hizmetAd.Contains("Körük")) return "🛞";
+
+        // ALT TAKIM VE SÜSPANSİYON
+        if (hizmetAd.Contains("Amortisör")) return "🚗";
+        if (hizmetAd.Contains("Z Rot")) return "🔩";
+        if (hizmetAd.Contains("Rotil") || hizmetAd.Contains("Rot Başı")) return "🔧";
+        if (hizmetAd.Contains("Salıncak") || hizmetAd.Contains("Tabla")) return "🛠️";
+        if (hizmetAd.Contains("Tekerlek Rulmanı") || hizmetAd.Contains("Porya")) return "🛞";
+        if (hizmetAd.Contains("Helezon Yayı")) return "〰️";
+        if (hizmetAd.Contains("Direksiyon Kutusu")) return "🚗";
+        if (hizmetAd.Contains("Rot Balans")) return "🎯";
+        if (hizmetAd.Contains("Amortisör Takozu")) return "🔩";
+
+        // ELEKTRİK, ELEKTRONİK VE İKLİMLENDİRME
+        if (hizmetAd.Contains("Akü")) return "🔋";
+        if (hizmetAd.Contains("Şarj Dinamosu") || hizmetAd.Contains("Alternatör")) return "⚡";
+        if (hizmetAd.Contains("Marş Dinamosu")) return "🔑";
+        if (hizmetAd.Contains("Klima Gazı")) return "❄️";
+        if (hizmetAd.Contains("Klima Kompresör")) return "🌀";
+        if (hizmetAd.Contains("Kalorifer Peteği")) return "🔥";
+        if (hizmetAd.Contains("Far Ampulü") || hizmetAd.Contains("Xenon")) return "💡";
+        if (hizmetAd.Contains("Far Temizliği")) return "✨";
+        if (hizmetAd.Contains("Sigorta") || hizmetAd.Contains("Tesisat")) return "🔌";
+        if (hizmetAd.Contains("ECU") || hizmetAd.Contains("Yazılım")) return "💻";
+
+        // Genel
         return "🛠️";
     }
 }

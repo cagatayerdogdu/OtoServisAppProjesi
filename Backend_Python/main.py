@@ -29,12 +29,9 @@ from pydantic import BaseModel
 from sqlalchemy import nullsfirst  
 from fastapi.responses import HTMLResponse
 # hasarlı resim ekleme importları
-import os
-import io
-import uuid
+import io, os, uuid
 from PIL import Image
 from fastapi.staticfiles import StaticFiles
-
 ##########
 
 models.Base.metadata.create_all(bind=engine)
@@ -2197,37 +2194,48 @@ async def vitrin_ekle(
     file: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
-    zaman_damgasi = datetime.now().strftime("%Y_%m_%d_%H%M_%S_%f")[:-3]
-    dosya_uzanti = os.path.splitext(file.filename)[1]
-    if not dosya_uzanti:
-        dosya_uzanti = ".jpg"
-    dosya_adi = f"vitrin_{zaman_damgasi}{dosya_uzanti}"
-    dosya_yolu = os.path.join("VitrinImg", dosya_adi)
-
     try:
+        # Klasör kontrolü
+        os.makedirs("VitrinImg", exist_ok=True)
+
+        # Dosya adı oluştur
+        zaman_damgasi = datetime.now().strftime("%Y_%m_%d_%H%M_%S_%f")[:-3]
+        dosya_uzanti = os.path.splitext(file.filename)[1]
+        if not dosya_uzanti:
+            dosya_uzanti = ".jpg"
+        dosya_adi = f"vitrin_{zaman_damgasi}{dosya_uzanti}"
+        dosya_yolu = os.path.join("VitrinImg", dosya_adi)
+
+        # Resmi işle ve kaydet
         contents = await file.read()
         image = Image.open(io.BytesIO(contents))
         if image.mode in ("RGBA", "P"):
             image = image.convert("RGB")
         image.thumbnail((1200, 1200))
         image.save(dosya_yolu, "JPEG", quality=85)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Fotoğraf kaydedilemedi: {str(e)}")
 
-    resim_url = f"/VitrinImg/{dosya_adi}"
-    yeni_is = models.TamamlananIs(
-        baslik=baslik,
-        aciklama=aciklama,
-        etiket=etiket,
-        tarih=tarih,
-        resim_url=resim_url,
-        hizmet_id=hizmet_id
-    )
-    db.add(yeni_is)
-    db.commit()
-    db.refresh(yeni_is)
-    log_kaydet(db, "Vitrin Ekleme", f"'{baslik}' vitrine eklendi.", "INFO")
-    return yeni_is
+        # Veritabanına kaydet
+        resim_url = f"/VitrinImg/{dosya_adi}"
+        yeni_is = models.TamamlananIs(
+            baslik=baslik,
+            aciklama=aciklama,
+            etiket=etiket,
+            tarih=tarih,
+            resim_url=resim_url,
+            hizmet_id=hizmet_id
+        )
+        db.add(yeni_is)
+        db.commit()
+        db.refresh(yeni_is)
+
+        log_kaydet(db, "Vitrin Ekleme", f"'{baslik}' vitrine eklendi.", "INFO")
+        return yeni_is
+
+    except Exception as e:
+        db.rollback()
+        # Hata detayını logla
+        print(f"Vitrin ekleme hatası: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Fotoğraf kaydedilirken hata oluştu: {str(e)}")
 
 @app.put("/admin/vitrin/{is_id}", response_model=schemas.TamamlananIsResponse)
 async def vitrin_guncelle(
@@ -2240,43 +2248,48 @@ async def vitrin_guncelle(
     file: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db)
 ):
-    vitrin_is = db.query(models.TamamlananIs).filter(models.TamamlananIs.id == is_id).first()
-    if not vitrin_is:
-        raise HTTPException(status_code=404, detail="Vitrin öğesi bulunamadı")
+    try:
+        vitrin_is = db.query(models.TamamlananIs).filter(models.TamamlananIs.id == is_id).first()
+        if not vitrin_is:
+            raise HTTPException(status_code=404, detail="Vitrin öğesi bulunamadı")
 
-    vitrin_is.baslik = baslik
-    vitrin_is.aciklama = aciklama
-    vitrin_is.etiket = etiket
-    vitrin_is.tarih = tarih
-    vitrin_is.hizmet_id = hizmet_id
+        vitrin_is.baslik = baslik
+        vitrin_is.aciklama = aciklama
+        vitrin_is.etiket = etiket
+        vitrin_is.tarih = tarih
+        vitrin_is.hizmet_id = hizmet_id
 
-    if file and file.filename:
-        if vitrin_is.resim_url.startswith("/VitrinImg/"):
-            eski_dosya = os.path.join("VitrinImg", os.path.basename(vitrin_is.resim_url))
-            if os.path.exists(eski_dosya):
-                os.remove(eski_dosya)
+        if file and file.filename:
+            # Eski dosyayı sil
+            if vitrin_is.resim_url.startswith("/VitrinImg/"):
+                eski_dosya = os.path.join("VitrinImg", os.path.basename(vitrin_is.resim_url))
+                if os.path.exists(eski_dosya):
+                    os.remove(eski_dosya)
 
-        zaman_damgasi = datetime.now().strftime("%Y_%m_%d_%H%M_%S_%f")[:-3]
-        dosya_uzanti = os.path.splitext(file.filename)[1] or ".jpg"
-        dosya_adi = f"vitrin_{zaman_damgasi}{dosya_uzanti}"
-        dosya_yolu = os.path.join("VitrinImg", dosya_adi)
+            # Yeni dosyayı kaydet
+            zaman_damgasi = datetime.now().strftime("%Y_%m_%d_%H%M_%S_%f")[:-3]
+            dosya_uzanti = os.path.splitext(file.filename)[1] or ".jpg"
+            dosya_adi = f"vitrin_{zaman_damgasi}{dosya_uzanti}"
+            dosya_yolu = os.path.join("VitrinImg", dosya_adi)
 
-        try:
             contents = await file.read()
             image = Image.open(io.BytesIO(contents))
             if image.mode in ("RGBA", "P"):
                 image = image.convert("RGB")
             image.thumbnail((1200, 1200))
             image.save(dosya_yolu, "JPEG", quality=85)
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Fotoğraf güncellenemedi: {str(e)}")
 
-        vitrin_is.resim_url = f"/VitrinImg/{dosya_adi}"
+            vitrin_is.resim_url = f"/VitrinImg/{dosya_adi}"
 
-    db.commit()
-    db.refresh(vitrin_is)
-    log_kaydet(db, "Vitrin Güncelleme", f"'{baslik}' güncellendi.", "INFO")
-    return vitrin_is
+        db.commit()
+        db.refresh(vitrin_is)
+        log_kaydet(db, "Vitrin Güncelleme", f"'{baslik}' güncellendi.", "INFO")
+        return vitrin_is
+
+    except Exception as e:
+        db.rollback()
+        print(f"Vitrin güncelleme hatası: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Güncelleme sırasında hata oluştu: {str(e)}")
 
 @app.delete("/admin/vitrin/{is_id}")
 def vitrin_sil(is_id: int, db: Session = Depends(get_db)):
