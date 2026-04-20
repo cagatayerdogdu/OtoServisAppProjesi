@@ -13,65 +13,65 @@ public partial class ModernAlertView : ContentView
         InitializeComponent();
     }
 
-    /// <summary>
-    /// Uyarıyı gösterir.
-    /// </summary>
-    /// <param name="baslik">Başlık (null verilirse gösterilmez)</param>
-    /// <param name="mesaj">Mesaj</param>
-    /// <param name="butonTipi">"Tamam", "EvetHayir", "EvetIptal", "SilVazgec"</param>
-    /// <returns>True (Evet/Sil), False (Hayır/Vazgeç) veya null (Tamam)</returns>
     public Task<bool?> ShowAsync(string baslik, string mesaj, string butonTipi = "Tamam")
     {
-        // Önceki işlem varsa temizle
-        _tcs?.TrySetCanceled();
-        _tcs = new TaskCompletionSource<bool?>();
-
-        // Başlık
-        if (!string.IsNullOrEmpty(baslik))
+        try
         {
-            BaslikLabel.Text = baslik;
-            BaslikLabel.IsVisible = true;
+            _tcs?.TrySetCanceled();
+            _tcs = new TaskCompletionSource<bool?>();
+
+            // Başlık
+            if (!string.IsNullOrEmpty(baslik))
+            {
+                BaslikLabel.Text = baslik;
+                BaslikLabel.IsVisible = true;
+            }
+            else
+            {
+                BaslikLabel.IsVisible = false;
+            }
+
+            MesajLabel.Text = mesaj;
+
+            // Butonları hazırla
+            TekButonBorder.IsVisible = false;
+            ButonlarGrid.IsVisible = false;
+            ButonlarGrid.Children.Clear();
+
+            switch (butonTipi)
+            {
+                case "Tamam":
+                    TekButonBorder.IsVisible = true;
+                    TekButonLabel.Text = "Tamam";
+                    break;
+
+                case "EvetHayir":
+                    ButonlarGrid.IsVisible = true;
+                    ButonEkle("Evet", true, "#4CAF50");
+                    ButonEkle("Hayır", false, "#F44336");
+                    break;
+
+                case "EvetIptal":
+                    ButonlarGrid.IsVisible = true;
+                    ButonEkle("Evet", true, "#4CAF50");
+                    ButonEkle("İptal", null, "#9E9E9E");
+                    break;
+
+                case "SilVazgec":
+                    ButonlarGrid.IsVisible = true;
+                    ButonEkle("Sil", true, "#F44336");
+                    ButonEkle("Vazgeç", false, "#9E9E9E");
+                    break;
+            }
+
+            IsVisible = true;
+            return _tcs.Task;
         }
-        else
+        catch (Exception ex)
         {
-            BaslikLabel.IsVisible = false;
+            System.Diagnostics.Debug.WriteLine($"ModernAlertView Hatası: {ex.Message}");
+            return Task.FromResult<bool?>(null);
         }
-
-        MesajLabel.Text = mesaj;
-
-        // Butonları hazırla
-        TekButonBorder.IsVisible = false;
-        ButonlarGrid.IsVisible = false;
-        ButonlarGrid.Children.Clear();
-
-        switch (butonTipi)
-        {
-            case "Tamam":
-                TekButonBorder.IsVisible = true;
-                TekButonLabel.Text = "Tamam";
-                break;
-
-            case "EvetHayir":
-                ButonlarGrid.IsVisible = true;
-                ButonEkle("Evet", true, "#4CAF50");
-                ButonEkle("Hayır", false, "#F44336");
-                break;
-
-            case "EvetIptal":
-                ButonlarGrid.IsVisible = true;
-                ButonEkle("Evet", true, "#4CAF50");
-                ButonEkle("İptal", null, "#9E9E9E");
-                break;
-
-            case "SilVazgec":
-                ButonlarGrid.IsVisible = true;
-                ButonEkle("Sil", true, "#F44336");
-                ButonEkle("Vazgeç", false, "#9E9E9E");
-                break;
-        }
-
-        IsVisible = true;
-        return _tcs.Task;
     }
 
     private void ButonEkle(string metin, bool? sonuc, string renk)
@@ -119,7 +119,4 @@ public partial class ModernAlertView : ContentView
         IsVisible = false;
         _tcs?.TrySetResult(null);
     }
-
-    // Arka plana tıklanınca hiçbir şey yapma (kapanmasın)
-    // Eğer kapanmasını istersen buraya IsVisible = false ekleyebilirsin.
 }

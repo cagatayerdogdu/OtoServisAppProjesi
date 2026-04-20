@@ -7,44 +7,70 @@ namespace OtoServisApp.Services;
 
 public static class ModernAlertService
 {
-    /// <summary>
-    /// Aktif sayfaya uyarı görünümünü ekler ve gösterir.
-    /// </summary>
     public static async Task<bool?> ShowAsync(string baslik, string mesaj, string butonTipi = "Tamam")
     {
-        // UI thread'inde çalıştığımızdan emin ol
-        if (!MainThread.IsMainThread)
-        {
-            return await MainThread.InvokeOnMainThreadAsync(() => ShowAsync(baslik, mesaj, butonTipi));
-        }
-
-        var currentPage = GetCurrentPage();
-        if (currentPage == null)
-            throw new InvalidOperationException("Aktif sayfa bulunamadı.");
-
-        // Sayfanın içeriğini Grid'e çevir (eğer değilse)
-        var grid = EnsurePageHasGrid(currentPage);
-
-        // Her seferinde yeni bir ModernAlertView oluştur (eski instance sorunlarını önler)
-        var alertView = new ModernAlertView
-        {
-            ZIndex = 9999
-        };
-
-        // Grid'e ekle
-        grid.Children.Add(alertView);
-
-        // Göster ve sonucu bekle
         try
         {
+            // UI thread'inde olduğumuzdan emin ol
+            if (!MainThread.IsMainThread)
+            {
+                return await MainThread.InvokeOnMainThreadAsync(() => ShowAsync(baslik, mesaj, butonTipi));
+            }
+
+            var currentPage = GetCurrentPage();
+            if (currentPage == null)
+            {
+                // Sayfa bulunamazsa konsola yaz ve null dön
+                System.Diagnostics.Debug.WriteLine("ModernAlertService: Aktif sayfa bulunamadı.");
+                return null;
+            }
+
+            // Sayfayı Grid'e çevir
+            var grid = EnsurePageHasGrid(currentPage);
+            if (grid == null)
+            {
+                System.Diagnostics.Debug.WriteLine("ModernAlertService: Sayfa Grid'e çevrilemedi.");
+                return null;
+            }
+
+            // Yeni AlertView oluştur
+            var alertView = new ModernAlertView
+            {
+                ZIndex = 9999
+            };
+
+            grid.Children.Add(alertView);
+
+            // Göster ve sonucu bekle
             var result = await alertView.ShowAsync(baslik, mesaj, butonTipi);
             return result;
         }
+        catch (Exception ex)
+        {
+            // Herhangi bir hata olursa uygulama çökmesin, loglansın
+            System.Diagnostics.Debug.WriteLine($"ModernAlertService Hatası: {ex.Message}");
+            return null;
+        }
         finally
         {
-            // İşlem bitince alertView'i kaldır
-            if (grid.Children.Contains(alertView))
-                grid.Children.Remove(alertView);
+            // Temizlik (alertView'i kaldırmak için referansı bulmak zor, bu yüzden her ShowAsync yeni bir tane oluşturuyoruz)
+            // İş bitince grid'den kaldırmayı deneyelim
+            try
+            {
+                var currentPage = GetCurrentPage();
+                if (currentPage is ContentPage cp && cp.Content is Grid grid)
+                {
+                    foreach (var child in grid.Children)
+                    {
+                        if (child is ModernAlertView av && av.IsVisible == false)
+                        {
+                            grid.Children.Remove(av);
+                            break;
+                        }
+                    }
+                }
+            }
+            catch { /* temizlik başarısız olursa sorun değil */ }
         }
     }
 
@@ -62,57 +88,62 @@ public static class ModernAlertService
         return await ShowAsync(baslik, mesaj, "SilVazgec");
     }
 
-    // Yardımcı metodlar
+    // ========== YARDIMCI METODLAR ==========
     private static Page GetCurrentPage()
     {
-        var mainPage = Application.Current?.MainPage;
-        if (mainPage == null) return null;
-
-        // NavigationPage
-        if (mainPage is NavigationPage navPage)
-            return navPage.CurrentPage ?? mainPage;
-
-        // TabbedPage
-        if (mainPage is TabbedPage tabbedPage)
+        try
         {
-            var currentTab = tabbedPage.CurrentPage;
-            if (currentTab is NavigationPage innerNav)
-                return innerNav.CurrentPage ?? currentTab;
-            return currentTab;
+            var mainPage = Application.Current?.MainPage;
+            if (mainPage == null) return null;
+
+            // NavigationPage
+            if (mainPage is NavigationPage navPage)
+                return navPage.CurrentPage ?? mainPage;
+
+            // TabbedPage
+            if (mainPage is TabbedPage tabbedPage)
+            {
+                var currentTab = tabbedPage.CurrentPage;
+                if (currentTab is NavigationPage innerNav)
+                    return innerNav.CurrentPage ?? currentTab;
+                return currentTab;
+            }
+
+            // FlyoutPage
+            if (mainPage is FlyoutPage flyout)
+                return flyout.Detail;
+
+            return mainPage;
         }
-
-        // FlyoutPage (varsa)
-        if (mainPage is FlyoutPage flyout)
-            return flyout.Detail;
-
-        return mainPage;
+        catch
+        {
+            return null;
+        }
     }
 
     private static Grid EnsurePageHasGrid(Page page)
     {
-        if (page is ContentPage contentPage)
+        try
         {
-            if (contentPage.Content is Grid existingGrid)
-                return existingGrid;
-
-            // Mevcut içeriği Grid içine al
-            var grid = new Grid();
-            var oldContent = contentPage.Content;
-            contentPage.Content = grid;
-            if (oldContent != null)
+            if (page is ContentPage contentPage)
             {
-                grid.Children.Add(oldContent);
+                if (contentPage.Content is Grid existingGrid)
+                    return existingGrid;
+
+                var grid = new Grid();
+                var oldContent = contentPage.Content;
+                contentPage.Content = grid;
+                if (oldContent != null)
+                {
+                    grid.Children.Add(oldContent);
+                }
+                return grid;
             }
-            return grid;
         }
-
-        // Eğer ContentPage değilse (nadiren) sayfanın kendisini Grid olarak kabul edemeyiz, hata fırlat
-        throw new InvalidOperationException("Sayfa tipi ContentPage değil.");
+        catch { }
+        return null;
     }
 
-    // Initialize metodu artık gerekli değil, boş bırakabiliriz veya geriye dönük uyumluluk için tutabiliriz.
-    public static void Initialize(Page page)
-    {
-        // Bu metot artık bir şey yapmıyor, sadece eski kodlar hata vermesin diye var.
-    }
+    // Eski kodlar hata vermesin diye boş Initialize metodu
+    public static void Initialize(Page page) { }
 }

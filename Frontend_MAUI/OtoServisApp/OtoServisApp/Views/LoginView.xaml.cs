@@ -179,7 +179,13 @@ public partial class LoginView : ContentPage
 #if ANDROID || IOS
         if (Microsoft.Maui.Networking.Connectivity.Current.NetworkAccess != Microsoft.Maui.Networking.NetworkAccess.Internet)
         {
-            await ModernAlertService.ShowInfoAsync("Lütfen internet bağlantınızı kontrol edin.", "Bağlantı Hatası");
+            try
+            {
+                await ModernAlertService.ShowInfoAsync("Lütfen internet bağlantınızı kontrol edin.", "Bağlantı Hatası");
+
+            }
+            catch (Exception)
+            { /* Uyarı gösterilemezse sorun değil */  }
         }
 #endif
 
