@@ -28,5 +28,9 @@
 	</array>
 	<key>XSAppIconAssets</key>
 	<string>Assets.xcassets/appicon.appiconset</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Bu uygulama, vitrin yönetimi için fotoğraf çekmenize izin verir.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Bu uygulama, vitrin yönetimi için galeriden fotoğraf seçmenize izin verir.</string>
 </dict>
 </plist>

@@ -59,6 +59,23 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
+        <!-- Sayfalama -->
+        <HorizontalStackLayout Grid.Row="2" HorizontalOptions="Center" Spacing="20" Padding="10">
+            <Border BackgroundColor="#E0E6ED" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="40" Padding="15,0">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnOncekiTapped"/>
+                </Border.GestureRecognizers>
+                <Label x:Name="BtnOncekiLabel" Text="&lt; Önceki" TextColor="#2C3E50" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center"/>
+            </Border>
+            <Label x:Name="SayfaBilgiLabel" Text="Sayfa 1 / 1" VerticalOptions="Center" TextColor="#2C3E50" FontAttributes="Bold"/>
+            <Border BackgroundColor="#E0E6ED" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="40" Padding="15,0">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnSonrakiTapped"/>
+                </Border.GestureRecognizers>
+                <Label x:Name="BtnSonrakiLabel" Text="Sonraki &gt;" TextColor="#2C3E50" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center"/>
+            </Border>
+        </HorizontalStackLayout>
+
         <!-- Form Popup -->
         <Grid x:Name="DuzenlemeFormu" Grid.RowSpan="3" BackgroundColor="#80000000" IsVisible="False">
             <Border BackgroundColor="#FFFFFF" StrokeThickness="0" StrokeShape="RoundRectangle 20" Padding="20" HorizontalOptions="Center" VerticalOptions="Center" WidthRequest="350">
