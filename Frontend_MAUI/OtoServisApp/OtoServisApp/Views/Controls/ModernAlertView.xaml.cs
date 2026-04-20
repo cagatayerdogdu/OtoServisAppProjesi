@@ -22,6 +22,8 @@ public partial class ModernAlertView : ContentView
     /// <returns>True (Evet/Sil), False (Hayır/Vazgeç) veya null (Tamam)</returns>
     public Task<bool?> ShowAsync(string baslik, string mesaj, string butonTipi = "Tamam")
     {
+        // Önceki işlem varsa temizle
+        _tcs?.TrySetCanceled();
         _tcs = new TaskCompletionSource<bool?>();
 
         // Başlık
@@ -80,7 +82,8 @@ public partial class ModernAlertView : ContentView
             StrokeThickness = 0,
             StrokeShape = new RoundRectangle { CornerRadius = 10 },
             HeightRequest = 45,
-            Padding = 0
+            Padding = 0,
+            InputTransparent = false
         };
 
         var label = new Label
@@ -116,4 +119,7 @@ public partial class ModernAlertView : ContentView
         IsVisible = false;
         _tcs?.TrySetResult(null);
     }
+
+    // Arka plana tıklanınca hiçbir şey yapma (kapanmasın)
+    // Eğer kapanmasını istersen buraya IsVisible = false ekleyebilirsin.
 }

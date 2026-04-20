@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:helpers="clr-namespace:OtoServisApp.Helpers"
              x:Class="OtoServisApp.Views.Controls.ModernAlertView"
              BackgroundColor="#80000000"
              IsVisible="False"
-             ZIndex="9999"
-             InputTransparent="False">
+             InputTransparent="False"
+             ZIndex="9999">
 
-    <!-- Arka plan tıklaması genelde kapatmaz, sadece butonlarla kapanır -->
+    <!-- Arka plan tıklaması ile kapanmasını istemiyorsak InputTransparent="True" yapmıyoruz -->
     <Grid>
         <Border BackgroundColor="White"
                 Stroke="Transparent"
@@ -17,12 +16,13 @@
                 Padding="25,20"
                 HorizontalOptions="Center"
                 VerticalOptions="Center"
-                WidthRequest="320">
+                WidthRequest="320"
+                InputTransparent="False">
             <Border.Shadow>
                 <Shadow Brush="#40000000" Offset="0,5" Radius="15" Opacity="0.4"/>
             </Border.Shadow>
 
-            <VerticalStackLayout Spacing="15">
+            <VerticalStackLayout Spacing="15" InputTransparent="False">
                 <!-- Başlık -->
                 <Label x:Name="BaslikLabel" 
                        Text="Başlık" 
@@ -30,7 +30,8 @@
                        FontAttributes="Bold" 
                        TextColor="#222222" 
                        HorizontalTextAlignment="Center"
-                       IsVisible="False"/>
+                       IsVisible="False"
+                       InputTransparent="True"/>
 
                 <!-- Mesaj -->
                 <Label x:Name="MesajLabel" 
@@ -38,14 +39,16 @@
                        FontSize="15" 
                        TextColor="#444444" 
                        HorizontalTextAlignment="Center"
-                       LineBreakMode="WordWrap"/>
+                       LineBreakMode="WordWrap"
+                       InputTransparent="True"/>
 
                 <!-- Butonlar Grid'i -->
                 <Grid x:Name="ButonlarGrid" 
                       ColumnDefinitions="*, *" 
                       ColumnSpacing="10" 
                       Margin="0,10,0,0"
-                      IsVisible="False"/>
+                      IsVisible="False"
+                      InputTransparent="False"/>
 
                 <!-- Tek buton (Tamam) için ayrı Border -->
                 <Border x:Name="TekButonBorder" 
@@ -55,7 +58,8 @@
                         StrokeShape="RoundRectangle 10" 
                         HeightRequest="45" 
                         Margin="0,10,0,0"
-                        IsVisible="False">
+                        IsVisible="False"
+                        InputTransparent="False">
                     <Border.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnTekButonTapped" />
                     </Border.GestureRecognizers>

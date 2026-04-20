@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
 using OtoServisApp.Views.Controls;
 
@@ -6,68 +7,112 @@ namespace OtoServisApp.Services;
 
 public static class ModernAlertService
 {
-    private static ModernAlertView _alertView;
-    private static Page _currentPage;
-
-    public static void Initialize(Page page)
+    /// <summary>
+    /// Aktif sayfaya uyarı görünümünü ekler ve gösterir.
+    /// </summary>
+    public static async Task<bool?> ShowAsync(string baslik, string mesaj, string butonTipi = "Tamam")
     {
-        _currentPage = page;
-        if (_alertView != null) return;
-
-        _alertView = new ModernAlertView();
-        AttachToPage(page);
-    }
-
-    private static void AttachToPage(Page page)
-    {
-        if (page == null) return;
-
-        if (page is ContentPage cp)
+        // UI thread'inde çalıştığımızdan emin ol
+        if (!MainThread.IsMainThread)
         {
-            var grid = cp.Content as Grid;
-            if (grid == null)
-            {
-                var oldContent = cp.Content;
-                grid = new Grid();
-                if (oldContent != null)
-                    grid.Children.Add(oldContent);
-                cp.Content = grid;
-            }
-            if (!grid.Children.Contains(_alertView))
-                grid.Children.Add(_alertView);
-        }
-        else if (page is NavigationPage nav && nav.CurrentPage != null)
-        {
-            AttachToPage(nav.CurrentPage);
-        }
-        else if (page is TabbedPage tab && tab.CurrentPage != null)
-        {
-            AttachToPage(tab.CurrentPage);
-        }
-    }
-
-    public static Task<bool?> ShowAsync(string baslik, string mesaj, string butonTipi = "Tamam")
-    {
-        if (_alertView == null)
-            throw new InvalidOperationException("ModernAlertService başlatılmamış. Lütfen App.xaml.cs içinde Initialize çağırın.");
-
-        // Sayfa değişmiş olabilir, kontrol et ve yeniden bağla
-        var currentPage = Application.Current?.MainPage;
-        if (currentPage != null && currentPage != _currentPage)
-        {
-            _currentPage = currentPage;
-            AttachToPage(currentPage);
+            return await MainThread.InvokeOnMainThreadAsync(() => ShowAsync(baslik, mesaj, butonTipi));
         }
 
-        return _alertView.ShowAsync(baslik, mesaj, butonTipi);
+        var currentPage = GetCurrentPage();
+        if (currentPage == null)
+            throw new InvalidOperationException("Aktif sayfa bulunamadı.");
+
+        // Sayfanın içeriğini Grid'e çevir (eğer değilse)
+        var grid = EnsurePageHasGrid(currentPage);
+
+        // Her seferinde yeni bir ModernAlertView oluştur (eski instance sorunlarını önler)
+        var alertView = new ModernAlertView
+        {
+            ZIndex = 9999
+        };
+
+        // Grid'e ekle
+        grid.Children.Add(alertView);
+
+        // Göster ve sonucu bekle
+        try
+        {
+            var result = await alertView.ShowAsync(baslik, mesaj, butonTipi);
+            return result;
+        }
+        finally
+        {
+            // İşlem bitince alertView'i kaldır
+            if (grid.Children.Contains(alertView))
+                grid.Children.Remove(alertView);
+        }
     }
 
     public static Task ShowInfoAsync(string mesaj, string baslik = "Bilgi")
         => ShowAsync(baslik, mesaj, "Tamam");
 
-    public static Task<bool> ShowConfirmationAsync(string mesaj, string baslik = "Onay")
-        => ShowAsync(baslik, mesaj, "EvetHayir").ContinueWith(t => t.Result == true);
+    public static async Task<bool> ShowConfirmationAsync(string mesaj, string baslik = "Onay")
+    {
+        var result = await ShowAsync(baslik, mesaj, "EvetHayir");
+        return result == true;
+    }
 
-    public static Task<bool?> ShowDeleteConfirmationAsync(string mesaj, string baslik = "Silme Onayı")
-        => ShowAsync(baslik, mesaj, "SilVazgec");
+    public static async Task<bool?> ShowDeleteConfirmationAsync(string mesaj, string baslik = "Silme Onayı")
+    {
+        return await ShowAsync(baslik, mesaj, "SilVazgec");
+    }
+
+    // Yardımcı metodlar
+    private static Page GetCurrentPage()
+    {
+        var mainPage = Application.Current?.MainPage;
+        if (mainPage == null) return null;
+
+        // NavigationPage
+        if (mainPage is NavigationPage navPage)
+            return navPage.CurrentPage ?? mainPage;
+
+        // TabbedPage
+        if (mainPage is TabbedPage tabbedPage)
+        {
+            var currentTab = tabbedPage.CurrentPage;
+            if (currentTab is NavigationPage innerNav)
+                return innerNav.CurrentPage ?? currentTab;
+            return currentTab;
+        }
+
+        // FlyoutPage (varsa)
+        if (mainPage is FlyoutPage flyout)
+            return flyout.Detail;
+
+        return mainPage;
+    }
+
+    private static Grid EnsurePageHasGrid(Page page)
+    {
+        if (page is ContentPage contentPage)
+        {
+            if (contentPage.Content is Grid existingGrid)
+                return existingGrid;
+
+            // Mevcut içeriği Grid içine al
+            var grid = new Grid();
+            var oldContent = contentPage.Content;
+            contentPage.Content = grid;
+            if (oldContent != null)
+            {
+                grid.Children.Add(oldContent);
+            }
+            return grid;
+        }
+
+        // Eğer ContentPage değilse (nadiren) sayfanın kendisini Grid olarak kabul edemeyiz, hata fırlat
+        throw new InvalidOperationException("Sayfa tipi ContentPage değil.");
+    }
+
+    // Initialize metodu artık gerekli değil, boş bırakabiliriz veya geriye dönük uyumluluk için tutabiliriz.
+    public static void Initialize(Page page)
+    {
+        // Bu metot artık bir şey yapmıyor, sadece eski kodlar hata vermesin diye var.
+    }
 }
