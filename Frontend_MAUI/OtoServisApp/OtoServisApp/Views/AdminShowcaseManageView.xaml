@@ -86,20 +86,20 @@
                         <Editor x:Name="AciklamaEditor" Placeholder="Açıklama" TextColor="#2C3E50" BackgroundColor="#F8FAFC" HeightRequest="80"/>
                         <Entry x:Name="TarihEntry" Placeholder="Tarih (örn: Nisan 2026)" TextColor="#2C3E50" BackgroundColor="#F8FAFC"/>
                         <Picker x:Name="HizmetPicker" Title="Hizmet Seç (Etiket)" TextColor="#2C3E50" BackgroundColor="#F8FAFC"/>
-                        <HorizontalStackLayout Spacing="10">
-                            <Border BackgroundColor="#3498DB" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="45" HorizontalOptions="FillAndExpand">
+                        <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
+                            <Border Grid.Column="0" BackgroundColor="#3498DB" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="45">
                                 <Border.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="OnGaleridenSecClicked"/>
                                 </Border.GestureRecognizers>
                                 <Label Text="📷 Galeriden Seç" TextColor="#FFFFFF" FontSize="14" VerticalOptions="Center" HorizontalOptions="Center"/>
                             </Border>
-                            <Border BackgroundColor="#2ECC71" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="45" HorizontalOptions="FillAndExpand">
+                            <Border Grid.Column="1" BackgroundColor="#2ECC71" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="45">
                                 <Border.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="OnKameraCekClicked"/>
                                 </Border.GestureRecognizers>
                                 <Label Text="📸 Fotoğraf Çek" TextColor="#FFFFFF" FontSize="14" VerticalOptions="Center" HorizontalOptions="Center"/>
                             </Border>
-                        </HorizontalStackLayout>
+                        </Grid>
                         <Image x:Name="SecilenFotoImage" HeightRequest="150" Aspect="AspectFill" BackgroundColor="#ECF0F1">
                             <Image.Clip>
                                 <RoundRectangleGeometry Rect="0,0,200,150" CornerRadius="10"/>

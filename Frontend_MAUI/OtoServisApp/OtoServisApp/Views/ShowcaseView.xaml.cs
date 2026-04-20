@@ -18,7 +18,13 @@ public partial class ShowcaseView : ContentPage
         try
         {
             var apiService = new ApiService();
-            ShowcaseCarousel.ItemsSource = await apiService.VitrinListesiGetirAsync();
+            var liste = await apiService.VitrinListesiGetirAsync();
+            foreach (var item in liste)
+            {
+                if (!string.IsNullOrEmpty(item.ResimUrl) && !item.ResimUrl.StartsWith("http"))
+                    item.ResimUrl = $"{ApiConfig.BaseUrl.TrimEnd('/')}{item.ResimUrl}";
+            }
+            ShowcaseCarousel.ItemsSource = liste;
         }
         catch (Exception ex)
         {

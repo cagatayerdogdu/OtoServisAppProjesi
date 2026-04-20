@@ -190,6 +190,9 @@ public partial class AdminShowcaseManageView : ContentPage
 
     private async void OnKaydetTapped(object sender, TappedEventArgs e)
     {
+        // Açıklamayı otomatik büyük harf yap
+        AciklamaEditor.Text = AciklamaEditor.Text?.ToUpperInvariant();
+
         // Başlık ve açıklama zorunlu
         if (string.IsNullOrWhiteSpace(BaslikEntry.Text) || string.IsNullOrWhiteSpace(AciklamaEditor.Text))
         {
@@ -264,7 +267,8 @@ public partial class AdminShowcaseManageView : ContentPage
     private string GetIconForHizmet(string hizmetAd)
     {
         // PERİYODİK BAKIM VE SIVILAR
-        if (hizmetAd.Contains("Periyodik") || hizmetAd.Contains("Bakım")) return "🔧";
+        //if (hizmetAd.Contains("Periyodik") || hizmetAd.Contains("Bakım")) return "🔧";
+        if (hizmetAd.Contains("Periyodik Bakım")) return "🔧";
         if (hizmetAd.Contains("Kışlık")) return "❄️";
         if (hizmetAd.Contains("Yazlık")) return "☀️";
         if (hizmetAd.Contains("Ağır Bakım") || hizmetAd.Contains("Triger")) return "⚙️";
