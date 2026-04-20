@@ -15,54 +15,62 @@ public partial class ModernAlertView : ContentView
 
     public Task<bool?> ShowAsync(string baslik, string mesaj, string butonTipi = "Tamam")
     {
-        _tcs?.TrySetCanceled();
-        _tcs = new TaskCompletionSource<bool?>();
-
-        // Başlık artık ayrı değil, mesaj metni içinde gösterilebilir.
-        // İstersen mesajın başına başlık ekleyelim:
-        string tamMesaj = string.IsNullOrEmpty(baslik) ? mesaj : $"{baslik}\n\n{mesaj}";
-        MesajLabel.Text = tamMesaj;
-
-        // Butonları hazırla
-        TekButonBorder.IsVisible = false;
-        ButonlarGrid.IsVisible = false;
-        ButonlarGrid.Children.Clear();
-
-        switch (butonTipi)
+        try
         {
-            case "Tamam":
-                TekButonBorder.IsVisible = true;
-                TekButonLabel.Text = "Tamam";
-                break;
+            _tcs?.TrySetCanceled();
+            _tcs = new TaskCompletionSource<bool?>();
 
-            case "EvetHayir":
-                ButonlarGrid.IsVisible = true;
-                ButonEkle("Evet", true, "#4CAF50");
-                ButonEkle("Hayır", false, "#F44336");
-                break;
+            // Başlık ve mesaj birleştiriliyor
+            string tamMesaj = string.IsNullOrEmpty(baslik) ? mesaj : $"{baslik}\n\n{mesaj}";
+            MesajLabel.Text = tamMesaj;
 
-            case "EvetIptal":
-                ButonlarGrid.IsVisible = true;
-                ButonEkle("Evet", true, "#4CAF50");
-                ButonEkle("İptal", null, "#9E9E9E");
-                break;
+            // Butonları hazırla
+            TekButonBorder.IsVisible = false;
+            ButonlarGrid.IsVisible = false;
+            ButonlarGrid.Children.Clear();
 
-            case "SilVazgec":
-                ButonlarGrid.IsVisible = true;
-                ButonEkle("Sil", true, "#F44336");
-                ButonEkle("Vazgeç", false, "#9E9E9E");
-                break;
+            switch (butonTipi)
+            {
+                case "Tamam":
+                    TekButonBorder.IsVisible = true;
+                    TekButonLabel.Text = "Tamam";
+                    break;
+
+                case "EvetHayir":
+                    ButonlarGrid.IsVisible = true;
+                    ButonEkle("Evet", true, isPositive: true);
+                    ButonEkle("Hayır", false, isPositive: false);
+                    break;
+
+                case "EvetIptal":
+                    ButonlarGrid.IsVisible = true;
+                    ButonEkle("Evet", true, isPositive: true);
+                    ButonEkle("İptal", null, isPositive: false);
+                    break;
+
+                case "SilVazgec":
+                    ButonlarGrid.IsVisible = true;
+                    ButonEkle("Sil", true, isPositive: false);  // "Sil" olumsuz kategoride
+                    ButonEkle("Vazgeç", false, isPositive: false);
+                    break;
+            }
+
+            IsVisible = true;
+            return _tcs.Task;
         }
-
-        IsVisible = true;
-        return _tcs.Task;
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ModernAlertView Hatası: {ex.Message}");
+            return Task.FromResult<bool?>(null);
+        }
     }
 
-    private void ButonEkle(string metin, bool? sonuc, string renk)
+    private void ButonEkle(string metin, bool? sonuc, bool isPositive)
     {
+        // Sabit arka plan rengi: #F8FAFC
         var border = new Border
         {
-            BackgroundColor = Color.FromArgb(renk),
+            BackgroundColor = Color.FromArgb("#F8FAFC"),
             StrokeThickness = 0,
             StrokeShape = new RoundRectangle { CornerRadius = 10 },
             HeightRequest = 45,
@@ -70,10 +78,13 @@ public partial class ModernAlertView : ContentView
             InputTransparent = false
         };
 
+        // Yazı rengi: olumlu için #0EA5E9, olumsuz için #D32F2F
+        Color textColor = isPositive ? Color.FromArgb("#0EA5E9") : Color.FromArgb("#D32F2F");
+
         var label = new Label
         {
             Text = metin,
-            TextColor = Colors.White,
+            TextColor = textColor,
             FontSize = 16,
             FontAttributes = FontAttributes.Bold,
             VerticalOptions = LayoutOptions.Center,

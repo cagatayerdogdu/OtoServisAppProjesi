@@ -233,13 +233,22 @@ public partial class CreateServiceRequestView : ContentPage
                     }
                 }
 
+                // Başarılı mesajı
+                bool fotografEklendi = SecilenFotograflar != null && SecilenFotograflar.Count > 0;
+
                 if (yuklenemeyen > 0)
                 {
-                    await ModernAlertService.ShowInfoAsync($"Servis talebiniz oluşturuldu ancak bazı fotoğraflar yüklenemedi:\n{hataMesajlari}\nDaha sonra talebi düzenle (Taleplerim/Durum Takibi) ekranından tekrar yüklemeyi deneyebilirsiniz.", "Kısmi Başarılı");
+                    await ModernAlertService.ShowInfoAsync(
+                        $"Servis talebiniz oluşturuldu ancak bazı fotoğraflar yüklenemedi:\n{hataMesajlari}\nDaha sonra talebi düzenle (Taleplerim/Durum Takibi) ekranından tekrar yüklemeyi deneyebilirsiniz.",
+                        "Kısmi Başarılı");
+                }
+                else if (fotografEklendi)
+                {
+                    await ModernAlertService.ShowInfoAsync("Servis talebiniz ve fotoğraflarınız başarıyla alınmıştır. En kısa sürede sizinle iletişime geçeceğiz.", "Başarılı");
                 }
                 else
                 {
-                    await ModernAlertService.ShowInfoAsync("Servis talebiniz ve fotoğraflarınız başarıyla alınmıştır. En kısa sürede sizinle iletişime geçeceğiz.", "Başarılı");
+                    await ModernAlertService.ShowInfoAsync("Servis talebiniz başarıyla alınmıştır. En kısa sürede sizinle iletişime geçeceğiz.", "Başarılı");
                 }
 
                 await Navigation.PopAsync();

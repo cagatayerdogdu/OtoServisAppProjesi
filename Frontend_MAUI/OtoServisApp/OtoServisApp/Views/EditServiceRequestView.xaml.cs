@@ -208,13 +208,21 @@ public partial class EditServiceRequestView : ContentPage
             string fotoHataMesajlari = await FotograflariYukleAsync();
 
             // 5. Sonuç Mesajını Göster ve Çık
+            bool fotografEklendi = SecilenFotograflar != null && SecilenFotograflar.Count > 0;
+
             if (!string.IsNullOrEmpty(fotoHataMesajlari))
             {
-                await ModernAlertService.ShowInfoAsync($"Talebiniz güncellendi ancak bazı fotoğraflar yüklenemedi:\n{fotoHataMesajlari}", "Kısmi Başarılı");
+                await ModernAlertService.ShowInfoAsync(
+                    $"Talebiniz güncellendi ancak bazı fotoğraflar yüklenemedi:\n{fotoHataMesajlari}",
+                    "Kısmi Başarılı");
+            }
+            else if (fotografEklendi)
+            {
+                await ModernAlertService.ShowInfoAsync("Talep bilgileriniz ve fotoğraflarınız başarıyla güncellendi.", "Başarılı");
             }
             else
             {
-                await ModernAlertService.ShowInfoAsync("Talep bilgileriniz ve fotoğraflarınız başarıyla güncellendi.", "Başarılı");
+                await ModernAlertService.ShowInfoAsync("Talep bilgileriniz başarıyla güncellendi.", "Başarılı");
             }
             MessagingCenter.Send<object>(this, "TalepGuncellendi");
             await Navigation.PopAsync(); // Önceki ekrana dön

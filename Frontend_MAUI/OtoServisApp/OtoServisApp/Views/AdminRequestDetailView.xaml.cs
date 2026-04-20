@@ -129,8 +129,17 @@ public partial class AdminRequestDetailView : ContentPage
                 if (sonuc == "OK") basarili++;
             }
 
-            await ModernAlertService.ShowInfoAsync($"{basarili} fotoğraf yüklendi.", "Başarılı");
-            // Fotoğraf durumu güncellensin diye sayfayı yenileyebiliriz ama detayda çok gerekli değil.
+            if (basarili > 0)
+            {
+                await ModernAlertService.ShowInfoAsync($"{basarili} fotoğraf yüklendi.", "Başarılı");
+                // Fotoğraf durumu güncellensin diye sayfayı yenileyebiliriz ama detayda çok gerekli değil.
+            }
+            else
+            {
+                // Hiç yüklenemediyse kullanıcıya bilgi vermeyebiliriz veya hata mesajı gösterilebilir.
+                // Şimdilik sessiz kalalım.
+            }
+
             _talep.foto_var_mi = true; // anlık güncelleme
         }
         catch (Exception ex)

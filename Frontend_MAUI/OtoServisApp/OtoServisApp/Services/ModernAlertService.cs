@@ -14,7 +14,7 @@ public static class ModernAlertService
 
         var currentPage = GetCurrentPage();
         if (currentPage == null)
-            throw new InvalidOperationException("ModernAlertService: Aktif sayfa bulunamadı.");
+            throw new InvalidOperationException("Aktif sayfa bulunamadı.");
 
         // Sayfanın kök Layout'unu al (Grid değilse Grid'e çevir)
         var rootLayout = GetOrCreateRootGrid(currentPage);
@@ -23,8 +23,21 @@ public static class ModernAlertService
         {
             ZIndex = 9999,
             VerticalOptions = LayoutOptions.Fill,
-            HorizontalOptions = LayoutOptions.Fill
+            HorizontalOptions = LayoutOptions.Fill,
+            BackgroundColor = Colors.Transparent
         };
+
+        // Grid ise tüm satır ve sütunları kapla
+        if (rootLayout is Grid grid)
+        {
+            int rowCount = grid.RowDefinitions.Count;
+            int colCount = grid.ColumnDefinitions.Count;
+
+            if (rowCount > 0)
+                Grid.SetRowSpan(alertView, rowCount);
+            if (colCount > 0)
+                Grid.SetColumnSpan(alertView, colCount);
+        }
 
         rootLayout.Children.Add(alertView);
 
@@ -60,7 +73,7 @@ public static class ModernAlertService
         return await ShowAsync(baslik, mesaj, "SilVazgec");
     }
 
-    // ========== YARDIMCI METODLAR ==========													  
+    // ========== YARDIMCI METODLAR ==========														 
     private static Page GetCurrentPage()
     {
         var mainPage = Application.Current?.MainPage;
@@ -87,11 +100,11 @@ public static class ModernAlertService
     {
         if (page is ContentPage contentPage)
         {
-            // Zaten Grid ise direkt kullan
+            // Zaten Grid ise direkt kullan					   
             if (contentPage.Content is Grid existingGrid)
                 return existingGrid;
 
-            // Grid değilse, mevcut içeriği Grid'e sar
+            // Mevcut içeriği Grid'e sar
             var grid = new Grid
             {
                 HorizontalOptions = LayoutOptions.Fill,
@@ -116,6 +129,6 @@ public static class ModernAlertService
 
         throw new InvalidOperationException("Sayfa tipi ContentPage değil.");
     }
-    // Eski kodlar hata vermesin diye boş Initialize metodu														   
+    // Eski kodlar hata vermesin diye boş Initialize metodu											
     public static void Initialize(Page page) { }
 }
