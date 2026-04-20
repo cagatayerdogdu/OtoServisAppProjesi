@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.Layouts;
 using OtoServisApp.Views.Controls;
 
 namespace OtoServisApp.Services;
@@ -16,17 +17,29 @@ public static class ModernAlertService
         if (currentPage == null)
             throw new InvalidOperationException("ModernAlertService: Aktif sayfa bulunamadı.");
 
-        // Sayfanın root'unu Grid yap (değilse)
-        var grid = EnsurePageHasGrid(currentPage);
+        // Sayfanın en üst katmanına erişmek için AbsoluteLayout kullan
+        var overlay = new AbsoluteLayout
+        {
+            HorizontalOptions = LayoutOptions.Fill,
+            VerticalOptions = LayoutOptions.Fill,
+            InputTransparent = false,
+            ZIndex = 9999
+        };
 
         var alertView = new ModernAlertView
         {
-            ZIndex = 9999,
-            VerticalOptions = LayoutOptions.Center,
-            HorizontalOptions = LayoutOptions.Center
+            InputTransparent = false
         };
 
-        grid.Children.Add(alertView);
+        // AlertView'i AbsoluteLayout'un tam ortasına yerleştir
+        AbsoluteLayout.SetLayoutFlags(alertView, AbsoluteLayoutFlags.PositionProportional);
+        AbsoluteLayout.SetLayoutBounds(alertView, new Rect(0.5, 0.5, AbsoluteLayout.AutoSize, AbsoluteLayout.AutoSize));
+
+        overlay.Children.Add(alertView);
+
+        // Sayfaya overlay'i ekle
+        var pageRoot = GetPageRoot(currentPage);
+        pageRoot.Children.Add(overlay);
 
         try
         {
@@ -41,8 +54,8 @@ public static class ModernAlertService
         }
         finally
         {
-            if (grid.Children.Contains(alertView))
-                grid.Children.Remove(alertView);
+            if (pageRoot.Children.Contains(overlay))
+                pageRoot.Children.Remove(overlay);
         }
     }
 
@@ -60,7 +73,7 @@ public static class ModernAlertService
         return await ShowAsync(baslik, mesaj, "SilVazgec");
     }
 
-    // ========== YARDIMCI METODLAR ==========				  
+    // ========== YARDIMCI METODLAR ==========												
     private static Page GetCurrentPage()
     {
         var mainPage = Application.Current?.MainPage;
@@ -83,42 +96,27 @@ public static class ModernAlertService
         return mainPage;
     }
 
-    private static Grid EnsurePageHasGrid(Page page)
+    private static Layout GetPageRoot(Page page)
     {
         if (page is ContentPage contentPage)
         {
-            // Eğer zaten Grid ise direkt kullan
-            if (contentPage.Content is Grid existingGrid)
-                return existingGrid;
-
-            // Değilse, mevcut içeriği yeni bir Grid'e sar
-            var grid = new Grid
+            // Eğer sayfa içeriği Layout değilse (örneğin tek bir Label), onu bir Grid'e sar
+            if (contentPage.Content is not Layout layout)
             {
-                // Grid'in tüm sayfayı kaplamasını sağla
-                HorizontalOptions = LayoutOptions.Fill,
-                VerticalOptions = LayoutOptions.Fill
-            };
-
-            var oldContent = contentPage.Content;
-            contentPage.Content = grid;
-
-            if (oldContent != null)
-            {
-                // Eski içeriği Grid'e ekle ve tüm alanı kaplamasını sağla
-                if (oldContent is View oldView)
-                {
-                    oldView.HorizontalOptions = LayoutOptions.Fill;
-                    oldView.VerticalOptions = LayoutOptions.Fill;
-                }
-                grid.Children.Add(oldContent);
+                var grid = new Grid();
+                var oldContent = contentPage.Content;
+                contentPage.Content = grid;
+                if (oldContent != null)
+                    grid.Children.Add(oldContent);
+                return grid;
             }
-
-            return grid;
+            return layout;
         }
 
-        throw new InvalidOperationException("Sayfa tipi ContentPage değil.");
+        // Fallback (normalde ContentPage olmayan sayfalar için)
+        throw new InvalidOperationException("Sayfa kök Layout alınamadı.");
     }
 
-    // Eski kodlar hata vermesin diye boş Initialize metodu													
+    // Eski kodlar hata vermesin diye boş Initialize metodu			
     public static void Initialize(Page page) { }
 }
