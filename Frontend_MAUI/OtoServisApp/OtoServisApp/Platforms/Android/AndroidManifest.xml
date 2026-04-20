@@ -4,6 +4,7 @@
     <application android:allowBackup="true"
                  android:supportsRtl="true"
                  android:usesCleartextTraffic="true"
+				 android:requestLegacyExternalStorage="true" 
                  android:label="Oto Servis Bakım">
         <meta-data android:name="firebase_crashlytics_collection_enabled" android:value="false" />
     </application>
@@ -11,5 +12,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
 	<uses-permission android:name="android.permission.USE_BIOMETRIC" />
 	<uses-permission android:name="android.permission.USE_FINGERPRINT" />
+	<uses-permission android:name="android.permission.CAMERA" />
+	<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <!-- <uses-sdk /> kaldırıldı – SDK sürümleri .csproj üzerinden yönetilir -->
 </manifest>
