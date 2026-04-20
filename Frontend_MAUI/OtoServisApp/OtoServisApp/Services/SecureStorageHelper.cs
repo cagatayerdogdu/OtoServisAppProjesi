@@ -2,11 +2,13 @@
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.Maui.Storage;
-using Android.Security.Keystore;
-using Java.Security;
-using Java.IO;
+
+#if ANDROID
 using Android.App;
 using Android.Content;
+using Java.Security;
+using Javax.Crypto;
+#endif
 
 namespace OtoServisApp.Services;
 
@@ -27,7 +29,7 @@ public static class SecureStorageHelper
         {
             return await SecureStorage.Default.GetAsync(key);
         }
-        catch (Exception ex) when (ex is Java.Security.AEADBadTagException || ex.Message.Contains("AEADBadTagException"))
+        catch (Exception ex) when (IsAeadBadTagException(ex))
         {
             Debug.WriteLine($"[SecureStorage] Bozuk anahtar tespit edildi: {key}. Temizlik başlatılıyor...");
             await CleanupKeyFromKeyStoreAsync(key);
@@ -51,7 +53,7 @@ public static class SecureStorageHelper
             await SecureStorage.Default.SetAsync(key, value);
             return true;
         }
-        catch (Exception ex) when (ex is Java.Security.AEADBadTagException || ex.Message.Contains("AEADBadTagException"))
+        catch (Exception ex) when (IsAeadBadTagException(ex))
         {
             Debug.WriteLine($"[SecureStorage] SetAsync sırasında bozuk anahtar: {key}. Temizleniyor...");
             await CleanupKeyFromKeyStoreAsync(key);
@@ -74,7 +76,7 @@ public static class SecureStorageHelper
         {
             SecureStorage.Default.Remove(key);
         }
-        catch (Exception ex) when (ex is Java.Security.AEADBadTagException || ex.Message.Contains("AEADBadTagException"))
+        catch (Exception ex) when (IsAeadBadTagException(ex))
         {
             Debug.WriteLine($"[SecureStorage] Remove sırasında bozuk anahtar: {key}. Zorla temizleniyor...");
             _ = CleanupKeyFromKeyStoreAsync(key);
@@ -97,6 +99,15 @@ public static class SecureStorageHelper
     }
 
     /// <summary>
+    /// Bozuk anahtar istisnası olup olmadığını kontrol eder.
+    /// </summary>
+    private static bool IsAeadBadTagException(Exception ex)
+    {
+        var typeName = ex.GetType().FullName;
+        return typeName.Contains("AEADBadTagException") || ex.Message.Contains("AEADBadTagException");
+    }
+
+    /// <summary>
     /// Android KeyStore'da belirli bir anahtarın alias'ını siler.
     /// </summary>
     private static Task CleanupKeyFromKeyStoreAsync(string key)
@@ -106,9 +117,6 @@ public static class SecureStorageHelper
 #if ANDROID
             try
             {
-                // MAUI SecureStorage'ın kullandığı alias formatı:
-                // "{App.PackageName}.xamarinessentials.keys" veya "{App.PackageName}.microsoft.maui.keys"
-                // Gerçek alias'ı bulmak için KeyStore'daki tüm girişleri kontrol edebiliriz.
                 var keyStore = KeyStore.GetInstance("AndroidKeyStore");
                 keyStore.Load(null);
 
@@ -130,13 +138,14 @@ public static class SecureStorageHelper
                     }
                 }
 
-                // Ayrıca bilinen olası alias'ları da dene
+                // Bilinen olası alias'ları da dene
+                var context = global::Android.App.Application.Context;
                 var possibleAliases = new[]
                 {
-                    $"{Application.Context.PackageName}.xamarinessentials.keys",
-                    $"{Application.Context.PackageName}.microsoft.maui.keys",
-                    $"{Application.Context.PackageName}_xamarinessentials",
-                    $"{Application.Context.PackageName}_microsoft.maui"
+                    $"{context.PackageName}.xamarinessentials.keys",
+                    $"{context.PackageName}.microsoft.maui.keys",
+                    $"{context.PackageName}_xamarinessentials",
+                    $"{context.PackageName}_microsoft.maui"
                 };
 
                 foreach (var alias in possibleAliases)
@@ -169,4 +178,7 @@ public static class SecureStorageHelper
     public static Task<string> GetSavedPasswordAsync() => GetAsync(KeySavedPassword);
     public static Task<bool> SetSavedPasswordAsync(string value) => SetAsync(KeySavedPassword, value);
     public static void RemoveSavedPassword() => Remove(KeySavedPassword);
+
+    // App.xaml.cs'deki çağrı için gerekli metot (CleanupCorruptedKeysAsync)
+    public static Task CleanupCorruptedKeysAsync() => CleanupAllKeysAsync();
 }

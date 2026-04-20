@@ -33,7 +33,7 @@ namespace OtoServisApp
             InitializeComponent();
 
             // Bozuk SecureStorage anahtarlarını temizle (arka planda)
-            Task.Run(SecureStorageHelper.CleanupAllKeysAsync);
+            Task.Run(SecureStorageHelper.CleanupCorruptedKeysAsync);
 
             // MainPage = new AppShell();
             // MainPage = new Views.LoginView(); // Kendi yazdığımız login ekranına girmesini sağlıyourz.
