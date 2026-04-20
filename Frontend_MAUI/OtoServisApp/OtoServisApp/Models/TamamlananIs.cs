@@ -15,16 +15,5 @@ public class TamamlananIs
 
     //public string TamResimUrl => $"{ApiConfig.BaseUrl.TrimEnd('/')}{ResimUrl}";
 
-    public string TamResimUrl
-    {
-        get
-        {
-            if (string.IsNullOrEmpty(ResimUrl))
-                return string.Empty;
-
-            var baseUrl = ApiConfig.BaseUrl.TrimEnd('/');
-            var resimUrl = ResimUrl.StartsWith('/') ? ResimUrl : "/" + ResimUrl;
-            return baseUrl + resimUrl;
-        }
-    }
+    public string TamResimUrl => $"{ApiConfig.BaseUrl.TrimEnd('/')}/{ResimUrl?.TrimStart('/').Replace("\\", "/")}";
 }

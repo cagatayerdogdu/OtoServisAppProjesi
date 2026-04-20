@@ -2210,8 +2210,8 @@ async def vitrin_ekle(
         image = Image.open(io.BytesIO(contents))
         if image.mode in ("RGBA", "P"):
             image = image.convert("RGB")
-        image.thumbnail((1200, 1200))
-        image.save(dosya_yolu, "JPEG", quality=85)
+        image.thumbnail((1024, 1024))
+        image.save(dosya_yolu, "JPEG", quality=75)
 
         # Veritabanına kaydet
         resim_url = f"/VitrinImg/{dosya_adi}"
@@ -2276,7 +2276,7 @@ async def vitrin_guncelle(
             if image.mode in ("RGBA", "P"):
                 image = image.convert("RGB")
             image.thumbnail((1024, 1024))
-            image.save(dosya_yolu, "JPEG", quality=75, optimize=True, progressive=False)
+            image.save(dosya_yolu, "JPEG", quality=75)
 
             vitrin_is.resim_url = f"/VitrinImg/{dosya_adi}"
 
