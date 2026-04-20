@@ -43,7 +43,8 @@ public partial class LoginView : ContentPage
 
             if (kullanici != null)
             {
-                await SecureStorage.Default.SetAsync("kullanici_id_gizli", kullanici.id.ToString());
+                //await SecureStorage.Default.SetAsync("kullanici_id_gizli", kullanici.id.ToString());
+                await SecureStorageHelper.SetUserIdAsync(kullanici.id.ToString());
                 await _apiService.FcmTokenGuncelle(kullanici.id);
 
                 if (BeniHatirlaCheckBox.IsChecked)
@@ -114,8 +115,10 @@ public partial class LoginView : ContentPage
                 }
             }
 
-            SecureStorage.Default.Remove("kayitli_eposta");
-            SecureStorage.Default.Remove("kayitli_sifre");
+            //SecureStorage.Default.Remove("kayitli_eposta");
+            //SecureStorage.Default.Remove("kayitli_sifre");
+            SecureStorageHelper.RemoveSavedEmail();
+            SecureStorageHelper.RemoveSavedPassword();
 
             LoginButton.IsEnabled = true;
             LoginButton.Text = "Giriş Yap";
@@ -196,24 +199,8 @@ public partial class LoginView : ContentPage
 #endif
 
         // --- GÜVENLİ SECURESTORAGE OKUMA (ÇÖKME KORUMALI) ---
-        string kayitliEposta = null;
-        string kayitliSifre = null;
-
-        try
-        {
-            // Cihazın şifreli kasasına bakıyoruz, kayıt var mı?
-            kayitliEposta = await SecureStorageHelper.GetSavedEmailAsync();
-            kayitliSifre = await SecureStorageHelper.GetSavedPasswordAsync();
-        }
-        catch (Exception ex)
-        {
-            // Şifre çözme hatası (AEADBadTagException vb.) olursa depolanmış verileri temizle ve devam et
-            System.Diagnostics.Debug.WriteLine($"SecureStorage okuma hatası: {ex.Message}");
-            //SecureStorage.Default.Remove("kayitli_eposta");
-            //SecureStorage.Default.Remove("kayitli_sifre");
-            SecureStorageHelper.RemoveSavedEmail();
-            SecureStorageHelper.RemoveSavedPassword();
-        }
+        string kayitliEposta = await SecureStorageHelper.GetSavedEmailAsync();
+        string kayitliSifre = await SecureStorageHelper.GetSavedPasswordAsync();
 
         if (!string.IsNullOrEmpty(kayitliEposta) && !string.IsNullOrEmpty(kayitliSifre))
         {
