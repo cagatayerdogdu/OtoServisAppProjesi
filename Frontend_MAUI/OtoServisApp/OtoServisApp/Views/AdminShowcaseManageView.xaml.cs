@@ -1,6 +1,5 @@
 ﻿using OtoServisApp.Models;
 using OtoServisApp.Services;
-using Microsoft.Maui.Media;
 using Microsoft.Maui.Storage;
 using System.IO;
 
@@ -10,17 +9,14 @@ public partial class AdminShowcaseManageView : ContentPage
 {
     private readonly ApiService _apiService;
     private List<TamamlananIs> _liste;
+    private List<Hizmet> _hizmetler;
     private TamamlananIs? _duzenlenenOge;
-    private Stream? _seciliFotografStream;
-    private string? _seciliFotografDosyaAdi;
-
-    public string FormBaslik => _duzenlenenOge == null ? "Yeni İş Ekle" : "İşi Düzenle";
+    private FileResult? _seciliFoto;
 
     public AdminShowcaseManageView()
     {
         InitializeComponent();
         _apiService = new ApiService();
-        BindingContext = this;
     }
 
     protected override async void OnAppearing()
@@ -35,11 +31,15 @@ public partial class AdminShowcaseManageView : ContentPage
         try
         {
             _liste = await _apiService.VitrinListesiGetirAsync();
+            _hizmetler = await _apiService.HizmetleriGetirAsync();
+
             VitrinListesi.ItemsSource = _liste;
+
+            EtiketPicker.ItemsSource = _hizmetler.Select(h => h.ad).ToList();
         }
         catch (Exception ex)
         {
-            await ModernAlertService.ShowInfoAsync("Veriler yüklenirken bir sorun oluştu. Lütfen internet bağlantınızı kontrol edin.", "Yükleme Hatası");
+            await ModernAlertService.ShowInfoAsync("Veriler yüklenemedi: " + ex.Message, "Hata");
         }
         finally
         {
@@ -50,15 +50,14 @@ public partial class AdminShowcaseManageView : ContentPage
     private async void OnYeniEkleTapped(object sender, TappedEventArgs e)
     {
         _duzenlenenOge = null;
+        FormBaslik.Text = "Yeni İş Ekle";
         BaslikEntry.Text = "";
         AciklamaEditor.Text = "";
-        EtiketEntry.Text = "";
+        EtiketPicker.SelectedIndex = -1;
         TarihEntry.Text = "";
-        _seciliFotografStream?.Dispose();
-        _seciliFotografStream = null;
+        _seciliFoto = null;
         SecilenFotoImage.Source = null;
-        OnPropertyChanged(nameof(FormBaslik));
-        DuzenlemeOverlay.IsVisible = true;
+        FormOverlay.IsVisible = true;
     }
 
     private async void OnDuzenleTapped(object sender, TappedEventArgs e)
@@ -67,16 +66,17 @@ public partial class AdminShowcaseManageView : ContentPage
         if (oge == null) return;
 
         _duzenlenenOge = oge;
+        FormBaslik.Text = "İş Düzenle";
         BaslikEntry.Text = oge.Baslik;
         AciklamaEditor.Text = oge.Aciklama;
-        EtiketEntry.Text = oge.Etiket;
-        TarihEntry.Text = oge.Tarih;
 
-        _seciliFotografStream?.Dispose();
-        _seciliFotografStream = null;
+        var hizmetAd = oge.Etiket?.Replace("✨ ", "").Replace("🔧 ", "").Replace("🧼 ", "").Trim(); // İkonları temizle
+        EtiketPicker.SelectedIndex = _hizmetler.FindIndex(h => h.ad == hizmetAd);
+
+        TarihEntry.Text = oge.Tarih;
+        _seciliFoto = null;
         SecilenFotoImage.Source = oge.TamResimUrl;
-        OnPropertyChanged(nameof(FormBaslik));
-        DuzenlemeOverlay.IsVisible = true;
+        FormOverlay.IsVisible = true;
     }
 
     private async void OnSilTapped(object sender, TappedEventArgs e)
@@ -84,7 +84,7 @@ public partial class AdminShowcaseManageView : ContentPage
         var oge = e.Parameter as TamamlananIs;
         if (oge == null) return;
 
-        bool onay = await ModernAlertService.ShowConfirmationAsync($"'{oge.Baslik}' isimli vitrin öğesini silmek istediğinize emin misiniz?", "Silme Onayı");
+        bool onay = await ModernAlertService.ShowConfirmationAsync($"'{oge.Baslik}' silinecek. Emin misiniz?", "Silme Onayı");
         if (!onay) return;
 
         LoadingOverlay.IsVisible = true;
@@ -93,17 +93,17 @@ public partial class AdminShowcaseManageView : ContentPage
             bool sonuc = await _apiService.VitrinSilAsync(oge.Id);
             if (sonuc)
             {
-                await ModernAlertService.ShowInfoAsync("Vitrin öğesi başarıyla silindi.", "Başarılı");
+                await ModernAlertService.ShowInfoAsync("İş silindi.", "Başarılı");
                 await Yukle();
             }
             else
             {
-                await ModernAlertService.ShowInfoAsync("Silme işlemi sırasında bir sorun oluştu.", "Hata");
+                await ModernAlertService.ShowInfoAsync("Silinirken hata oluştu.", "Hata");
             }
         }
         catch (Exception ex)
         {
-            await ModernAlertService.ShowInfoAsync("Silme işlemi başarısız. Lütfen tekrar deneyin.", "Hata");
+            await ModernAlertService.ShowInfoAsync("Hata: " + ex.Message, "Hata");
         }
         finally
         {
@@ -123,60 +123,36 @@ public partial class AdminShowcaseManageView : ContentPage
 
             if (result != null)
             {
-                _seciliFotografStream?.Dispose();
-                _seciliFotografStream = await result.OpenReadAsync();
-                _seciliFotografDosyaAdi = result.FileName;
-                SecilenFotoImage.Source = ImageSource.FromStream(() => _seciliFotografStream);
+                _seciliFoto = result;
+                SecilenFotoImage.Source = ImageSource.FromStream(() => result.OpenReadAsync().Result);
             }
-        }
-        catch (PermissionException)
-        {
-            await ModernAlertService.ShowInfoAsync("Fotoğraf seçmek için depolama izni gerekiyor. Lütfen uygulama ayarlarından izin verin.", "İzin Gerekli");
         }
         catch (Exception ex)
         {
-            await ModernAlertService.ShowInfoAsync("Fotoğraf seçilirken bir sorun oluştu. Lütfen tekrar deneyin.", "Hata");
+            await ModernAlertService.ShowInfoAsync("Fotoğraf seçilemedi: " + ex.Message, "Hata");
         }
     }
 
     private async void OnKameraCekClicked(object sender, EventArgs e)
     {
+        if (!MediaPicker.Default.IsCaptureSupported)
+        {
+            await ModernAlertService.ShowInfoAsync("Kamera desteklenmiyor.", "Hata");
+            return;
+        }
+
         try
         {
-            var status = await Permissions.CheckStatusAsync<Permissions.Camera>();
-            if (status != PermissionStatus.Granted)
-            {
-                status = await Permissions.RequestAsync<Permissions.Camera>();
-            }
-
-            if (status != PermissionStatus.Granted)
-            {
-                await ModernAlertService.ShowInfoAsync("Fotoğraf çekmek için kamera izni gerekiyor. Lütfen uygulama ayarlarından izin verin.", "İzin Gerekli");
-                return;
-            }
-
-            if (!MediaPicker.Default.IsCaptureSupported)
-            {
-                await ModernAlertService.ShowInfoAsync("Cihazınız fotoğraf çekmeyi desteklemiyor.", "Desteklenmiyor");
-                return;
-            }
-
             var photo = await MediaPicker.Default.CapturePhotoAsync();
             if (photo != null)
             {
-                _seciliFotografStream?.Dispose();
-                _seciliFotografStream = await photo.OpenReadAsync();
-                _seciliFotografDosyaAdi = photo.FileName;
-                SecilenFotoImage.Source = ImageSource.FromStream(() => _seciliFotografStream);
+                _seciliFoto = photo;
+                SecilenFotoImage.Source = ImageSource.FromStream(() => photo.OpenReadAsync().Result);
             }
-        }
-        catch (PermissionException)
-        {
-            await ModernAlertService.ShowInfoAsync("Fotoğraf çekmek için kamera izni gerekiyor. Lütfen uygulama ayarlarından izin verin.", "İzin Gerekli");
         }
         catch (Exception ex)
         {
-            await ModernAlertService.ShowInfoAsync("Fotoğraf çekilirken bir sorun oluştu. Lütfen tekrar deneyin.", "Hata");
+            await ModernAlertService.ShowInfoAsync("Fotoğraf çekilemedi: " + ex.Message, "Hata");
         }
     }
 
@@ -184,62 +160,69 @@ public partial class AdminShowcaseManageView : ContentPage
     {
         if (string.IsNullOrWhiteSpace(BaslikEntry.Text) ||
             string.IsNullOrWhiteSpace(AciklamaEditor.Text) ||
-            string.IsNullOrWhiteSpace(EtiketEntry.Text) ||
+            EtiketPicker.SelectedIndex == -1 ||
             string.IsNullOrWhiteSpace(TarihEntry.Text))
         {
-            await ModernAlertService.ShowInfoAsync("Lütfen tüm alanları doldurun.", "Eksik Bilgi");
+            await ModernAlertService.ShowInfoAsync("Lütfen tüm alanları doldurun.", "Uyarı");
             return;
         }
 
-        if (_duzenlenenOge == null && _seciliFotografStream == null)
+        if (_duzenlenenOge == null && _seciliFoto == null)
         {
-            await ModernAlertService.ShowInfoAsync("Lütfen bir fotoğraf seçin veya çekin.", "Fotoğraf Gerekli");
+            await ModernAlertService.ShowInfoAsync("Lütfen bir fotoğraf seçin veya çekin.", "Uyarı");
             return;
         }
 
         LoadingOverlay.IsVisible = true;
         try
         {
+            var secilenHizmetAd = EtiketPicker.SelectedItem as string;
+            var ikon = await GetIconForHizmet(secilenHizmetAd);
+            string etiket = $"{ikon} {secilenHizmetAd}";
+
             if (_duzenlenenOge == null)
             {
-                // Yeni ekleme
+                // Yeni ekle
+                using var stream = await _seciliFoto.OpenReadAsync();
+                var dosyaAdi = $"AdminShowcase_{DateTime.Now:yyyy_MM_dd_HHmm_ssfff}.jpg";
                 var yeni = await _apiService.VitrinEkleAsync(
                     BaslikEntry.Text,
                     AciklamaEditor.Text,
-                    EtiketEntry.Text,
+                    etiket,
                     TarihEntry.Text,
-                    _seciliFotografStream!,
-                    _seciliFotografDosyaAdi ?? "foto.jpg"
+                    stream,
+                    dosyaAdi
                 );
-                await ModernAlertService.ShowInfoAsync("Yeni vitrin öğesi başarıyla eklendi.", "Başarılı");
+                await ModernAlertService.ShowInfoAsync("İş eklendi.", "Başarılı");
             }
             else
             {
-                // Güncelleme
+                // Güncelle
+                Stream? fotoStream = null;
+                string? dosyaAdi = null;
+                if (_seciliFoto != null)
+                {
+                    fotoStream = await _seciliFoto.OpenReadAsync();
+                    dosyaAdi = $"AdminShowcase_{DateTime.Now:yyyy_MM_dd_HHmm_ssfff}.jpg";
+                }
                 var guncel = await _apiService.VitrinGuncelleAsync(
                     _duzenlenenOge.Id,
                     BaslikEntry.Text,
                     AciklamaEditor.Text,
-                    EtiketEntry.Text,
+                    etiket,
                     TarihEntry.Text,
-                    _seciliFotografStream,
-                    _seciliFotografDosyaAdi
+                    fotoStream,
+                    dosyaAdi
                 );
-                await ModernAlertService.ShowInfoAsync("Vitrin öğesi başarıyla güncellendi.", "Başarılı");
+                await ModernAlertService.ShowInfoAsync("İş güncellendi.", "Başarılı");
             }
 
-            DuzenlemeOverlay.IsVisible = false;
-            _seciliFotografStream?.Dispose();
-            _seciliFotografStream = null;
+            FormOverlay.IsVisible = false;
             await Yukle();
-        }
-        catch (HttpRequestException ex)
-        {
-            await ModernAlertService.ShowInfoAsync("Sunucuya bağlanırken bir sorun oluştu. Lütfen internet bağlantınızı kontrol edin.", "Bağlantı Hatası");
         }
         catch (Exception ex)
         {
-            await ModernAlertService.ShowInfoAsync("Kaydetme işlemi başarısız. Lütfen tekrar deneyin.", "Hata");
+            await ModernAlertService.ShowInfoAsync("Kaydedilemedi: " + ex.Message, "Hata");
         }
         finally
         {
@@ -249,13 +232,28 @@ public partial class AdminShowcaseManageView : ContentPage
 
     private void OnIptalClicked(object sender, EventArgs e)
     {
-        DuzenlemeOverlay.IsVisible = false;
-        _seciliFotografStream?.Dispose();
-        _seciliFotografStream = null;
+        FormOverlay.IsVisible = false;
+        _seciliFoto = null;
     }
 
-    private async void OnVitrinGoruntuleTapped(object sender, TappedEventArgs e)
+    private async void OnVitrineGitTapped(object sender, TappedEventArgs e)
     {
         await Navigation.PushAsync(new ShowcaseView());
+    }
+
+    private Task<string> GetIconForHizmet(string hizmetAd)
+    {
+        // Hizmet adına göre ikon eşleştirmesi (istersen genişletebilirsin)
+        if (hizmetAd.Contains("Periyodik") || hizmetAd.Contains("Bakım"))
+            return Task.FromResult("🔧");
+        if (hizmetAd.Contains("Fren"))
+            return Task.FromResult("🛑");
+        if (hizmetAd.Contains("Motor"))
+            return Task.FromResult("⚙️");
+        if (hizmetAd.Contains("Seramik") || hizmetAd.Contains("Kaplama"))
+            return Task.FromResult("✨");
+        if (hizmetAd.Contains("Temiz"))
+            return Task.FromResult("🧼");
+        return Task.FromResult("🛠️");
     }
 }

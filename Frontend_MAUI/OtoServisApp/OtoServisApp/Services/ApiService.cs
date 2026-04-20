@@ -987,7 +987,11 @@ namespace OtoServisApp.Services
             content.Add(streamContent, "file", fotoDosyaAdi);
 
             var response = await _httpClient.PostAsync("/admin/vitrin", content);
-            response.EnsureSuccessStatusCode();
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                throw new Exception($"Sunucu hatası: {error}");
+            }
             return await response.Content.ReadFromJsonAsync<TamamlananIs>();
         }
 
@@ -1007,7 +1011,11 @@ namespace OtoServisApp.Services
             }
 
             var response = await _httpClient.PutAsync($"/admin/vitrin/{id}", content);
-            response.EnsureSuccessStatusCode();
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                throw new Exception($"Sunucu hatası: {error}");
+            }
             return await response.Content.ReadFromJsonAsync<TamamlananIs>();
         }
 

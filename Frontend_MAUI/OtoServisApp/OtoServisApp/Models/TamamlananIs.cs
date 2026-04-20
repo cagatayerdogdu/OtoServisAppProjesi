@@ -13,5 +13,5 @@ public class TamamlananIs
     public DateTime? GuncellemeTarihi { get; set; }
 
     // Tam URL oluşturmak için BaseUrl ile birleştirilecek
-    public string TamResimUrl => $"{ApiConfig.BaseUrl.TrimEnd('/')}{ResimUrl}";
+    public string TamResimUrl => ResimUrl?.StartsWith("http") == true ? ResimUrl : $"{ApiConfig.BaseUrl.TrimEnd('/')}{ResimUrl}";
 }
