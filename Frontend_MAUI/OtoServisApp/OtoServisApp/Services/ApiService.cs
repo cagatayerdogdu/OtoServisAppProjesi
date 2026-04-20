@@ -966,42 +966,42 @@ namespace OtoServisApp.Services
         {
             try
             {
-                return await _httpClient.GetFromJsonAsync<List<TamamlananIs>>("/vitrin") ?? new List<TamamlananIs>();
+                return await _httpClient.GetFromJsonAsync<List<TamamlananIs>>("/vitrin") ?? new();
             }
             catch
             {
-                return new List<TamamlananIs>();
+                return new();
             }
         }
 
-        public async Task<TamamlananIs> VitrinEkleAsync(string baslik, string aciklama, string etiket, string tarih, Stream fotoStream, string fotoDosyaAdi)
+        public async Task<TamamlananIs> VitrinEkleAsync(string baslik, string aciklama, string etiket, string tarih, int? hizmetId, Stream fotoStream, string fotoDosyaAdi)
         {
             using var content = new MultipartFormDataContent();
             content.Add(new StringContent(baslik), "baslik");
             content.Add(new StringContent(aciklama), "aciklama");
             content.Add(new StringContent(etiket), "etiket");
             content.Add(new StringContent(tarih), "tarih");
+            if (hizmetId.HasValue)
+                content.Add(new StringContent(hizmetId.Value.ToString()), "hizmet_id");
 
             var streamContent = new StreamContent(fotoStream);
             streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/jpeg");
             content.Add(streamContent, "file", fotoDosyaAdi);
 
             var response = await _httpClient.PostAsync("/admin/vitrin", content);
-            if (!response.IsSuccessStatusCode)
-            {
-                var error = await response.Content.ReadAsStringAsync();
-                throw new Exception($"Sunucu hatası: {error}");
-            }
+            response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<TamamlananIs>();
         }
 
-        public async Task<TamamlananIs> VitrinGuncelleAsync(int id, string baslik, string aciklama, string etiket, string tarih, Stream? fotoStream = null, string? fotoDosyaAdi = null)
+        public async Task<TamamlananIs> VitrinGuncelleAsync(int id, string baslik, string aciklama, string etiket, string tarih, int? hizmetId, Stream? fotoStream = null, string? fotoDosyaAdi = null)
         {
             using var content = new MultipartFormDataContent();
             content.Add(new StringContent(baslik), "baslik");
             content.Add(new StringContent(aciklama), "aciklama");
             content.Add(new StringContent(etiket), "etiket");
             content.Add(new StringContent(tarih), "tarih");
+            if (hizmetId.HasValue)
+                content.Add(new StringContent(hizmetId.Value.ToString()), "hizmet_id");
 
             if (fotoStream != null && !string.IsNullOrEmpty(fotoDosyaAdi))
             {
@@ -1011,11 +1011,7 @@ namespace OtoServisApp.Services
             }
 
             var response = await _httpClient.PutAsync($"/admin/vitrin/{id}", content);
-            if (!response.IsSuccessStatusCode)
-            {
-                var error = await response.Content.ReadAsStringAsync();
-                throw new Exception($"Sunucu hatası: {error}");
-            }
+            response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<TamamlananIs>();
         }
 

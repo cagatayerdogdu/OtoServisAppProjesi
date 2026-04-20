@@ -18,8 +18,7 @@ public partial class ShowcaseView : ContentPage
         try
         {
             var apiService = new ApiService();
-            var vitrinListesi = await apiService.VitrinListesiGetirAsync();
-            ShowcaseCarousel.ItemsSource = vitrinListesi;
+            ShowcaseCarousel.ItemsSource = await apiService.VitrinListesiGetirAsync();
         }
         catch (Exception ex)
         {

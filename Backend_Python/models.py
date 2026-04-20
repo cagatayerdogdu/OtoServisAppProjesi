@@ -226,9 +226,12 @@ class TamamlananIs(Base):
     id = Column(Integer, primary_key=True, index=True)
     baslik = Column(String(150), nullable=False)
     aciklama = Column(Text, nullable=False)
-    etiket = Column(String(50), nullable=False)   # Örn: "✨ Seramik Kaplama"
-    tarih = Column(String(50), nullable=False)    # "Mart 2026" gibi string saklanacak
-    resim_url = Column(String(500), nullable=False)  # Sunucudaki tam yolu veya URL
+    etiket = Column(String(100), nullable=False)   # Örn: "✨ Seramik Kaplama" # Hizmet adı veya özel etiket
+    tarih = Column(String(50), nullable=False)
+    resim_url = Column(String(500), nullable=False)
+    hizmet_id = Column(Integer, ForeignKey("hizmetler.id"), nullable=True)
 
     olusturulma_tarihi = Column(DateTime, server_default=func.now())
     guncelleme_tarihi = Column(DateTime, onupdate=func.now())
+
+    hizmet = relationship("Hizmet")

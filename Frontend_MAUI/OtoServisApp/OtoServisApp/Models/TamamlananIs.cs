@@ -9,9 +9,9 @@ public class TamamlananIs
     public string Etiket { get; set; }
     public string Tarih { get; set; }
     public string ResimUrl { get; set; }
+    public int? HizmetId { get; set; }
     public DateTime OlusturulmaTarihi { get; set; }
     public DateTime? GuncellemeTarihi { get; set; }
 
-    // Tam URL oluşturmak için BaseUrl ile birleştirilecek
-    public string TamResimUrl => ResimUrl?.StartsWith("http") == true ? ResimUrl : $"{ApiConfig.BaseUrl.TrimEnd('/')}{ResimUrl}";
+    public string TamResimUrl => $"{ApiConfig.BaseUrl.TrimEnd('/')}{ResimUrl}";
 }

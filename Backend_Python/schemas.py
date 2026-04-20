@@ -160,6 +160,7 @@ class TamamlananIsBase(BaseModel):
     etiket: str
     tarih: str
     resim_url: str
+    hizmet_id: Optional[int] = None
 
 class TamamlananIsCreate(TamamlananIsBase):
     pass
