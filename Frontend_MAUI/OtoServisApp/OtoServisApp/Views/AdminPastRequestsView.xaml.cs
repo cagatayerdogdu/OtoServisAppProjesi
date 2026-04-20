@@ -12,7 +12,7 @@ public partial class AdminPastRequestsView : ContentPage
     private string _secilenDurum = "Tümü";
     private string _aktifArama = "";
 
-    private int _sayfaBoyutu = 20;
+    private int _sayfaBoyutu = 15;
     private int _mevcutSayfa = 1;
     private int _toplamSayfa = 1;
     private int _toplamKayit = 0;

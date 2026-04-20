@@ -53,6 +53,9 @@ namespace OtoServisApp
                     await ModernAlertService.ShowInfoAsync(args.Notification.Body, args.Notification.Title);
                 });
             };
+
+            // Uygulama başlangıcında SecureStorage anahtarlarını kontrol et ve bozuksa temizle
+            Task.Run(async () => await SecureStorageHelper.CleanupCorruptedKeysAsync());
         }
         /*
         private void LogException(Exception ex, string type)

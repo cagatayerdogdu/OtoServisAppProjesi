@@ -212,8 +212,11 @@ public partial class ProfileView : ContentPage
         //Preferences.Remove("user_password");
 
         // 1. DÖNER KAPIYI KIRAN KOD: Beni Hatırla hafızasını siliyoruz!
-        SecureStorage.Default.Remove("kayitli_eposta");
-        SecureStorage.Default.Remove("kayitli_sifre");
+        //SecureStorage.Default.Remove("kayitli_eposta");
+        //SecureStorage.Default.Remove("kayitli_sifre");
+
+        SecureStorageHelper.RemoveSavedEmail();
+        SecureStorageHelper.RemoveSavedPassword();
 
         // (Varsa global kullanıcı değişkenini de temizlemek iyi bir pratiktir)
         // App.AktifKullanici = null;
@@ -275,9 +278,14 @@ public partial class ProfileView : ContentPage
         }
 
         // Onay verildiyse veya kullanıcı bildirimleri AÇIYORSA (True) doğrudan DB güncellemesine geç
-        var kullaniciIdStr = await SecureStorage.GetAsync("kullanici_id_gizli");
-        if (string.IsNullOrEmpty(kullaniciIdStr)) return;
+        //var kullaniciIdStr = await SecureStorage.GetAsync("kullanici_id_gizli");
+        //if (string.IsNullOrEmpty(kullaniciIdStr)) return;
 
+        //int kullaniciId = int.Parse(kullaniciIdStr);
+
+        // Mail izni değiştirirken:
+        var kullaniciIdStr = await SecureStorageHelper.GetUserIdAsync();
+        if (string.IsNullOrEmpty(kullaniciIdStr)) return;
         int kullaniciId = int.Parse(kullaniciIdStr);
 
         try

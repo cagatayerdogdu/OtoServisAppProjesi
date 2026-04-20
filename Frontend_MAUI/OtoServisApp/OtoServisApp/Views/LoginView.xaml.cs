@@ -48,13 +48,19 @@ public partial class LoginView : ContentPage
 
                 if (BeniHatirlaCheckBox.IsChecked)
                 {
-                    await SecureStorage.Default.SetAsync("kayitli_eposta", email);
-                    await SecureStorage.Default.SetAsync("kayitli_sifre", password);
+                    //await SecureStorage.Default.SetAsync("kayitli_eposta", email);
+                    //await SecureStorage.Default.SetAsync("kayitli_sifre", password);
+
+                    await SecureStorageHelper.SetSavedEmailAsync(email);
+                    await SecureStorageHelper.SetSavedPasswordAsync(password);
                 }
                 else
                 {
-                    SecureStorage.Default.Remove("kayitli_eposta");
-                    SecureStorage.Default.Remove("kayitli_sifre");
+                    //SecureStorage.Default.Remove("kayitli_eposta");
+                    //SecureStorage.Default.Remove("kayitli_sifre");
+
+                    SecureStorageHelper.RemoveSavedEmail();
+                    SecureStorageHelper.RemoveSavedPassword();
                 }
 
                 // KİLİT ÇÖZÜM 1: UI Yönlendirmesini zorla Ana Thread'e alıyoruz
@@ -196,15 +202,17 @@ public partial class LoginView : ContentPage
         try
         {
             // Cihazın şifreli kasasına bakıyoruz, kayıt var mı?
-            kayitliEposta = await SecureStorage.Default.GetAsync("kayitli_eposta");
-            kayitliSifre = await SecureStorage.Default.GetAsync("kayitli_sifre");
+            kayitliEposta = await SecureStorageHelper.GetSavedEmailAsync();
+            kayitliSifre = await SecureStorageHelper.GetSavedPasswordAsync();
         }
         catch (Exception ex)
         {
             // Şifre çözme hatası (AEADBadTagException vb.) olursa depolanmış verileri temizle ve devam et
             System.Diagnostics.Debug.WriteLine($"SecureStorage okuma hatası: {ex.Message}");
-            SecureStorage.Default.Remove("kayitli_eposta");
-            SecureStorage.Default.Remove("kayitli_sifre");
+            //SecureStorage.Default.Remove("kayitli_eposta");
+            //SecureStorage.Default.Remove("kayitli_sifre");
+            SecureStorageHelper.RemoveSavedEmail();
+            SecureStorageHelper.RemoveSavedPassword();
         }
 
         if (!string.IsNullOrEmpty(kayitliEposta) && !string.IsNullOrEmpty(kayitliSifre))
@@ -235,7 +243,8 @@ public partial class LoginView : ContentPage
         if (kullanici != null)
         {
             // --- BURAYI EKLE: Kullanıcı ID'sini kasaya kilitliyoruz ---
-            await SecureStorage.Default.SetAsync("kullanici_id_gizli", kullanici.id.ToString());
+            //await SecureStorage.Default.SetAsync("kullanici_id_gizli", kullanici.id.ToString());
+            await SecureStorageHelper.SetUserIdAsync(kullanici.id.ToString());
 
             // Senin yöntemin: Kullanıcı nesnesini sayfanın içine parametre olarak gönderiyoruz!
             /* Admin girişi olunca direk Admin Panele gidiyordu ve geri dönemiyordu, bu yüzden bu blok kapatıldı.
@@ -266,8 +275,11 @@ public partial class LoginView : ContentPage
         }
         else
         {
-            SecureStorage.Default.Remove("kayitli_eposta");
-            SecureStorage.Default.Remove("kayitli_sifre");
+            //SecureStorage.Default.Remove("kayitli_eposta");
+            //SecureStorage.Default.Remove("kayitli_sifre");
+
+            SecureStorageHelper.RemoveSavedEmail();
+            SecureStorageHelper.RemoveSavedPassword();
 
             LoginButton.IsEnabled = true;
             LoginButton.Text = "GİRİŞ YAP";

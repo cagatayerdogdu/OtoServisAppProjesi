@@ -11,7 +11,7 @@ public partial class AdminLogsView : ContentPage
     // MADDE 82: Sayfalama ve Kayıt Parametreleri (Parametrik yapıldı)
     private int _mevcutSayfa = 1;
     private int _toplamSayfa = 1;
-    private int _sayfaBasinaKayit = 20; // İstediğin zaman buradan değiştirebilirsin Abi
+    private int _sayfaBasinaKayit = 15; // İstediğin zaman buradan değiştirebilirsin Abi
 
     public AdminLogsView()
     {

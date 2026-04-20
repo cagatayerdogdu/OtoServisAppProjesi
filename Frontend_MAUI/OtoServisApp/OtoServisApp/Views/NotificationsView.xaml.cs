@@ -53,7 +53,7 @@ public partial class NotificationsView : ContentPage
 
     private async Task<int?> GetCurrentUserIdAsync()
     {
-        string idStr = await SecureStorage.Default.GetAsync("kullanici_id_gizli");
+        string idStr = await SecureStorageHelper.GetUserIdAsync();
         return int.TryParse(idStr, out int id) ? id : null;
     }
 

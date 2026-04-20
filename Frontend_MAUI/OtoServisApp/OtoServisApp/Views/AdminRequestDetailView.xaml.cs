@@ -72,7 +72,10 @@ public partial class AdminRequestDetailView : ContentPage
         LoadingOverlay.IsVisible = true;
         LoadingTitle.Text = "Güncelleniyor...";
 
-        string idStr = await SecureStorage.Default.GetAsync("kullanici_id_gizli");
+        //string idStr = await SecureStorage.Default.GetAsync("kullanici_id_gizli");
+        //int? aktifAdminId = int.TryParse(idStr, out int id) ? id : (int?)null;
+
+        string idStr = await SecureStorageHelper.GetUserIdAsync();
         int? aktifAdminId = int.TryParse(idStr, out int id) ? id : (int?)null;
 
         bool basarili = await _apiService.AdminTalepGuncelleAsync(_talep.id, _talep.durum, _talep.tahmini_tutar, aktifAdminId);
