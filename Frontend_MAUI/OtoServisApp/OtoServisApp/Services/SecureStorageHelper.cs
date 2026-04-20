@@ -2,6 +2,11 @@
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.Maui.Storage;
+using Android.Security.Keystore;
+using Java.Security;
+using Java.IO;
+using Android.App;
+using Android.Content;
 
 namespace OtoServisApp.Services;
 
@@ -11,8 +16,10 @@ public static class SecureStorageHelper
     private const string KeySavedEmail = "kayitli_eposta";
     private const string KeySavedPassword = "kayitli_sifre";
 
+    private static readonly string[] AllKeys = { KeyUserId, KeySavedEmail, KeySavedPassword };
+
     /// <summary>
-    /// Güvenli bir şekilde değer okur. Hata olursa null döner ve bozuk anahtarları temizler.
+    /// SecureStorage'dan güvenli bir şekilde değer okur. Hata durumunda anahtar temizliği yapar ve tekrar dener.
     /// </summary>
     public static async Task<string> GetAsync(string key)
     {
@@ -20,16 +27,22 @@ public static class SecureStorageHelper
         {
             return await SecureStorage.Default.GetAsync(key);
         }
+        catch (Exception ex) when (ex is Java.Security.AEADBadTagException || ex.Message.Contains("AEADBadTagException"))
+        {
+            Debug.WriteLine($"[SecureStorage] Bozuk anahtar tespit edildi: {key}. Temizlik başlatılıyor...");
+            await CleanupKeyFromKeyStoreAsync(key);
+            // Tekrar dene
+            return await SecureStorage.Default.GetAsync(key);
+        }
         catch (Exception ex)
         {
-            Debug.WriteLine($"SecureStorage GetAsync hatası ({key}): {ex.Message}");
-            await CleanupCorruptedKeysAsync();
+            Debug.WriteLine($"[SecureStorage] GetAsync hatası ({key}): {ex.Message}");
             return null;
         }
     }
 
     /// <summary>
-    /// Güvenli bir şekilde değer yazar. Hata olursa sessizce başarısız olur.
+    /// SecureStorage'a güvenli bir şekilde değer yazar. Hata durumunda anahtar temizliği yapar ve tekrar dener.
     /// </summary>
     public static async Task<bool> SetAsync(string key, string value)
     {
@@ -38,16 +51,22 @@ public static class SecureStorageHelper
             await SecureStorage.Default.SetAsync(key, value);
             return true;
         }
+        catch (Exception ex) when (ex is Java.Security.AEADBadTagException || ex.Message.Contains("AEADBadTagException"))
+        {
+            Debug.WriteLine($"[SecureStorage] SetAsync sırasında bozuk anahtar: {key}. Temizleniyor...");
+            await CleanupKeyFromKeyStoreAsync(key);
+            await SecureStorage.Default.SetAsync(key, value);
+            return true;
+        }
         catch (Exception ex)
         {
-            Debug.WriteLine($"SecureStorage SetAsync hatası ({key}): {ex.Message}");
-            await CleanupCorruptedKeysAsync();
+            Debug.WriteLine($"[SecureStorage] SetAsync hatası ({key}): {ex.Message}");
             return false;
         }
     }
 
     /// <summary>
-    /// Güvenli bir şekilde anahtar siler.
+    /// SecureStorage'dan anahtar siler. Hata olsa bile temizlik yapmaya çalışır.
     /// </summary>
     public static void Remove(string key)
     {
@@ -55,35 +74,87 @@ public static class SecureStorageHelper
         {
             SecureStorage.Default.Remove(key);
         }
+        catch (Exception ex) when (ex is Java.Security.AEADBadTagException || ex.Message.Contains("AEADBadTagException"))
+        {
+            Debug.WriteLine($"[SecureStorage] Remove sırasında bozuk anahtar: {key}. Zorla temizleniyor...");
+            _ = CleanupKeyFromKeyStoreAsync(key);
+        }
         catch (Exception ex)
         {
-            Debug.WriteLine($"SecureStorage Remove hatası ({key}): {ex.Message}");
-            // Temizlik denemesi
-            _ = CleanupCorruptedKeysAsync();
+            Debug.WriteLine($"[SecureStorage] Remove hatası ({key}): {ex.Message}");
         }
     }
 
     /// <summary>
-    /// Bozuk tüm SecureStorage anahtarlarını temizler.
+    /// Uygulamanın kullandığı tüm SecureStorage anahtarlarını temizler.
     /// </summary>
-    public static async Task CleanupCorruptedKeysAsync()
+    public static async Task CleanupAllKeysAsync()
     {
-        try
+        foreach (var key in AllKeys)
         {
-            // Tüm bilinen anahtarları tek tek silmeyi dene
-            Remove(KeyUserId);
-            Remove(KeySavedEmail);
-            Remove(KeySavedPassword);
-
-            // Ayrıca var olabilecek diğer anahtarları da temizlemek için
-            // SecureStorage'ın tümünü temizlemenin bir yolu yok, bu yüzden bilinenleri siliyoruz.
+            await CleanupKeyFromKeyStoreAsync(key);
         }
-        catch (Exception ex)
+    }
+
+    /// <summary>
+    /// Android KeyStore'da belirli bir anahtarın alias'ını siler.
+    /// </summary>
+    private static Task CleanupKeyFromKeyStoreAsync(string key)
+    {
+        return Task.Run(() =>
         {
-            Debug.WriteLine($"CleanupCorruptedKeysAsync hatası: {ex.Message}");
-        }
+#if ANDROID
+            try
+            {
+                // MAUI SecureStorage'ın kullandığı alias formatı:
+                // "{App.PackageName}.xamarinessentials.keys" veya "{App.PackageName}.microsoft.maui.keys"
+                // Gerçek alias'ı bulmak için KeyStore'daki tüm girişleri kontrol edebiliriz.
+                var keyStore = KeyStore.GetInstance("AndroidKeyStore");
+                keyStore.Load(null);
 
-        await Task.CompletedTask;
+                var aliases = keyStore.Aliases();
+                while (aliases.HasMoreElements)
+                {
+                    var alias = aliases.NextElement().ToString();
+                    if (alias.Contains(key, StringComparison.OrdinalIgnoreCase))
+                    {
+                        try
+                        {
+                            keyStore.DeleteEntry(alias);
+                            Debug.WriteLine($"[SecureStorage] KeyStore'dan silindi: {alias}");
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"[SecureStorage] Alias silinemedi: {alias} - {ex.Message}");
+                        }
+                    }
+                }
+
+                // Ayrıca bilinen olası alias'ları da dene
+                var possibleAliases = new[]
+                {
+                    $"{Application.Context.PackageName}.xamarinessentials.keys",
+                    $"{Application.Context.PackageName}.microsoft.maui.keys",
+                    $"{Application.Context.PackageName}_xamarinessentials",
+                    $"{Application.Context.PackageName}_microsoft.maui"
+                };
+
+                foreach (var alias in possibleAliases)
+                {
+                    try
+                    {
+                        keyStore.DeleteEntry(alias);
+                        Debug.WriteLine($"[SecureStorage] Bilinen alias silindi: {alias}");
+                    }
+                    catch { /* Sessiz geç */ }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[SecureStorage] KeyStore temizleme hatası: {ex.Message}");
+            }
+#endif
+        });
     }
 
     // --- Kolay Erişim Metotları ---
