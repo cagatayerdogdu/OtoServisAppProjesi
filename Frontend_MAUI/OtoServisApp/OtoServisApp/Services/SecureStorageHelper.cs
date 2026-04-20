@@ -5,9 +5,7 @@ using Microsoft.Maui.Storage;
 
 #if ANDROID
 using Android.App;
-using Android.Content;
 using Java.Security;
-using Javax.Crypto;
 #endif
 
 namespace OtoServisApp.Services;
@@ -18,152 +16,102 @@ public static class SecureStorageHelper
     private const string KeySavedEmail = "kayitli_eposta";
     private const string KeySavedPassword = "kayitli_sifre";
 
-    private static readonly string[] AllKeys = { KeyUserId, KeySavedEmail, KeySavedPassword };
+    private static bool _usePreferencesFallback = false;
 
-    /// <summary>
-    /// SecureStorage'dan güvenli bir şekilde değer okur. Hata durumunda anahtar temizliği yapar ve tekrar dener.
-    /// </summary>
     public static async Task<string> GetAsync(string key)
     {
+        if (_usePreferencesFallback)
+            return Preferences.Default.Get<string>(key, null);
+
         try
         {
             return await SecureStorage.Default.GetAsync(key);
         }
-        catch (Exception ex) when (IsAeadBadTagException(ex))
-        {
-            Debug.WriteLine($"[SecureStorage] Bozuk anahtar tespit edildi: {key}. Temizlik başlatılıyor...");
-            await CleanupKeyFromKeyStoreAsync(key);
-            // Tekrar dene
-            return await SecureStorage.Default.GetAsync(key);
-        }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[SecureStorage] GetAsync hatası ({key}): {ex.Message}");
-            return null;
+            Debug.WriteLine($"[SecureStorage] GetAsync kalıcı hata: {ex.Message}");
+            _usePreferencesFallback = true;
+            await CleanupAllKeysAsync();
+            return Preferences.Default.Get<string>(key, null);
         }
     }
 
-    /// <summary>
-    /// SecureStorage'a güvenli bir şekilde değer yazar. Hata durumunda anahtar temizliği yapar ve tekrar dener.
-    /// </summary>
     public static async Task<bool> SetAsync(string key, string value)
     {
+        if (_usePreferencesFallback)
+        {
+            Preferences.Default.Set(key, value);
+            return true;
+        }
+
         try
         {
             await SecureStorage.Default.SetAsync(key, value);
             return true;
         }
-        catch (Exception ex) when (IsAeadBadTagException(ex))
-        {
-            Debug.WriteLine($"[SecureStorage] SetAsync sırasında bozuk anahtar: {key}. Temizleniyor...");
-            await CleanupKeyFromKeyStoreAsync(key);
-            await SecureStorage.Default.SetAsync(key, value);
-            return true;
-        }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[SecureStorage] SetAsync hatası ({key}): {ex.Message}");
-            return false;
+            Debug.WriteLine($"[SecureStorage] SetAsync kalıcı hata: {ex.Message}");
+            _usePreferencesFallback = true;
+            await CleanupAllKeysAsync();
+            Preferences.Default.Set(key, value);
+            return true;
         }
     }
 
-    /// <summary>
-    /// SecureStorage'dan anahtar siler. Hata olsa bile temizlik yapmaya çalışır.
-    /// </summary>
     public static void Remove(string key)
     {
+        if (_usePreferencesFallback)
+        {
+            Preferences.Default.Remove(key);
+            return;
+        }
+
         try
         {
             SecureStorage.Default.Remove(key);
         }
-        catch (Exception ex) when (IsAeadBadTagException(ex))
+        catch (Exception ex)
         {
-            Debug.WriteLine($"[SecureStorage] Remove sırasında bozuk anahtar: {key}. Zorla temizleniyor...");
-            _ = CleanupKeyFromKeyStoreAsync(key);
+            Debug.WriteLine($"[SecureStorage] Remove kalıcı hata: {ex.Message}");
+            _usePreferencesFallback = true;
+            Preferences.Default.Remove(key);
+        }
+    }
+
+    public static async Task CleanupAllKeysAsync()
+    {
+        try
+        {
+            foreach (var key in new[] { KeyUserId, KeySavedEmail, KeySavedPassword })
+            {
+                SecureStorage.Default.Remove(key);
+                Preferences.Default.Remove(key);
+            }
+        }
+        catch { /* ignore */ }
+
+#if ANDROID
+        try
+        {
+            var keyStore = KeyStore.GetInstance("AndroidKeyStore");
+            keyStore.Load(null);
+            var aliases = keyStore.Aliases();
+            while (aliases.HasMoreElements)
+            {
+                var alias = aliases.NextElement().ToString();
+                if (alias.Contains(global::Android.App.Application.Context.PackageName))
+                {
+                    keyStore.DeleteEntry(alias);
+                }
+            }
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[SecureStorage] Remove hatası ({key}): {ex.Message}");
+            Debug.WriteLine($"[SecureStorage] KeyStore temizleme başarısız: {ex.Message}");
         }
-    }
-
-    /// <summary>
-    /// Uygulamanın kullandığı tüm SecureStorage anahtarlarını temizler.
-    /// </summary>
-    public static async Task CleanupAllKeysAsync()
-    {
-        foreach (var key in AllKeys)
-        {
-            await CleanupKeyFromKeyStoreAsync(key);
-        }
-    }
-
-    /// <summary>
-    /// Bozuk anahtar istisnası olup olmadığını kontrol eder.
-    /// </summary>
-    private static bool IsAeadBadTagException(Exception ex)
-    {
-        var typeName = ex.GetType().FullName;
-        return typeName.Contains("AEADBadTagException") || ex.Message.Contains("AEADBadTagException");
-    }
-
-    /// <summary>
-    /// Android KeyStore'da belirli bir anahtarın alias'ını siler.
-    /// </summary>
-    private static Task CleanupKeyFromKeyStoreAsync(string key)
-    {
-        return Task.Run(() =>
-        {
-#if ANDROID
-            try
-            {
-                var keyStore = KeyStore.GetInstance("AndroidKeyStore");
-                keyStore.Load(null);
-
-                var aliases = keyStore.Aliases();
-                while (aliases.HasMoreElements)
-                {
-                    var alias = aliases.NextElement().ToString();
-                    if (alias.Contains(key, StringComparison.OrdinalIgnoreCase))
-                    {
-                        try
-                        {
-                            keyStore.DeleteEntry(alias);
-                            Debug.WriteLine($"[SecureStorage] KeyStore'dan silindi: {alias}");
-                        }
-                        catch (Exception ex)
-                        {
-                            Debug.WriteLine($"[SecureStorage] Alias silinemedi: {alias} - {ex.Message}");
-                        }
-                    }
-                }
-
-                // Bilinen olası alias'ları da dene
-                var context = global::Android.App.Application.Context;
-                var possibleAliases = new[]
-                {
-                    $"{context.PackageName}.xamarinessentials.keys",
-                    $"{context.PackageName}.microsoft.maui.keys",
-                    $"{context.PackageName}_xamarinessentials",
-                    $"{context.PackageName}_microsoft.maui"
-                };
-
-                foreach (var alias in possibleAliases)
-                {
-                    try
-                    {
-                        keyStore.DeleteEntry(alias);
-                        Debug.WriteLine($"[SecureStorage] Bilinen alias silindi: {alias}");
-                    }
-                    catch { /* Sessiz geç */ }
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[SecureStorage] KeyStore temizleme hatası: {ex.Message}");
-            }
 #endif
-        });
+        await Task.CompletedTask;
     }
 
     // --- Kolay Erişim Metotları ---
@@ -179,6 +127,5 @@ public static class SecureStorageHelper
     public static Task<bool> SetSavedPasswordAsync(string value) => SetAsync(KeySavedPassword, value);
     public static void RemoveSavedPassword() => Remove(KeySavedPassword);
 
-    // App.xaml.cs'deki çağrı için gerekli metot (CleanupCorruptedKeysAsync)
     public static Task CleanupCorruptedKeysAsync() => CleanupAllKeysAsync();
 }
