@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
-using Microsoft.Maui.Layouts;
 using OtoServisApp.Views.Controls;
 
 namespace OtoServisApp.Services;
@@ -17,29 +16,17 @@ public static class ModernAlertService
         if (currentPage == null)
             throw new InvalidOperationException("ModernAlertService: Aktif sayfa bulunamadı.");
 
-        // Sayfanın en üst katmanına erişmek için AbsoluteLayout kullan
-        var overlay = new AbsoluteLayout
-        {
-            HorizontalOptions = LayoutOptions.Fill,
-            VerticalOptions = LayoutOptions.Fill,
-            InputTransparent = false,
-            ZIndex = 9999
-        };
+        // Sayfanın kök Layout'unu al (Grid değilse Grid'e çevir)
+        var rootLayout = GetOrCreateRootGrid(currentPage);
 
         var alertView = new ModernAlertView
         {
-            InputTransparent = false
+            ZIndex = 9999,
+            VerticalOptions = LayoutOptions.Fill,
+            HorizontalOptions = LayoutOptions.Fill
         };
 
-        // AlertView'i AbsoluteLayout'un tam ortasına yerleştir
-        AbsoluteLayout.SetLayoutFlags(alertView, AbsoluteLayoutFlags.PositionProportional);
-        AbsoluteLayout.SetLayoutBounds(alertView, new Rect(0.5, 0.5, AbsoluteLayout.AutoSize, AbsoluteLayout.AutoSize));
-
-        overlay.Children.Add(alertView);
-
-        // Sayfaya overlay'i ekle
-        var pageRoot = GetPageRoot(currentPage);
-        pageRoot.Children.Add(overlay);
+        rootLayout.Children.Add(alertView);
 
         try
         {
@@ -54,8 +41,8 @@ public static class ModernAlertService
         }
         finally
         {
-            if (pageRoot.Children.Contains(overlay))
-                pageRoot.Children.Remove(overlay);
+            if (rootLayout.Children.Contains(alertView))
+                rootLayout.Children.Remove(alertView);
         }
     }
 
@@ -73,7 +60,7 @@ public static class ModernAlertService
         return await ShowAsync(baslik, mesaj, "SilVazgec");
     }
 
-    // ========== YARDIMCI METODLAR ==========												
+    // ========== YARDIMCI METODLAR ==========													  
     private static Page GetCurrentPage()
     {
         var mainPage = Application.Current?.MainPage;
@@ -96,27 +83,39 @@ public static class ModernAlertService
         return mainPage;
     }
 
-    private static Layout GetPageRoot(Page page)
+    private static Grid GetOrCreateRootGrid(Page page)
     {
         if (page is ContentPage contentPage)
         {
-            // Eğer sayfa içeriği Layout değilse (örneğin tek bir Label), onu bir Grid'e sar
-            if (contentPage.Content is not Layout layout)
+            // Zaten Grid ise direkt kullan
+            if (contentPage.Content is Grid existingGrid)
+                return existingGrid;
+
+            // Grid değilse, mevcut içeriği Grid'e sar
+            var grid = new Grid
             {
-                var grid = new Grid();
-                var oldContent = contentPage.Content;
-                contentPage.Content = grid;
-                if (oldContent != null)
-                    grid.Children.Add(oldContent);
-                return grid;
+                HorizontalOptions = LayoutOptions.Fill,
+                VerticalOptions = LayoutOptions.Fill
+            };
+
+            var oldContent = contentPage.Content;
+            contentPage.Content = grid;
+
+            if (oldContent != null)
+            {
+                if (oldContent is View oldView)
+                {
+                    oldView.HorizontalOptions = LayoutOptions.Fill;
+                    oldView.VerticalOptions = LayoutOptions.Fill;
+                }
+                grid.Children.Add(oldContent);
             }
-            return layout;
+
+            return grid;
         }
 
-        // Fallback (normalde ContentPage olmayan sayfalar için)
-        throw new InvalidOperationException("Sayfa kök Layout alınamadı.");
+        throw new InvalidOperationException("Sayfa tipi ContentPage değil.");
     }
-
-    // Eski kodlar hata vermesin diye boş Initialize metodu			
+    // Eski kodlar hata vermesin diye boş Initialize metodu														   
     public static void Initialize(Page page) { }
 }

@@ -15,63 +15,47 @@ public partial class ModernAlertView : ContentView
 
     public Task<bool?> ShowAsync(string baslik, string mesaj, string butonTipi = "Tamam")
     {
-        try
+        _tcs?.TrySetCanceled();
+        _tcs = new TaskCompletionSource<bool?>();
+
+        // Başlık artık ayrı değil, mesaj metni içinde gösterilebilir.
+        // İstersen mesajın başına başlık ekleyelim:
+        string tamMesaj = string.IsNullOrEmpty(baslik) ? mesaj : $"{baslik}\n\n{mesaj}";
+        MesajLabel.Text = tamMesaj;
+
+        // Butonları hazırla
+        TekButonBorder.IsVisible = false;
+        ButonlarGrid.IsVisible = false;
+        ButonlarGrid.Children.Clear();
+
+        switch (butonTipi)
         {
-            _tcs?.TrySetCanceled();
-            _tcs = new TaskCompletionSource<bool?>();
+            case "Tamam":
+                TekButonBorder.IsVisible = true;
+                TekButonLabel.Text = "Tamam";
+                break;
 
-            // Başlık
-            if (!string.IsNullOrEmpty(baslik))
-            {
-                BaslikLabel.Text = baslik;
-                BaslikLabel.IsVisible = true;
-            }
-            else
-            {
-                BaslikLabel.IsVisible = false;
-            }
+            case "EvetHayir":
+                ButonlarGrid.IsVisible = true;
+                ButonEkle("Evet", true, "#4CAF50");
+                ButonEkle("Hayır", false, "#F44336");
+                break;
 
-            MesajLabel.Text = mesaj;
+            case "EvetIptal":
+                ButonlarGrid.IsVisible = true;
+                ButonEkle("Evet", true, "#4CAF50");
+                ButonEkle("İptal", null, "#9E9E9E");
+                break;
 
-            // Butonları hazırla
-            TekButonBorder.IsVisible = false;
-            ButonlarGrid.IsVisible = false;
-            ButonlarGrid.Children.Clear();
-
-            switch (butonTipi)
-            {
-                case "Tamam":
-                    TekButonBorder.IsVisible = true;
-                    TekButonLabel.Text = "Tamam";
-                    break;
-
-                case "EvetHayir":
-                    ButonlarGrid.IsVisible = true;
-                    ButonEkle("Evet", true, "#4CAF50");
-                    ButonEkle("Hayır", false, "#F44336");
-                    break;
-
-                case "EvetIptal":
-                    ButonlarGrid.IsVisible = true;
-                    ButonEkle("Evet", true, "#4CAF50");
-                    ButonEkle("İptal", null, "#9E9E9E");
-                    break;
-
-                case "SilVazgec":
-                    ButonlarGrid.IsVisible = true;
-                    ButonEkle("Sil", true, "#F44336");
-                    ButonEkle("Vazgeç", false, "#9E9E9E");
-                    break;
-            }
-
-            IsVisible = true;
-            return _tcs.Task;
+            case "SilVazgec":
+                ButonlarGrid.IsVisible = true;
+                ButonEkle("Sil", true, "#F44336");
+                ButonEkle("Vazgeç", false, "#9E9E9E");
+                break;
         }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"ModernAlertView Hatası: {ex.Message}");
-            return Task.FromResult<bool?>(null);
-        }
+
+        IsVisible = true;
+        return _tcs.Task;
     }
 
     private void ButonEkle(string metin, bool? sonuc, string renk)
