@@ -30,7 +30,7 @@ from sqlalchemy import nullsfirst
 from fastapi.responses import HTMLResponse
 # hasarlı resim ekleme importları
 import io, os, uuid
-from PIL import Image
+from PIL import Image, ImageOps
 from fastapi.staticfiles import StaticFiles
 ##########
 
@@ -2208,6 +2208,9 @@ async def vitrin_ekle(
         # Resmi işle ve kaydet
         contents = await file.read()
         image = Image.open(io.BytesIO(contents))
+        
+        image = ImageOps.exif_transpose(image) # fotoğrafın EXIF verisindeki yönlendirmeyi okuyup görseli otomatik olarak doğru pozisyona döndürür
+        
         if image.mode in ("RGBA", "P"):
             image = image.convert("RGB")
         image.thumbnail((1024, 1024))
@@ -2270,9 +2273,11 @@ async def vitrin_guncelle(
             dosya_uzanti = os.path.splitext(file.filename)[1] or ".jpg"
             dosya_adi = f"vitrin_{zaman_damgasi}{dosya_uzanti}"
             dosya_yolu = os.path.join("VitrinImg", dosya_adi)
-
             contents = await file.read()
             image = Image.open(io.BytesIO(contents))
+            
+            image = ImageOps.exif_transpose(image) # fotoğrafın EXIF verisindeki yönlendirmeyi okuyup görseli otomatik olarak doğru pozisyona döndürür
+            
             if image.mode in ("RGBA", "P"):
                 image = image.convert("RGB")
             image.thumbnail((1024, 1024))

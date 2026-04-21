@@ -18,27 +18,7 @@ public partial class ShowcaseView : ContentPage
         try
         {
             var apiService = new ApiService();
-            var liste = await apiService.VitrinListesiGetirAsync();
-
-            // Görselleri indirip ImageSource oluştur
-            foreach (var item in liste)
-            {
-                if (!string.IsNullOrEmpty(item.TamResimUrl))
-                {
-                    try
-                    {
-                        using var client = new HttpClient();
-                        var bytes = await client.GetByteArrayAsync(item.TamResimUrl);
-                        item.ResimSource = ImageSource.FromStream(() => new MemoryStream(bytes));
-                    }
-                    catch
-                    {
-                        // Hata durumunda boş bırak
-                    }
-                }
-            }
-
-            ShowcaseCarousel.ItemsSource = liste;
+            ShowcaseCarousel.ItemsSource = await apiService.VitrinListesiGetirAsync();
         }
         catch (Exception ex)
         {
@@ -139,7 +119,7 @@ public partial class ShowcaseView : ContentPage
         base.OnDisappearing();
         _isTimerRunning = false; // Sayfadan çıkınca motoru durdur
     }
-
+    /* URL i ekranda göreyim diye test için eklemiştim.
     private async void OnUrlLabelTapped(object sender, TappedEventArgs e)
     {
         var url = e.Parameter as string;
@@ -149,5 +129,6 @@ public partial class ShowcaseView : ContentPage
             await ModernAlertService.ShowInfoAsync("URL panoya kopyalandı:\n" + url, "URL Kopyalandı");
         }
     }
+    */
 }
 

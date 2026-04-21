@@ -100,7 +100,7 @@
                                 <Label Text="📸 Fotoğraf Çek" TextColor="#FFFFFF" FontSize="14" VerticalOptions="Center" HorizontalOptions="Center"/>
                             </Border>
                         </Grid>
-                        <Image x:Name="SecilenFotoImage" HeightRequest="150" Aspect="AspectFill" BackgroundColor="#ECF0F1">
+                        <Image x:Name="SecilenFotoImage" HeightRequest="150" Aspect="AspectFill" BackgroundColor="Transparent">
                             <Image.Clip>
                                 <RoundRectangleGeometry Rect="0,0,200,150" CornerRadius="10"/>
                             </Image.Clip>

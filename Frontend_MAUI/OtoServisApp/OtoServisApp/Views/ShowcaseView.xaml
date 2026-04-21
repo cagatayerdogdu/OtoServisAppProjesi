@@ -43,8 +43,8 @@
                                         <Label Text="{Binding Tarih}" FontSize="12" TextColor="#888888" VerticalOptions="Center"/>
                                     </HorizontalStackLayout>
 
-                                    <!-- Mevcut VerticalStackLayout'ın EN ALTINA, kapatma tag'inden önce ekleyin -->
-                                    <Label Text="{Binding TamResimUrl}" 
+                                    <!-- Mevcut VerticalStackLayout'ın EN ALTINA, kapatma tag'inden önce ekleyin. URL i Ekranda göreyim diye test için eklemiştim. -->
+                                    <!-- <Label Text="{Binding TamResimUrl}" 
        FontSize="10" 
        TextColor="#888888" 
        LineBreakMode="CharacterWrap"
@@ -52,7 +52,7 @@
                                         <Label.GestureRecognizers>
                                             <TapGestureRecognizer Tapped="OnUrlLabelTapped" CommandParameter="{Binding TamResimUrl}"/>
                                         </Label.GestureRecognizers>
-                                    </Label>
+                                    </Label> -->
                                 </VerticalStackLayout>
                             </Grid>
                         </Border>
