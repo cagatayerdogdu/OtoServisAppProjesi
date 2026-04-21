@@ -139,5 +139,15 @@ public partial class ShowcaseView : ContentPage
         base.OnDisappearing();
         _isTimerRunning = false; // Sayfadan çıkınca motoru durdur
     }
+
+    private async void OnUrlLabelTapped(object sender, TappedEventArgs e)
+    {
+        var url = e.Parameter as string;
+        if (!string.IsNullOrEmpty(url))
+        {
+            await Clipboard.Default.SetTextAsync(url);
+            await ModernAlertService.ShowInfoAsync("URL panoya kopyalandı:\n" + url, "URL Kopyalandı");
+        }
+    }
 }
 

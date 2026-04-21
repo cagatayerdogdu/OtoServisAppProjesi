@@ -42,6 +42,17 @@
                                         <Label Text="{x:Static helpers:IconFont.CalendarAlt}" FontFamily="FASolid" FontSize="12" TextColor="#888888" VerticalOptions="Center"/>
                                         <Label Text="{Binding Tarih}" FontSize="12" TextColor="#888888" VerticalOptions="Center"/>
                                     </HorizontalStackLayout>
+
+                                    <!-- Mevcut VerticalStackLayout'ın EN ALTINA, kapatma tag'inden önce ekleyin -->
+                                    <Label Text="{Binding TamResimUrl}" 
+       FontSize="10" 
+       TextColor="#888888" 
+       LineBreakMode="CharacterWrap"
+       Margin="0,5,0,0">
+                                        <Label.GestureRecognizers>
+                                            <TapGestureRecognizer Tapped="OnUrlLabelTapped" CommandParameter="{Binding TamResimUrl}"/>
+                                        </Label.GestureRecognizers>
+                                    </Label>
                                 </VerticalStackLayout>
                             </Grid>
                         </Border>
