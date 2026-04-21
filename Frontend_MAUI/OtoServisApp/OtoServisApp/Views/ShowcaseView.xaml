@@ -19,7 +19,7 @@
                     <ContentView Padding="10">
                         <Border Stroke="Transparent" StrokeShape="RoundRectangle 25">
                             <Grid>
-                                <Image Source="{Binding TamResimUrl, Mode=OneWay}" Aspect="AspectFill" />
+                                <Image Source="{Binding ResimSource, Mode=OneWay}" Aspect="AspectFill" />
 
                                 <BoxView VerticalOptions="End" HeightRequest="250">
                                     <BoxView.Background>

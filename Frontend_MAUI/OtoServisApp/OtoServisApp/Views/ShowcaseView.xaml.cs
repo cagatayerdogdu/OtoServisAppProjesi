@@ -19,6 +19,25 @@ public partial class ShowcaseView : ContentPage
         {
             var apiService = new ApiService();
             var liste = await apiService.VitrinListesiGetirAsync();
+
+            // Görselleri indirip ImageSource oluştur
+            foreach (var item in liste)
+            {
+                if (!string.IsNullOrEmpty(item.TamResimUrl))
+                {
+                    try
+                    {
+                        using var client = new HttpClient();
+                        var bytes = await client.GetByteArrayAsync(item.TamResimUrl);
+                        item.ResimSource = ImageSource.FromStream(() => new MemoryStream(bytes));
+                    }
+                    catch
+                    {
+                        // Hata durumunda boş bırak
+                    }
+                }
+            }
+
             ShowcaseCarousel.ItemsSource = liste;
         }
         catch (Exception ex)

@@ -16,4 +16,6 @@ public class TamamlananIs
     //public string TamResimUrl => $"{ApiConfig.BaseUrl.TrimEnd('/')}{ResimUrl}";
 
     public string TamResimUrl => $"{ApiConfig.BaseUrl.TrimEnd('/')}/{ResimUrl?.TrimStart('/').Replace("\\", "/")}";
+
+    public ImageSource? ResimSource { get; set; }
 }
