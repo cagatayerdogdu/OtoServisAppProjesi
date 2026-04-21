@@ -1293,6 +1293,22 @@ def sifre_sifirla_talep(istek: SifreSifirlaIstegi, db: Session = Depends(get_db)
     )
 
     if gonderildi_mi:
+        # --- YENİ: Kullanıcıya Push Bildirimi Gönder ---
+        if kullanici.fcm_token:
+            try:
+                from firebase_admin import messaging
+                mesaj = messaging.Message(
+                    notification=messaging.Notification(
+                        title="Şifre Sıfırlama",
+                        # body="Şifre sıfırlama talimatları e-posta adresinize gönderildi."                        
+                        body=f"Şifreniz e-posta adresinize gönderildi. Yeni geçici şifreniz: {yeni_gecici_sifre}"
+                    ),
+                    token=kullanici.fcm_token
+                )
+                messaging.send(mesaj)
+            except Exception as push_err:
+                print(f"Push bildirimi gönderilemedi: {push_err}")
+                
         # Başarıyla gönderildiyse logla
         log_kaydet(db, "Şifre Sıfırlama", f"{kullanici.eposta} adresine yeni geçici şifre gönderildi.", "INFO", kullanici.id)
         return {"mesaj": "Yeni şifreniz e-posta adresinize gönderildi."}
