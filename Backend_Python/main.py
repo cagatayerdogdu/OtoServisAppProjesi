@@ -9,7 +9,6 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 import traceback
-from datetime import datetime
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -19,7 +18,7 @@ from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime, F
 import asyncio
 import requests
 from database import SessionLocal # Arka plan görevleri için bağımsız bir DB oturumu lazım.
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timedelta
 from typing import Optional
 from fastapi import Query
 import math
@@ -28,6 +27,7 @@ from firebase_admin import credentials, messaging
 from pydantic import BaseModel
 from sqlalchemy import nullsfirst  
 from fastapi.responses import HTMLResponse
+from sqlalchemy import and_
 # hasarlı resim ekleme importları
 import io, os, uuid
 from PIL import Image, ImageOps
@@ -312,6 +312,10 @@ async def startup_event():
     
     # 24 Saatlik döngüyü arka planda başlatır, sistemi dondurmaz
     asyncio.create_task(periyodik_arac_guncelleme_gorevi())
+    
+    # YENİ GÖREVLER
+    asyncio.create_task(eski_fotograflari_temizle_gorevi())
+    asyncio.create_task(otomatik_hatirlatma_gorevi())
 
 # ------------------------------------------------------------------ #
 # ------------------------------------------------------------------ #
@@ -617,7 +621,7 @@ def manuel_hatirlatma_gonder(kullanici_id: int, istek: ManuelHatirlatmaIstegi, d
             <br>
             <p>Sizi tekrar aramızda görmekten mutluluk duyarız. Araç bakımlarınız için uygulamamızı ziyaret edebilirsiniz.</p>
             <br>
-            <p>Hayırlı günler dileriz,<br><b>Oto Bakım Yönetimi</b></p>
+            <p>Hayırlı günler dileriz,<br><b>Oto Servis Bakım Yönetimi</b></p>
             <hr>
             <p style="font-size: 11px; color: #999;">
                 Bu e-postayı almak istemiyorsanız <a href="http://136.115.53.49:8000/kvkk/mail-iptal/{kullanici.id}">buraya tıklayarak</a> abonelikten çıkabilirsiniz.
@@ -627,7 +631,7 @@ def manuel_hatirlatma_gonder(kullanici_id: int, istek: ManuelHatirlatmaIstegi, d
     """
     
     # Mail Gönder
-    basarili_mi = eposta_gonder(kullanici.eposta, "Sizi Özledik! - Oto Bakım Servisi", mail_icerigi)
+    basarili_mi = eposta_gonder(kullanici.eposta, "Sizi Özledik! - Oto Servis Bakım", mail_icerigi)
     
     if basarili_mi:
         # Spam engeli için son hatırlatma tarihini kaydet
@@ -2485,3 +2489,128 @@ def toplu_fotograf_durumu(
         ).first() is not None
         sonuc[talep_id] = var_mi
     return sonuc
+
+
+# Talep 85: Eski Hasar Fotoğraflarını Temizleme
+ESKI_FOTOGRAF_GUN_SINIRI = 365  # 12 ay (365 gün)
+
+async def eski_fotograflari_temizle_gorevi():
+    """Periyodik olarak eski hasar ve vitrin fotoğraflarını temizler."""
+    while True:
+        try:
+            db = SessionLocal()
+            sinir_tarihi = datetime.now() - timedelta(days=ESKI_FOTOGRAF_GUN_SINIRI)
+            
+            # 1. Eski servis talebi fotoğraflarını bul
+            eski_hasar_fotolar = db.query(models.ServisTalebiFotograf).filter(
+                models.ServisTalebiFotograf.olusturulma_tarihi < sinir_tarihi
+            ).all()
+            
+            for foto in eski_hasar_fotolar:
+                try:
+                    if os.path.exists(foto.dosya_yolu):
+                        os.remove(foto.dosya_yolu)
+                    db.delete(foto)
+                except Exception as e:
+                    print(f"Hasar fotoğraf silinirken hata: {e}")
+            
+            # 2. Eski vitrin fotoğraflarını bul (TamamlananIs tablosundan)
+            eski_vitrin_fotolari = db.query(models.TamamlananIs).filter(
+                models.TamamlananIs.olusturulma_tarihi < sinir_tarihi
+            ).all()
+            
+            for vitrin in eski_vitrin_fotolari:
+                try:
+                    # Vitrin kaydını sil (fotoğraf da silinecek)
+                    if vitrin.resim_url and vitrin.resim_url.startswith("/VitrinImg/"):
+                        dosya_yolu = os.path.join("VitrinImg", os.path.basename(vitrin.resim_url))
+                        if os.path.exists(dosya_yolu):
+                            os.remove(dosya_yolu)
+                    db.delete(vitrin)
+                except Exception as e:
+                    print(f"Vitrin fotoğrafı silinirken hata: {e}")
+            
+            db.commit()
+            print(f"✅ Eski fotoğraf temizliği tamamlandı. {len(eski_hasar_fotolar)} hasar, {len(eski_vitrin_fotolari)} vitrin fotoğrafı silindi.")
+            
+        except Exception as e:
+            print(f"❌ Eski fotoğraf temizleme hatası: {e}")
+        finally:
+            db.close()
+        
+        # 24 saatte bir çalıştır
+        await asyncio.sleep(24 * 3600)
+        
+# Talep 86: Otomatik Hatırlatma Maili (6 Ay)
+
+HATIRLATMA_ARALIGI_AY = 6
+HATIRLATMA_SPAM_KORUMA_GUN = 30  # Aynı kullanıcıya en az 30 günde bir mail at
+
+async def otomatik_hatirlatma_gorevi():
+    """Periyodik olarak uzun süredir giriş yapmayan kullanıcılara hatırlatma maili gönderir."""
+    while True:
+        try:
+            db = SessionLocal()
+            simdi = datetime.now()
+            alti_ay_once = simdi - timedelta(days=HATIRLATMA_ARALIGI_AY * 30)
+            spam_koruma_tarihi = simdi - timedelta(days=HATIRLATMA_SPAM_KORUMA_GUN)
+            
+            # Son girişi 6 aydan eski, mail izni olan, son hatırlatma tarihi 30 günden eski veya hiç hatırlatma almamış kullanıcılar
+            kullanicilar = db.query(models.Kullanici).filter(
+                models.Kullanici.rol == "Musteri",
+                models.Kullanici.aktif_mi == True,
+                models.Kullanici.mail_istiyor_mu == True,
+                models.Kullanici.son_giris_tarihi < alti_ay_once,
+                and_(
+                    models.Kullanici.son_hatirlatma_tarihi == None,
+                    models.Kullanici.son_hatirlatma_tarihi < spam_koruma_tarihi
+                )
+            ).all()
+            
+            for kullanici in kullanicilar:
+                try:
+                    # Mail içeriği
+                    mail_icerigi = f"""
+                    <html>
+                        <body style="font-family: Arial, sans-serif; color: #333;">
+                            <h2>Merhaba {kullanici.ad_soyad},</h2>
+                            <p>Sizi uzun zamandır aramızda göremedik. Araç bakımlarınız için sizlere en iyi hizmeti sunmaya devam ediyoruz.</p>
+                            <p>Uygulamamıza giriş yaparak yeni kampanyalarımızı ve fırsatlarımızı görebilirsiniz.</p>
+                            <br>
+                            <p>Hayırlı günler dileriz,<br><b>Oto Servis Bakım Yönetimi</b></p>
+                        </body>
+                    </html>
+                    """
+                    
+                    if eposta_gonder(kullanici.eposta, "Sizi Özledik! - Oto Servis Bakım", mail_icerigi):
+                        kullanici.son_hatirlatma_tarihi = simdi
+                        db.commit()
+                        print(f"✅ Hatırlatma maili gönderildi: {kullanici.eposta}")
+                        
+                        # Push bildirimi de gönder
+                        if kullanici.fcm_token:
+                            try:
+                                mesaj = messaging.Message(
+                                    notification=messaging.Notification(
+                                        title="Sizi Özledik!",
+                                        body="Uygulamamıza uzun zamandır girmediniz, sizi bekliyoruz!"
+                                    ),
+                                    token=kullanici.fcm_token
+                                )
+                                messaging.send(mesaj)
+                            except Exception as e:
+                                print(f"Push hatası: {e}")
+                    else:
+                        print(f"❌ Mail gönderilemedi: {kullanici.eposta}")
+                        
+                except Exception as e:
+                    print(f"Kullanıcı {kullanici.eposta} için hata: {e}")
+            
+            db.close()
+            print(f"✅ Otomatik hatırlatma tamamlandı. {len(kullanicilar)} kullanıcıya mail gönderildi.")
+            
+        except Exception as e:
+            print(f"❌ Otomatik hatırlatma hatası: {e}")
+        
+        # 24 saatte bir kontrol et
+        await asyncio.sleep(24 * 3600)
