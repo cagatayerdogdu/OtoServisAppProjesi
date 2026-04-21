@@ -138,6 +138,10 @@ public partial class NotificationsView : ContentPage
         // UI'ı hemen güncelle (okundu olarak işaretle)
         bildirim.okundu_mu = true;
 
+        // Rozeti azalt - Uygulama içinde üstten bildirim geldikten sonra
+        var badgeService = Handler?.MauiContext?.Services.GetService<NotificationBadgeService>();
+        badgeService?.DecrementBadge();
+
         // Arka planda API'ye bildir
         _ = _apiService.BildirimOkunduIsaretleAsync(bildirim.id);
     }
@@ -161,6 +165,10 @@ public partial class NotificationsView : ContentPage
             Bildirimler.Remove(bildirim);
             _toplamKayit--;
             ToplamBildirimLabel.Text = $"{_toplamKayit} bildirim";
+
+            // Rozeti azalt - Uygulama içinde üstten bildirim geldikten sonra
+            var badgeService = Handler?.MauiContext?.Services.GetService<NotificationBadgeService>();
+            badgeService?.DecrementBadge();
 
             // Seçim durumlarını sıfırla
             _isUpdatingSelection = true;
@@ -219,11 +227,16 @@ public partial class NotificationsView : ContentPage
         LoadingOverlay.IsVisible = true;
         LoadingTitle.Text = "Seçilenler Siliniyor...";
 
+
+        // Rozeti azalt - Uygulama içinde üstten bildirim geldikten sonra
+        var badgeService = Handler?.MauiContext?.Services.GetService<NotificationBadgeService>();
         foreach (var bildirim in secilenler)
         {
             bool basarili = await _apiService.NotificationsDeleteAsync($"bildirimler/{bildirim.id}");
             if (basarili)
                 Bildirimler.Remove(bildirim);
+
+            badgeService?.DecrementBadge();
         }
 
         _toplamKayit = Math.Max(0, _toplamKayit - secilenler.Count);

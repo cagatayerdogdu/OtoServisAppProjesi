@@ -104,12 +104,14 @@ public partial class DashboardView : ContentPage
 
     private async Task BildirimRozetiniGuncelle()
     {
-        // var _apiService = new ApiService(); en üstte tanımlandı.
+        var badgeService = Handler?.MauiContext?.Services.GetService<NotificationBadgeService>();
+        if (badgeService != null)
+        {
+            await badgeService.UpdateBadgeFromApiAsync(_aktifKullanici.id);
+        }
 
-        // Gerçek kullanıcı ID'si doğrudan modele bağlandı
-        int aktifKullaniciId = _aktifKullanici.id;
-
-        int okunmamisSayi = await _apiService.OkunmamisBildirimSayisiGetirAsync(aktifKullaniciId);
+        // Okunmamış sayısını servisten al
+        int okunmamisSayi = badgeService.UnreadCount;
 
         if (okunmamisSayi > 0)
         {

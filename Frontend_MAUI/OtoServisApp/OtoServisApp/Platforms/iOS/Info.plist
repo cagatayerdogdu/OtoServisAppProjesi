@@ -32,5 +32,9 @@
 	<string>Bu uygulama, vitrin yönetimi için fotoğraf çekmenize izin verir.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Bu uygulama, vitrin yönetimi için galeriden fotoğraf seçmenize izin verir.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 </dict>
 </plist>

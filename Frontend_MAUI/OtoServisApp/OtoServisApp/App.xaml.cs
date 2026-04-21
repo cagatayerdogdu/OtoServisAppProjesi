@@ -4,6 +4,8 @@ using OtoServisApp.Models;
 using OtoServisApp.Views;
 using System.Diagnostics;
 using OtoServisApp.Services;
+using CommunityToolkit.Maui.Alerts;
+using CommunityToolkit.Maui.Core;
 
 namespace OtoServisApp
 {
@@ -45,12 +47,56 @@ namespace OtoServisApp
             ModernAlertService.Initialize(MainPage);
 
             // UYGULAMA AÇIKKEN GELEN BİLDİRİMLERİ EKRANDA GÖSTERME KODU
-            CrossFirebaseCloudMessaging.Current.NotificationReceived += (sender, args) =>
+            CrossFirebaseCloudMessaging.Current.NotificationReceived += async (sender, args) =>
             {
                 MainThread.BeginInvokeOnMainThread(async () =>
                 {
-                    // Uygulama açıkken bildirim gelirse modern uyarı ile göster
+                    // Rozeti artır
+                    var badgeService = Handler?.MauiContext?.Services.GetService<NotificationBadgeService>();
+                    badgeService?.IncrementBadge();
+
+                    // Uygulama içinde ModernAlertService ile bildirimi göster
                     await ModernAlertService.ShowInfoAsync(args.Notification.Body, args.Notification.Title);
+
+                    // (Opsiyonel) Android'de sistem tepsisine de düşürmek için:
+#if ANDROID
+            var context = Android.App.Application.Context;
+            var notificationManager = (Android.App.NotificationManager)context.GetSystemService(Android.Content.Context.NotificationService);
+            var channelId = "foreground_channel";
+            if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.O)
+            {
+                var channel = new Android.App.NotificationChannel(channelId, "Foreground Notifications", Android.App.NotificationImportance.High);
+                notificationManager?.CreateNotificationChannel(channel);
+            }
+
+            var builder = new Android.App.Notification.Builder(context, channelId)
+                .SetContentTitle(args.Notification.Title)
+                .SetContentText(args.Notification.Body)
+                .SetSmallIcon(Resource.Drawable.notification_icon)
+                .SetAutoCancel(true);
+
+            notificationManager?.Notify(new Random().Next(1000, 9999), builder.Build());
+#endif
+                });
+            };
+
+            CrossFirebaseCloudMessaging.Current.NotificationTapped += (sender, args) =>
+            {
+                MainThread.BeginInvokeOnMainThread(async () =>
+                {
+                    if (Application.Current?.MainPage is TabbedPage tabbedPage)
+                    {
+                        // Hangi sekmede olursa olsun, geçerli NavigationPage'i bul
+                        var currentNav = tabbedPage.CurrentPage as NavigationPage;
+                        if (currentNav != null)
+                        {
+                            await currentNav.Navigation.PushAsync(new NotificationsView());
+                        }
+                    }
+                    else if (Application.Current?.MainPage is NavigationPage navPage)
+                    {
+                        await navPage.Navigation.PushAsync(new NotificationsView());
+                    }
                 });
             };
 

@@ -201,6 +201,10 @@ public partial class ProfileView : ContentPage
 
     private void OnLogoutClicked(object sender, EventArgs e)
     {
+        // Rozeti sıfırla - Uygulama içindeyken üstten gelen bildirimlerin
+        var badgeService = Handler?.MauiContext?.Services.GetService<NotificationBadgeService>();
+        badgeService?.ClearBadge();
+
         /*
             Preferences: Cihazda verileri şifresiz, düz metin (plain text) olarak saklar. Tema rengi, "uygulamayı ilk kez açtı" bilgisi gibi önemsiz şeyler için kullanılır. Oraya şifre kaydetmek, evinin anahtarını paspasın üstüne bırakmak demektir.
 
