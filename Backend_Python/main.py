@@ -372,6 +372,23 @@ def kullanici_olustur(kullanici: schemas.KullaniciCreate, db: Session = Depends(
         else:
             # 3. Hesap varsa ve zaten Aktifse, hata ver!
             raise HTTPException(status_code=400, detail="Bu e-posta adresi sistemde zaten kayıtlı!")
+        
+    # 2. TELEFON NUMARASI BENZERSİZLİK KONTROLÜ (YENİ)
+    mevcut_telefon = db.query(models.Kullanici).filter(models.Kullanici.telefon == kullanici.telefon).first()
+    if mevcut_telefon:
+        # Eğer telefon numarası pasif bir hesaba aitse, o hesabı aktifleştirip yeni bilgileri atayabiliriz (isteğe bağlı).
+        if mevcut_telefon.aktif_mi == False:
+            mevcut_telefon.aktif_mi = True
+            mevcut_telefon.sifre_hash = kullanici.sifre
+            mevcut_telefon.ad_soyad = kullanici.ad_soyad
+            mevcut_telefon.eposta = kullanici.eposta
+            db.commit()
+            db.refresh(mevcut_telefon)
+            log_kaydet(db, "Hesap Diriltme (Telefon)", f"{kullanici.telefon} numaralı eski hesap yeniden aktif edildi.", "INFO", mevcut_telefon.id)
+            return mevcut_telefon
+        else:
+            raise HTTPException(status_code=400, detail="Bu telefon numarası zaten başka bir hesaba kayıtlı. Lütfen farklı bir numara giriniz. Ayrıca girdiğiniz e-posta adresini kontrol ediniz.")
+    # ------------------------------------------------------------
 
     # 4. Hiç kayıt yoksa sıfırdan oluştur (DÜZELTİLDİ: Manuel ve doğru eşleştirme)
     yeni_kullanici = models.Kullanici(
