@@ -51,14 +51,13 @@ namespace OtoServisApp
             {
                 MainThread.BeginInvokeOnMainThread(async () =>
                 {
-                    // Rozeti artır
-                    var badgeService = Handler?.MauiContext?.Services.GetService<NotificationBadgeService>();
-                    badgeService?.IncrementBadge();
+                    try
+                    {
+                        var badgeService = Application.Current?.Handler?.MauiContext?.Services?.GetService<NotificationBadgeService>();
+                        badgeService?.IncrementBadge();
 
-                    // Uygulama içinde ModernAlertService ile bildirimi göster
-                    await ModernAlertService.ShowInfoAsync(args.Notification.Body, args.Notification.Title);
+                        await ModernAlertService.ShowInfoAsync(args.Notification.Body, args.Notification.Title);
 
-                    // (Opsiyonel) Android'de sistem tepsisine de düşürmek için: 
 #if ANDROID
             var context = Android.App.Application.Context;
             var notificationManager = (Android.App.NotificationManager)context.GetSystemService(Android.Content.Context.NotificationService);
@@ -69,16 +68,27 @@ namespace OtoServisApp
                 notificationManager?.CreateNotificationChannel(channel);
             }
 
+            // Geçerli bir ikon belirle (önce kendi ikonumuzu dene, yoksa sistem ikonu kullan)
+            int iconId = Android.Resource.Drawable.IcDialogInfo; // varsayılan
+            try
+            {
+                iconId = Resource.Drawable.notification_icon;
+            }
+            catch { }
+
             var builder = new Android.App.Notification.Builder(context, channelId)
                 .SetContentTitle(args.Notification.Title)
                 .SetContentText(args.Notification.Body)
-                //.SetSmallIcon(Resource.Drawable.notification_icon)
-                // YENİ (Mevcut uygulama simgesi)
-                .SetSmallIcon(Resource.Drawable.notification_icon)   // veya appicon, ic_launcher vb.
+                .SetSmallIcon(iconId)
                 .SetAutoCancel(true);
 
             notificationManager?.Notify(new Random().Next(1000, 9999), builder.Build());
 #endif
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Foreground bildirim hatası: {ex.Message}");
+                    }
                 });
             };
 

@@ -37,8 +37,15 @@ public class NotificationBadgeService
     /// </summary>
     public void IncrementBadge()
     {
-        _unreadCount++;
-        _badge.SetCount((uint)_unreadCount);
+        try
+        {
+            _unreadCount++;
+            _badge.SetCount((uint)_unreadCount);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Rozet artırılamadı: {ex.Message}");
+        }
     }
 
     /// <summary>
@@ -46,10 +53,17 @@ public class NotificationBadgeService
     /// </summary>
     public void DecrementBadge()
     {
-        if (_unreadCount > 0)
+        try
         {
-            _unreadCount--;
-            _badge.SetCount((uint)_unreadCount);
+            if (_unreadCount > 0)
+            {
+                _unreadCount--;
+                _badge.SetCount((uint)_unreadCount);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Rozet azaltılamadı: {ex.Message}");
         }
     }
 
@@ -58,7 +72,14 @@ public class NotificationBadgeService
     /// </summary>
     public void ClearBadge()
     {
-        _unreadCount = 0;
-        _badge.SetCount(0);
+        try
+        {
+            _unreadCount = 0;
+            _badge.SetCount(0);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Rozet sıfırlanamadı: {ex.Message}");
+        }
     }
 }

@@ -104,23 +104,49 @@ public partial class DashboardView : ContentPage
 
     private async Task BildirimRozetiniGuncelle()
     {
-        var badgeService = Handler?.MauiContext?.Services.GetService<NotificationBadgeService>();
-        if (badgeService != null)
+        try
         {
-            await badgeService.UpdateBadgeFromApiAsync(_aktifKullanici.id);
-        }
+            // Badge servisini Application üzerinden al
+            var badgeService = Application.Current?.Handler?.MauiContext?.Services?.GetService<NotificationBadgeService>();
+            if (badgeService != null)
+            {
+                await badgeService.UpdateBadgeFromApiAsync(_aktifKullanici.id);
+                int okunmamisSayi = badgeService.UnreadCount;
 
-        // Okunmamış sayısını servisten al
-        int okunmamisSayi = badgeService.UnreadCount;
-
-        if (okunmamisSayi > 0)
-        {
-            NotificationCountLabel.Text = okunmamisSayi > 9 ? "9+" : okunmamisSayi.ToString();
-            NotificationBadgeBorder.IsVisible = true;
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    if (okunmamisSayi > 0)
+                    {
+                        NotificationCountLabel.Text = okunmamisSayi > 9 ? "9+" : okunmamisSayi.ToString();
+                        NotificationBadgeBorder.IsVisible = true;
+                    }
+                    else
+                    {
+                        NotificationBadgeBorder.IsVisible = false;
+                    }
+                });
+            }
+            else
+            {
+                // Fallback: API'yi kendimiz çağıralım
+                int okunmamisSayi = await _apiService.OkunmamisBildirimSayisiGetirAsync(_aktifKullanici.id);
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    if (okunmamisSayi > 0)
+                    {
+                        NotificationCountLabel.Text = okunmamisSayi > 9 ? "9+" : okunmamisSayi.ToString();
+                        NotificationBadgeBorder.IsVisible = true;
+                    }
+                    else
+                    {
+                        NotificationBadgeBorder.IsVisible = false;
+                    }
+                });
+            }
         }
-        else
+        catch (Exception ex)
         {
-            NotificationBadgeBorder.IsVisible = false;
+            System.Diagnostics.Debug.WriteLine($"Bildirim rozeti hatası: {ex.Message}");
         }
     }
 
