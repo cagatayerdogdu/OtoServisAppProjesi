@@ -27,6 +27,9 @@ public partial class AdminShowcaseManageView : ContentPage
     private int _mevcutSayfa = 1;
     private int _toplamSayfa = 1;
 
+    private List<Hizmet> _tumHizmetler;
+    private Hizmet _secilenHizmet;
+
     private async Task Yukle()
     {
         LoadingOverlay.IsVisible = true;
@@ -41,6 +44,10 @@ public partial class AdminShowcaseManageView : ContentPage
             SayfayiGoster();
             _hizmetler = await _apiService.HizmetleriGetirAsync();
             HizmetPicker.ItemsSource = _hizmetler.Select(h => h.ad).ToList();
+
+            // Hizmetleri çek
+            _tumHizmetler = await _apiService.HizmetleriGetirAsync();
+            HizmetListesi.ItemsSource = _tumHizmetler;
         }
         catch (Exception ex)
         {
@@ -51,6 +58,45 @@ public partial class AdminShowcaseManageView : ContentPage
             LoadingOverlay.IsVisible = false;
         }
     }
+
+    private void OnHizmetSecimTapped(object sender, TappedEventArgs e)
+    {
+        HizmetAramaKutusu.IsVisible = !HizmetAramaKutusu.IsVisible;
+        if (HizmetAramaKutusu.IsVisible)
+        {
+            HizmetAramaBar.Text = string.Empty;
+            HizmetListesi.ItemsSource = _tumHizmetler;
+            HizmetAramaBar.Focus();
+        }
+    }
+
+    private void OnHizmetAramaDegisti(object sender, TextChangedEventArgs e)
+    {
+        if (_tumHizmetler == null) return;
+        var arama = e.NewTextValue?.ToLower() ?? "";
+        if (string.IsNullOrWhiteSpace(arama))
+            HizmetListesi.ItemsSource = _tumHizmetler;
+        else
+            HizmetListesi.ItemsSource = _tumHizmetler.Where(h =>
+                h.ad.ToLower().Contains(arama) ||
+                (h.aciklama != null && h.aciklama.ToLower().Contains(arama))
+            ).ToList();
+    }
+
+    private void OnHizmetSecildi(object sender, SelectionChangedEventArgs e)
+    {
+        var secilen = e.CurrentSelection.FirstOrDefault() as Hizmet;
+        if (secilen != null)
+        {
+            _secilenHizmet = secilen;
+            SecilenHizmetLabel.Text = secilen.ad;
+            HizmetAramaKutusu.IsVisible = false;
+            HizmetListesi.SelectedItem = null;
+        }
+    }
+
+
+
 
     private void SayfayiGoster()
     {
@@ -215,14 +261,21 @@ public partial class AdminShowcaseManageView : ContentPage
             await ModernAlertService.ShowInfoAsync("Lütfen bir fotoğraf seçin veya çekin.", "Uyarı");
             return;
         }
-        if (HizmetPicker.SelectedIndex == -1)
+        /*if (HizmetPicker.SelectedIndex == -1)
+        {
+            await ModernAlertService.ShowInfoAsync("Lütfen bir hizmet seçin (etiket için).", "Uyarı");
+            return;
+        }*/
+        if (_secilenHizmet == null)
         {
             await ModernAlertService.ShowInfoAsync("Lütfen bir hizmet seçin (etiket için).", "Uyarı");
             return;
         }
 
-        var secilenHizmet = _hizmetler[HizmetPicker.SelectedIndex];
-        string etiket = $"{GetIconForHizmet(secilenHizmet.ad)} {secilenHizmet.ad}";
+        //var secilenHizmet = _hizmetler[HizmetPicker.SelectedIndex];
+        //string etiket = $"{GetIconForHizmet(secilenHizmet.ad)} {secilenHizmet.ad}";
+        string etiket = $"{GetIconForHizmet(_secilenHizmet.ad)} {_secilenHizmet.ad}";
+        int? hizmetId = _secilenHizmet.id;
 
         LoadingOverlay.IsVisible = true;
         LoadingMessage.Text = _duzenlenenOge == null ? "Ekleniyor..." : "Güncelleniyor...";
