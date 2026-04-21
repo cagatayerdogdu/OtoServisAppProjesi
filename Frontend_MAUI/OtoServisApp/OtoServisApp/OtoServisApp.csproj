@@ -61,12 +61,6 @@
     <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 
-  <!-- Android için özel ikon kopyalama (mipmap klasörlerine) -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0-android'">
-    <AndroidResource Include="Resources\AppIcon\logo.png" LogicalName="mipmap\ic_launcher.png" />
-    <AndroidResource Include="Resources\AppIcon\logo.png" LogicalName="mipmap\ic_launcher_round.png" />
-  </ItemGroup>
-
   <ItemGroup>
     <AndroidResource Remove="Platforms\Android\Resources\values\styles.xml" />
   </ItemGroup>
@@ -101,6 +95,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Platforms\Android\Resources\mipmap-hdpi\" />
+    <Folder Include="Platforms\Android\Resources\mipmap-mdpi\" />
+    <Folder Include="Platforms\Android\Resources\mipmap-xhdpi\" />
+    <Folder Include="Platforms\Android\Resources\mipmap-xxhdpi\" />
+    <Folder Include="Platforms\Android\Resources\mipmap-xxxhdpi\" />
     <Folder Include="Resources\AppIcon\" />
     <Folder Include="Resources\Splash\" />
   </ItemGroup>
