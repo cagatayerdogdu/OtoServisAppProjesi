@@ -2552,24 +2552,34 @@ async def otomatik_hatirlatma_gorevi():
         try:
             db = SessionLocal()
             simdi = datetime.now()
-            alti_ay_once = simdi - timedelta(days=HATIRLATMA_ARALIGI_AY * 30)
+            alti_ay_once = simdi - timedelta(days=HATIRLATMA_ARALIGI_AY * 30)  # 180 gün
             spam_koruma_tarihi = simdi - timedelta(days=HATIRLATMA_SPAM_KORUMA_GUN)
-            
-            # Son girişi 6 aydan eski, mail izni olan, son hatırlatma tarihi 30 günden eski veya hiç hatırlatma almamış kullanıcılar
-            kullanicilar = db.query(models.Kullanici).filter(
+
+            print(f"🔄 Otomatik hatırlatma kontrolü başladı. Şu an: {simdi}")
+            print(f"   - 6 ay öncesi: {alti_ay_once}")
+            print(f"   - Spam koruma tarihi: {spam_koruma_tarihi}")
+
+            # Son girişi 6 aydan eski, mail izni olan, aktif müşteriler
+            query = db.query(models.Kullanici).filter(
                 models.Kullanici.rol == "Musteri",
                 models.Kullanici.aktif_mi == True,
                 models.Kullanici.mail_istiyor_mu == True,
-                models.Kullanici.son_giris_tarihi < alti_ay_once,
-                and_(
+                models.Kullanici.son_giris_tarihi < alti_ay_once
+            )
+
+            # Hatırlatma koşulu: son_hatirlatma_tarihi NULL VEYA spam_koruma_tarihi'nden eski
+            query = query.filter(
+                or_(
                     models.Kullanici.son_hatirlatma_tarihi == None,
                     models.Kullanici.son_hatirlatma_tarihi < spam_koruma_tarihi
                 )
-            ).all()
-            
+            )
+
+            kullanicilar = query.all()
+            print(f"   - Filtreye uyan kullanıcı sayısı: {len(kullanicilar)}")
+
             for kullanici in kullanicilar:
                 try:
-                    # Mail içeriği
                     mail_icerigi = f"""
                     <html>
                         <body style="font-family: Arial, sans-serif; color: #333;">
@@ -2581,13 +2591,11 @@ async def otomatik_hatirlatma_gorevi():
                         </body>
                     </html>
                     """
-                    
                     if eposta_gonder(kullanici.eposta, "Sizi Özledik! - Oto Servis Bakım", mail_icerigi):
                         kullanici.son_hatirlatma_tarihi = simdi
                         db.commit()
                         print(f"✅ Hatırlatma maili gönderildi: {kullanici.eposta}")
-                        
-                        # Push bildirimi de gönder
+                        # ... Push bildirimi de gönder ...
                         if kullanici.fcm_token:
                             try:
                                 mesaj = messaging.Message(
@@ -2602,15 +2610,13 @@ async def otomatik_hatirlatma_gorevi():
                                 print(f"Push hatası: {e}")
                     else:
                         print(f"❌ Mail gönderilemedi: {kullanici.eposta}")
-                        
                 except Exception as e:
                     print(f"Kullanıcı {kullanici.eposta} için hata: {e}")
-            
+
             db.close()
-            print(f"✅ Otomatik hatırlatma tamamlandı. {len(kullanicilar)} kullanıcıya mail gönderildi.")
-            
+            print(f"✅ Otomatik hatırlatma tamamlandı.")
+
         except Exception as e:
             print(f"❌ Otomatik hatırlatma hatası: {e}")
-        
-        # 24 saatte bir kontrol et
-        await asyncio.sleep(24 * 3600)
+
+        await asyncio.sleep(24 * 3600)  # 24 saat bekle
