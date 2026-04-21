@@ -74,7 +74,7 @@ namespace OtoServisApp
                 .SetContentText(args.Notification.Body)
                 //.SetSmallIcon(Resource.Drawable.notification_icon)
                 // YENİ (Mevcut uygulama simgesi)
-                .SetSmallIcon(Resource.Drawable.icon)   // veya appicon, ic_launcher vb.
+                .SetSmallIcon(Resource.Drawable.notification_icon)   // veya appicon, ic_launcher vb.
                 .SetAutoCancel(true);
 
             notificationManager?.Notify(new Random().Next(1000, 9999), builder.Build());
