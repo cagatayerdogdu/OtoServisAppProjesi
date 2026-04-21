@@ -72,7 +72,9 @@ namespace OtoServisApp
             var builder = new Android.App.Notification.Builder(context, channelId)
                 .SetContentTitle(args.Notification.Title)
                 .SetContentText(args.Notification.Body)
-                .SetSmallIcon(Resource.Drawable.notification_icon)
+                //.SetSmallIcon(Resource.Drawable.notification_icon)
+                // YENİ (Mevcut uygulama simgesi)
+                .SetSmallIcon(Resource.Drawable.icon)   // veya appicon, ic_launcher vb.
                 .SetAutoCancel(true);
 
             notificationManager?.Notify(new Random().Next(1000, 9999), builder.Build());
