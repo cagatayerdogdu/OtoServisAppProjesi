@@ -7,11 +7,9 @@
              Title="Servis Talebi Oluştur">
     <Grid>
         <ScrollView>
-            <VerticalStackLayout Spacing="20" Padding="20,30">
+            <VerticalStackLayout Spacing="20" Padding="20,15,20,30">
 
-                <Label Text="Hizmet Detayları" FontSize="22" FontAttributes="Bold" TextColor="#333333" Margin="0,0,0,10"/>
-
-                <Border BackgroundColor="White" StrokeShape="RoundRectangle 15" Padding="25" Stroke="Transparent">
+                <Border BackgroundColor="White" StrokeShape="RoundRectangle 15" Padding="20" Stroke="Transparent">
                     <Border.Shadow>
                         <Shadow Brush="Black" Offset="0,5" Radius="10" Opacity="0.05" />
                     </Border.Shadow>

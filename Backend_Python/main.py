@@ -683,26 +683,6 @@ def mail_abonelik_iptal(kullanici_id: int, db: Session = Depends(get_db)):
     kullanici.mail_istiyor_mu = False
     db.commit()
     
-#    html_icerik = f"""
-#    <!DOCTYPE html>
-#    <html>
-#        <head>
-#            <meta charset="utf-8">
-#            <title>Abonelik İptali</title>
-#        </head>
-#        <body style="font-family: Arial, sans-serif; text-align: center; padding-top: 50px; #background-color: #F8FAFC;">
-#            <div style="background-color: white; padding: 40px; border-radius: 10px; #box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: inline-block; border: 1px solid #E2E8F0;">
-#                <h2 style="color: #25D366;">Abonelikten Çıkış Başarılı</h2>
-#                <p>Sayın <b>{kullanici.ad_soyad}</b>, e-posta bildirimleri kapatıldı.</p>
-#                <p>Artık hatırlatma e-postaları almayacaksınız.</p>
-#                <br>
-#                <p style="font-size: 12px; color: #7F8C8D;">Fikrinizi değiştirirseniz, #uygulamadaki profil ayarlarından tekrar açabilirsiniz.</p>
-#            </div>
-#        </body>
-#    </html>
-#    """
-
-# YENİ REVİZE: <meta name="viewport"...> etiketi sayesinde artık telefonda dev gibi ve net görünecek
     html_icerik = f"""
 <!DOCTYPE html>
 <html lang="tr">
@@ -2647,16 +2627,16 @@ async def eski_fotograflari_temizle_gorevi():
                 models.TamamlananIs.olusturulma_tarihi < sinir_tarihi
             ).all()
             
-            for vitrin in eski_vitrin_fotolari:
-                try:
-                    # Vitrin kaydını sil (fotoğraf da silinecek)
-                    if vitrin.resim_url and vitrin.resim_url.startswith("/VitrinImg/"):
-                        dosya_yolu = os.path.join("VitrinImg", os.path.basename(vitrin.resim_url))
-                        if os.path.exists(dosya_yolu):
-                            os.remove(dosya_yolu)
-                    db.delete(vitrin)
-                except Exception as e:
-                    print(f"Vitrin fotoğrafı silinirken hata: {e}")
+            # for vitrin in eski_vitrin_fotolari:
+            #     try:
+            #         # Vitrin kaydını sil (fotoğraf da silinecek)
+            #         if vitrin.resim_url and vitrin.resim_url.startswith("/VitrinImg/"):
+            #             dosya_yolu = os.path.join("VitrinImg", os.path.basename(vitrin.resim_url))
+            #             if os.path.exists(dosya_yolu):
+            #                 os.remove(dosya_yolu)
+            #         db.delete(vitrin)
+            #     except Exception as e:
+            #         print(f"Vitrin fotoğrafı silinirken hata: {e}")
             
             db.commit()
             print(f"✅ Eski fotoğraf temizliği tamamlandı. {len(eski_hasar_fotolar)} hasar, {len(eski_vitrin_fotolari)} vitrin fotoğrafı silindi.")
