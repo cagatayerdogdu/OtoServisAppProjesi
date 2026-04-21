@@ -72,7 +72,7 @@ public partial class ShowcaseView : ContentPage
         _sonEtkilesimZamani = DateTime.Now;
 
         // AKILLI MOTOR: 2.5 saniyede bir tetiklenir
-        Dispatcher.StartTimer(TimeSpan.FromSeconds(2.5), () =>
+        Dispatcher.StartTimer(TimeSpan.FromSeconds(3.5), () =>
         {
             if (!_isTimerRunning) return false;
 
