@@ -15,17 +15,16 @@
         </VerticalStackLayout>
 
         <!-- ÖRNEK DÜZELTİLMİŞ KISIM -->
-        <CarouselView Grid.Row="1" x:Name="ShowcaseCarousel" IndicatorView="Indicator" Margin="0,15,0,0" Loop="False" PeekAreaInsets="20" PositionChanged="OnPositionChanged">
+        <CarouselView Grid.Row="1" x:Name="ShowcaseCarousel" IndicatorView="Indicator" Margin="0,15,0,0" Loop="False" PeekAreaInsets="0" PositionChanged="OnPositionChanged">
             <CarouselView.ItemTemplate>
                 <DataTemplate x:DataType="models:TamamlananIs">
-                    <ContentView Padding="10">
-                        <Border Stroke="Transparent" StrokeShape="RoundRectangle 25">
+                    <ContentView Padding="0">
+                        <Border Stroke="Transparent" StrokeShape="RoundRectangle 25" Padding="0">
                             <Grid>
                                 <!-- Görsel -->
                                 <Image Source="{Binding TamResimUrl, Mode=OneWay}" 
-                               Aspect="AspectFill"
-                               WidthRequest="350"
-                               HeightRequest="450" />
+                               Aspect="AspectFill" VerticalOptions="FillAndExpand"
+                               HorizontalOptions="FillAndExpand"  />
 
                                 <!-- Alt gradient ve yazılar aynı kalacak -->
                                 <BoxView VerticalOptions="End" HeightRequest="250">
