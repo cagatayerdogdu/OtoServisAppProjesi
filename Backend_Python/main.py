@@ -2582,7 +2582,7 @@ async def otomatik_hatirlatma_gorevi():
                 try:
                     mail_icerigi = f"""
                     <html>
-                        <body style="font-family: Arial, sans-serif; color: #333;">
+                        <body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
                             <h2>Merhaba {kullanici.ad_soyad},</h2>
                             <p>Sizi uzun zamandır aramızda göremedik. Araç bakımlarınız için sizlere en iyi hizmeti sunmaya devam ediyoruz.</p>
                             <p>Uygulamamıza giriş yaparak yeni kampanyalarımızı ve fırsatlarımızı görebilirsiniz.</p>
