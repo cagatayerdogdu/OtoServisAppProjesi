@@ -2733,3 +2733,142 @@ async def otomatik_hatirlatma_gorevi():
 
         await asyncio.sleep(24 * 3600)  # 24 saat bekle
         
+
+# Geçici doğrulama kodlarını saklamak için (production'da Redis önerilir)
+email_dogrulama_kodlari = {}
+
+@app.post("/kayit/eposta-dogrulama-kodu")
+async def eposta_dogrulama_kodu_gonder(eposta: str = Form(...), db: Session = Depends(get_db)):
+    """Kayıt öncesi e-posta adresine doğrulama kodu gönderir."""
+    eposta = eposta.strip().lower()
+    
+    # E-posta format kontrolü
+    try:
+        from email_validator import validate_email, EmailNotValidError
+        valid = validate_email(eposta)
+        eposta = valid.email
+    except:
+        raise HTTPException(status_code=400, detail="Geçerli bir e-posta adresi giriniz.")
+    
+    # Bu e-posta zaten aktif bir hesapta kayıtlı mı?
+    mevcut = db.query(models.Kullanici).filter(
+        models.Kullanici.eposta == eposta,
+        models.Kullanici.aktif_mi == True
+    ).first()
+    if mevcut:
+        raise HTTPException(status_code=400, detail="Bu e-posta adresi zaten kayıtlı.")
+    
+    # 6 haneli rastgele kod
+    kod = str(random.randint(100000, 999999))
+    
+    # Kodu geçici olarak sakla (5 dakika geçerli)
+    email_dogrulama_kodlari[eposta] = {
+        "kod": kod,
+        "son_kullanma": datetime.now() + timedelta(minutes=5)
+    }
+    
+    # Doğrulama mailini gönder
+    mail_icerigi = f"""
+    <html>
+        <body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+            <div style="max-width: 500px; margin: 0 auto; border: 1px solid #ddd; border-radius: 10px; padding: 20px; text-align: center;">
+                <h2 style="color: #00BCD4;">🚘 Oto Servis Bakım</h2>
+                <p>Merhaba,</p>
+                <p>OtoServisApp'e kayıt olmak için doğrulama kodunuz aşağıdadır:</p>
+                
+                <div style="background-color: #F9F9F9; padding: 15px; margin: 20px 0; font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #111;">
+                    {kod}
+                </div>
+                
+                <p style="font-size: 13px; color: #666;">Bu kod 5 dakika geçerlidir.</p>
+                <p style="font-size: 12px; color: #999; margin-top: 30px;">Bu mail otomatik olarak gönderilmiştir, lütfen cevaplamayınız.</p>
+            </div>
+        </body>
+    </html>
+    """
+    
+    if eposta_gonder(eposta, "OtoServisApp - E-posta Doğrulama Kodu", mail_icerigi):
+        return {"mesaj": "Doğrulama kodu e-posta adresinize gönderildi."}
+    else:
+        raise HTTPException(status_code=500, detail="Doğrulama kodu gönderilemedi.")
+
+
+@app.post("/kayit/dogrula-ve-kaydet")
+def dogrula_ve_kaydet(
+    ad_soyad: str = Form(...),
+    telefon: str = Form(...),
+    eposta: str = Form(...),
+    sifre: str = Form(...),
+    mail_istiyor_mu: bool = Form(False),
+    dogrulama_kodu: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    """Doğrulama kodunu kontrol eder ve kaydı tamamlar."""
+    eposta = eposta.strip().lower()
+    
+    # Kodu kontrol et
+    kayit = email_dogrulama_kodlari.get(eposta)
+    if not kayit:
+        raise HTTPException(status_code=400, detail="Doğrulama kodu bulunamadı. Lütfen yeniden isteyin.")
+    
+    if kayit["son_kullanma"] < datetime.now():
+        del email_dogrulama_kodlari[eposta]
+        raise HTTPException(status_code=400, detail="Doğrulama kodunun süresi dolmuş.")
+    
+    if kayit["kod"] != dogrulama_kodu:
+        raise HTTPException(status_code=400, detail="Doğrulama kodu hatalı.")
+    
+    # Kod doğru → kayıt işlemini gerçekleştir
+    # 1. E-posta benzersizlik kontrolü
+    mevcut_kullanici = db.query(models.Kullanici).filter(models.Kullanici.eposta == eposta).first()
+    if mevcut_kullanici:
+        if mevcut_kullanici.aktif_mi == False:
+            mevcut_kullanici.aktif_mi = True
+            mevcut_kullanici.sifre_hash = sifre
+            mevcut_kullanici.ad_soyad = ad_soyad
+            mevcut_kullanici.telefon = telefon
+            mevcut_kullanici.mail_istiyor_mu = mail_istiyor_mu
+            db.commit()
+            db.refresh(mevcut_kullanici)
+            log_kaydet(db, "Hesap Diriltme", f"{eposta} maili ile eski hesap yeniden aktif edildi.", "INFO", mevcut_kullanici.id)
+            del email_dogrulama_kodlari[eposta]
+            return {"mesaj": "Hesabınız aktifleştirildi. Giriş yapabilirsiniz."}
+        else:
+            raise HTTPException(status_code=400, detail="Bu e-posta adresi zaten kayıtlı.")
+    
+    # 2. Telefon benzersizlik kontrolü
+    mevcut_telefon = db.query(models.Kullanici).filter(models.Kullanici.telefon == telefon).first()
+    if mevcut_telefon:
+        if mevcut_telefon.aktif_mi == False:
+            mevcut_telefon.aktif_mi = True
+            mevcut_telefon.sifre_hash = sifre
+            mevcut_telefon.ad_soyad = ad_soyad
+            mevcut_telefon.eposta = eposta
+            mevcut_telefon.mail_istiyor_mu = mail_istiyor_mu
+            db.commit()
+            db.refresh(mevcut_telefon)
+            log_kaydet(db, "Hesap Diriltme (Telefon)", f"{telefon} numaralı eski hesap yeniden aktif edildi.", "INFO", mevcut_telefon.id)
+            del email_dogrulama_kodlari[eposta]
+            return {"mesaj": "Hesabınız aktifleştirildi. Giriş yapabilirsiniz."}
+        else:
+            raise HTTPException(status_code=400, detail="Bu telefon numarası zaten başka bir hesaba kayıtlı.")
+    
+    # 3. Yeni kayıt oluştur
+    yeni_kullanici = models.Kullanici(
+        ad_soyad=ad_soyad,
+        eposta=eposta,
+        telefon=telefon,
+        sifre_hash=sifre,
+        mail_istiyor_mu=mail_istiyor_mu,
+        aktif_mi=True  # Doğrulandığı için direkt aktif
+    )
+    db.add(yeni_kullanici)
+    db.commit()
+    db.refresh(yeni_kullanici)
+    
+    log_kaydet(db, "Yeni Kayıt", f"{eposta} sisteme kayıt oldu.", "INFO", yeni_kullanici.id)
+    
+    # Kodu temizle
+    del email_dogrulama_kodlari[eposta]
+    
+    return {"mesaj": "Hesabınız başarıyla oluşturuldu. Giriş yapabilirsiniz."}
