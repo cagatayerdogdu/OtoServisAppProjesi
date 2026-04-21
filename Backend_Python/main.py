@@ -616,7 +616,7 @@ def manuel_hatirlatma_gonder(kullanici_id: int, istek: ManuelHatirlatmaIstegi, d
     mail_icerigi = f"""
     <html>
         <body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
-            <p>Merhaba <b>{kullanici.ad_soyad}</b>,</p>
+            <p>Selamlar <b>{kullanici.ad_soyad}</b>,</p>
             <p>{istek.ozel_mesaj}</p>
             <br>
             <p>Sizi tekrar aramızda görmekten mutluluk duyarız. Araç bakımlarınız için uygulamamızı ziyaret edebilirsiniz.</p>
@@ -704,26 +704,154 @@ def mail_abonelik_iptal(kullanici_id: int, db: Session = Depends(get_db)):
 
 # YENİ REVİZE: <meta name="viewport"...> etiketi sayesinde artık telefonda dev gibi ve net görünecek
     html_icerik = f"""
-    <!DOCTYPE html>
-    <html>
-        <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-            <title>Abonelik İptali</title>
-        </head>
-        <body style="font-family: Arial, sans-serif; text-align: center; padding: 20px; background-color: #F8FAFC; margin: 0;">
-            <div style="background-color: white; padding: 30px 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); display: block; max-width: 400px; margin: 40px auto; border: 1px solid #E2E8F0;">
-                <h2 style="color: #25D366; margin-top: 0;">Abonelikten Çıkış Başarılı</h2>
-                <p style="font-size: 16px; color: #333; line-height: 1.5;">Sayın <b>{kullanici.ad_soyad}</b>,<br>e-posta bildirimleri kapatıldı.</p>
-                <p style="font-size: 16px; color: #333;">Artık hatırlatma e-postaları almayacaksınız.</p>
-                <br>
-                <p style="font-size: 18px; color: #7F8C8D; border-top: 1px solid #eee; padding-top: 15px;">
-                    Fikrinizi değiştirirseniz, uygulamadaki profil ayarlarından tekrar açabilirsiniz.
-                </p>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Abonelik İptali</title>
+    <style>
+        * {{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }}
+        body {{
+            font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+            background: linear-gradient(145deg, #F8FAFC 0%, #E2E8F0 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+        }}
+        .card {{
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            max-width: 500px;
+            width: 100%;
+            padding: 40px 30px;
+            border-radius: 36px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            text-align: center;
+            transition: all 0.2s ease;
+        }}
+        .icon {{
+            font-size: 64px;
+            line-height: 1.2;
+            margin-bottom: 16px;
+        }}
+        h2 {{
+            font-size: 28px;
+            font-weight: 700;
+            color: #0F172A;
+            margin-bottom: 16px;
+            letter-spacing: -0.01em;
+        }}
+        .success-badge {{
+            background: #10B981;
+            color: white;
+            display: inline-block;
+            padding: 6px 18px;
+            border-radius: 40px;
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            letter-spacing: 0.3px;
+            box-shadow: 0 4px 8px rgba(16, 185, 129, 0.2);
+        }}
+        .message {{
+            font-size: 17px;
+            color: #1E293B;
+            line-height: 1.6;
+            margin-bottom: 28px;
+            font-weight: 500;
+        }}
+        .name {{
+            font-weight: 700;
+            color: #0EA5E9;
+        }}
+        .info-box {{
+            background: #F1F5F9;
+            border-radius: 24px;
+            padding: 22px 18px;
+            margin: 24px 0 20px;
+            border-left: 4px solid #00BCD4;
+            text-align: left;
+        }}
+        .info-box p {{
+            font-size: 16px;
+            color: #334155;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }}
+        .info-box .small {{
+            font-size: 14px;
+            color: #64748B;
+            margin-top: 12px;
+            line-height: 1.5;
+        }}
+        .footer {{
+            margin-top: 24px;
+            font-size: 13px;
+            color: #94A3B8;
+            border-top: 1px dashed #CBD5E1;
+            padding-top: 22px;
+        }}
+        .btn {{
+            display: inline-block;
+            background: #00BCD4;
+            color: white;
+            font-weight: 600;
+            padding: 14px 28px;
+            border-radius: 60px;
+            text-decoration: none;
+            font-size: 16px;
+            margin-top: 10px;
+            box-shadow: 0 10px 15px -3px rgba(0, 188, 212, 0.2);
+            transition: all 0.15s;
+            border: none;
+        }}
+        .btn:hover {{
+            background: #0097A7;
+            transform: scale(1.02);
+        }}
+        @media (max-width: 480px) {{
+            .card {{ padding: 30px 20px; }}
+            h2 {{ font-size: 24px; }}
+            .message {{ font-size: 16px; }}
+        }}
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="icon">📬</div>
+        <h2>Abonelikten Çıkıldı</h2>
+        <div class="success-badge">✓ İşlem Başarılı</div>
+        <div class="message">
+            Sayın <span class="name">{kullanici.ad_soyad}</span>,<br>
+            e-posta bildirimleri başarıyla kapatıldı.
+        </div>
+        <div class="info-box">
+            <p>🔕 Artık hatırlatma e-postaları almayacaksınız.</p>
+            <div class="small">
+                💡 Fikrinizi değiştirirseniz, <strong>uygulamadaki Hesabım / Profil</strong> bölümünden<br> 
+                “E-posta Bildirimleri” ayarını tekrar açabilirsiniz.
             </div>
-        </body>
-    </html>
-    """
+        </div>
+        <div class="footer">
+            Oto Servis Bakım<br>
+            <span style="font-size:12px">© 2026 • Tüm hakları saklıdır</span>
+        </div>
+    </div>
+</body>
+</html>
+"""
 
     # Burası ÇOK ÖNEMLİ: media_type'ı zorla veriyoruz ki tarayıcı düz yazı sanmasın
     return HTMLResponse(content=html_icerik, status_code=200, media_type="text/html")
@@ -2583,11 +2711,15 @@ async def otomatik_hatirlatma_gorevi():
                     mail_icerigi = f"""
                     <html>
                         <body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
-                            <h2>Merhaba {kullanici.ad_soyad},</h2>
-                            <p>Sizi uzun zamandır aramızda göremedik. Araç bakımlarınız için sizlere en iyi hizmeti sunmaya devam ediyoruz.</p>
+                            <p>Selamlar <b>{kullanici.ad_soyad}</b>,</p>
+                            <p>Sizi uzun zamandır aramızda göremedik. Bir kahvemizi içmeye bekliyoruz. Araç bakımlarınız için sizlere en iyi hizmeti sunmaya devam ediyoruz.</p>
                             <p>Uygulamamıza giriş yaparak yeni kampanyalarımızı ve fırsatlarımızı görebilirsiniz.</p>
                             <br>
                             <p>Hayırlı günler dileriz,<br><b>Oto Servis Bakım Yönetimi</b></p>
+                            <hr>
+                            <p style="font-size: 11px; color: #999;">
+                            Bu e-postayı almak istemiyorsanız <a href="http://136.115.53.49:8000/kvkk/mail-iptal/{kullanici.id}">buraya tıklayarak</a> abonelikten çıkabilirsiniz.
+                            </p>
                         </body>
                     </html>
                     """
@@ -2621,7 +2753,3 @@ async def otomatik_hatirlatma_gorevi():
 
         await asyncio.sleep(24 * 3600)  # 24 saat bekle
         
-@app.get("/admin/test-hatirlatma")
-async def test_hatirlatma():
-    asyncio.create_task(otomatik_hatirlatma_gorevi())
-    return {"mesaj": "Hatırlatma görevi arka planda tetiklendi. Logları kontrol edin."}

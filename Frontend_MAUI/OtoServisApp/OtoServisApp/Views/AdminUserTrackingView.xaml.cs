@@ -94,7 +94,7 @@ public partial class AdminUserTrackingView : ContentPage
 
         try
         {
-            var body = new { ozel_mesaj = "Sizi uzun zamandır aramızda göremedik. Bir çayımızı içmeye bekliyoruz." };
+            var body = new { ozel_mesaj = "Sizi uzun zamandır aramızda göremedik. Bir kahvemizi içmeye bekliyoruz." };
             var res = await _api.PostAsync($"admin/kullanici-takip/{m.id}/hatirlatma-gonder", body);
 
             if (res.IsSuccessStatusCode)
