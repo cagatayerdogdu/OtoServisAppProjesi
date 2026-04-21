@@ -43,8 +43,8 @@ public partial class AdminShowcaseManageView : ContentPage
             GuncelleButonDurumlari();
             SayfayiGoster();
             _hizmetler = await _apiService.HizmetleriGetirAsync();
-            HizmetPicker.ItemsSource = _hizmetler.Select(h => h.ad).ToList();
-
+            //HizmetPicker.ItemsSource = _hizmetler.Select(h => h.ad).ToList();
+            
             // Hizmetleri çek
             _tumHizmetler = await _apiService.HizmetleriGetirAsync();
             HizmetListesi.ItemsSource = _tumHizmetler;
@@ -139,7 +139,10 @@ public partial class AdminShowcaseManageView : ContentPage
         _duzenlenenOge = null;
         BaslikEntry.Text = AciklamaEditor.Text = "";
         TarihEntry.Text = DateTime.Now.ToString("MMMM yyyy", new System.Globalization.CultureInfo("tr-TR"));
-        HizmetPicker.SelectedIndex = -1;
+        //HizmetPicker.SelectedIndex = -1;
+        _secilenHizmet = null;
+        SecilenHizmetLabel.Text = "Hizmet Seçiniz";
+
         _seciliFotografStream?.Dispose();
         _seciliFotografStream = null;
         SecilenFotoImage.Source = null;
@@ -153,7 +156,18 @@ public partial class AdminShowcaseManageView : ContentPage
         BaslikEntry.Text = oge.Baslik;
         AciklamaEditor.Text = oge.Aciklama;
         TarihEntry.Text = oge.Tarih;
-        HizmetPicker.SelectedIndex = oge.HizmetId.HasValue ? _hizmetler.FindIndex(h => h.id == oge.HizmetId) : -1;
+        //HizmetPicker.SelectedIndex = oge.HizmetId.HasValue ? _hizmetler.FindIndex(h => h.id == oge.HizmetId) : -1;
+        if (oge.HizmetId.HasValue)
+        {
+            _secilenHizmet = _tumHizmetler.FirstOrDefault(h => h.id == oge.HizmetId.Value);
+            SecilenHizmetLabel.Text = _secilenHizmet?.ad ?? "Hizmet Seçiniz";
+        }
+        else
+        {
+            _secilenHizmet = null;
+            SecilenHizmetLabel.Text = "Hizmet Seçiniz";
+        }
+
         _seciliFotografStream?.Dispose();
         _seciliFotografStream = null;
         SecilenFotoImage.Source = oge.TamResimUrl;
@@ -287,12 +301,12 @@ public partial class AdminShowcaseManageView : ContentPage
 
             if (_duzenlenenOge == null)
             {
-                await _apiService.VitrinEkleAsync(BaslikEntry.Text, AciklamaEditor.Text, etiket, tarih, secilenHizmet.id, _seciliFotografStream!, _seciliFotografDosyaAdi ?? "foto.jpg");
+                await _apiService.VitrinEkleAsync(BaslikEntry.Text, AciklamaEditor.Text, etiket, tarih, _secilenHizmet.id, _seciliFotografStream!, _seciliFotografDosyaAdi ?? "foto.jpg");
                 await ModernAlertService.ShowInfoAsync("İş başarıyla eklendi.", "Başarılı");
             }
             else
             {
-                await _apiService.VitrinGuncelleAsync(_duzenlenenOge.Id, BaslikEntry.Text, AciklamaEditor.Text, etiket, tarih, secilenHizmet.id, _seciliFotografStream, _seciliFotografDosyaAdi);
+                await _apiService.VitrinGuncelleAsync(_duzenlenenOge.Id, BaslikEntry.Text, AciklamaEditor.Text, etiket, tarih, _secilenHizmet.id, _seciliFotografStream, _seciliFotografDosyaAdi);
                 await ModernAlertService.ShowInfoAsync("İş başarıyla güncellendi.", "Başarılı");
             }
 
