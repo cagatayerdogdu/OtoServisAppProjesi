@@ -27,7 +27,7 @@ from firebase_admin import credentials, messaging
 from pydantic import BaseModel
 from sqlalchemy import nullsfirst  
 from fastapi.responses import HTMLResponse
-from sqlalchemy import and_
+from sqlalchemy import or_
 # hasarlı resim ekleme importları
 import io, os, uuid
 from PIL import Image, ImageOps
@@ -2620,3 +2620,8 @@ async def otomatik_hatirlatma_gorevi():
             print(f"❌ Otomatik hatırlatma hatası: {e}")
 
         await asyncio.sleep(24 * 3600)  # 24 saat bekle
+        
+@app.get("/admin/test-hatirlatma")
+async def test_hatirlatma():
+    asyncio.create_task(otomatik_hatirlatma_gorevi())
+    return {"mesaj": "Hatırlatma görevi arka planda tetiklendi. Logları kontrol edin."}
