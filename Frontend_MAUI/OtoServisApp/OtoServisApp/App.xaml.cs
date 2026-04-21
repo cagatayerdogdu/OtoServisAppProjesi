@@ -86,7 +86,6 @@ namespace OtoServisApp
                 {
                     if (Application.Current?.MainPage is TabbedPage tabbedPage)
                     {
-                        // Hangi sekmede olursa olsun, geçerli NavigationPage'i bul
                         var currentNav = tabbedPage.CurrentPage as NavigationPage;
                         if (currentNav != null)
                         {
