@@ -69,10 +69,30 @@
     <None Remove="Platforms\Android\AndroidManifest.xml" />
     <None Remove="Platforms\Android\Resources\values\strings.xml" />
     <None Remove="Resources\AppIcon\appiconfg.svg" />
+    <None Remove="Resources\Drawable\mipmap-hdpi\ic_launcher.png" />
+    <None Remove="Resources\Drawable\mipmap-hdpi\ic_launcher_round.png" />
+    <None Remove="Resources\Drawable\mipmap-mdpi\ic_launcher.png" />
+    <None Remove="Resources\Drawable\mipmap-mdpi\ic_launcher_round.png" />
+    <None Remove="Resources\Drawable\mipmap-xhdpi\ic_launcher.png" />
+    <None Remove="Resources\Drawable\mipmap-xhdpi\ic_launcher_round.png" />
+    <None Remove="Resources\Drawable\mipmap-xxhdpi\ic_launcher.png" />
+    <None Remove="Resources\Drawable\mipmap-xxhdpi\ic_launcher_round.png" />
+    <None Remove="Resources\Drawable\mipmap-xxxhdpi\ic_launcher.png" />
+    <None Remove="Resources\Drawable\mipmap-xxxhdpi\ic_launcher_round.png" />
     <None Remove="Resources\Drawable\notification_icon.png" />
   </ItemGroup>
 
   <ItemGroup>
+    <AndroidResource Include="Resources\Drawable\mipmap-hdpi\ic_launcher.png" />
+    <AndroidResource Include="Resources\Drawable\mipmap-hdpi\ic_launcher_round.png" />
+    <AndroidResource Include="Resources\Drawable\mipmap-mdpi\ic_launcher.png" />
+    <AndroidResource Include="Resources\Drawable\mipmap-mdpi\ic_launcher_round.png" />
+    <AndroidResource Include="Resources\Drawable\mipmap-xhdpi\ic_launcher.png" />
+    <AndroidResource Include="Resources\Drawable\mipmap-xhdpi\ic_launcher_round.png" />
+    <AndroidResource Include="Resources\Drawable\mipmap-xxhdpi\ic_launcher.png" />
+    <AndroidResource Include="Resources\Drawable\mipmap-xxhdpi\ic_launcher_round.png" />
+    <AndroidResource Include="Resources\Drawable\mipmap-xxxhdpi\ic_launcher.png" />
+    <AndroidResource Include="Resources\Drawable\mipmap-xxxhdpi\ic_launcher_round.png" />
     <AndroidResource Include="Resources\Drawable\notification_icon.png" />
   </ItemGroup>
 
