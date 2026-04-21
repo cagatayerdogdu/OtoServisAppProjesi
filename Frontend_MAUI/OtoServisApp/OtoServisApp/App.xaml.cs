@@ -58,7 +58,7 @@ namespace OtoServisApp
                     // Uygulama içinde ModernAlertService ile bildirimi göster
                     await ModernAlertService.ShowInfoAsync(args.Notification.Body, args.Notification.Title);
 
-                    // (Opsiyonel) Android'de sistem tepsisine de düşürmek için:
+                    // (Opsiyonel) Android'de sistem tepsisine de düşürmek için: 
 #if ANDROID
             var context = Android.App.Application.Context;
             var notificationManager = (Android.App.NotificationManager)context.GetSystemService(Android.Content.Context.NotificationService);
