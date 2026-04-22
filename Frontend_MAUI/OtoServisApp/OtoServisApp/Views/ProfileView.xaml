@@ -130,7 +130,7 @@
 
                             <!-- İlçe Listesi Popup -->
                             <Grid x:Name="IlceListesiPopup" Grid.Row="1" IsVisible="False" BackgroundColor="White" RowDefinitions="Auto, *" Margin="0,50,0,0" HeightRequest="300">
-                                <Border Grid.Row="0" BackgroundColor="#00BCD4" Padding="10">
+                                <Border Grid.Row="0" BackgroundColor="#00BCD4" StrokeThickness="0" StrokeShape="RoundRectangle 8" Padding="10">
                                     <Grid ColumnDefinitions="*, Auto">
                                         <Label Grid.Column="0" Text="İlçe Seçiniz" TextColor="White" FontAttributes="Bold"/>
                                         <Label Grid.Column="1" Text="✕" TextColor="White" FontSize="18" HorizontalOptions="End" VerticalOptions="Center">
@@ -164,7 +164,7 @@
 
                             <!-- Mahalle Listesi Popup -->
                             <Grid x:Name="MahalleListesiPopup" Grid.Row="2" IsVisible="False" BackgroundColor="White" RowDefinitions="Auto, *" Margin="0,50,0,0" HeightRequest="300">
-                                <Border Grid.Row="0" BackgroundColor="#00BCD4" Padding="10">
+                                <Border Grid.Row="0" BackgroundColor="#00BCD4" StrokeThickness="0" StrokeShape="RoundRectangle 8" Padding="10">
                                     <Grid ColumnDefinitions="*, Auto">
                                         <Label Grid.Column="0" Text="Mahalle Seçiniz" TextColor="White" FontAttributes="Bold"/>
                                         <Label Grid.Column="1" Text="✕" TextColor="White" FontSize="18" HorizontalOptions="End" VerticalOptions="Center">

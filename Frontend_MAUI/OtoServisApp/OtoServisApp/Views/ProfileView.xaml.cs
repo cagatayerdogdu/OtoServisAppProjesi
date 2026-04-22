@@ -16,6 +16,7 @@ public partial class ProfileView : ContentPage
     private Neighborhood _secilenMahalle;
     //private bool _adresPanelYukleniyor = false;
     private bool _apiHatasiVar = false;
+    private string _mevcutTamAdres;
     /***********/
 
     public ProfileView(Kullanici kullanici, bool isActivationMode = false)
@@ -45,6 +46,17 @@ public partial class ProfileView : ContentPage
 
             // Buton metnini değiştir
             UpdateButton.Text = "KULLANICIMI AKTİF ET";
+        }
+
+        // Mevcut adresi göster
+        if (!string.IsNullOrEmpty(_aktifKullanici.adres))
+        {
+            SecilenAdresLabel.Text = _aktifKullanici.adres;
+            _mevcutTamAdres = _aktifKullanici.adres;
+        }
+        else
+        {
+            SecilenAdresLabel.Text = "Adres Seçiniz...";
         }
     }
 
@@ -335,9 +347,13 @@ public partial class ProfileView : ContentPage
     {
         AdresSecimPaneli.IsVisible = !AdresSecimPaneli.IsVisible;
 
-        if (AdresSecimPaneli.IsVisible && _ilceler == null)
+        if (AdresSecimPaneli.IsVisible)
         {
-            await IlceleriYukle();
+            // Eğer ilçeler yüklenmediyse yükle
+            if (_ilceler == null)
+            {
+                await IlceleriYukle();
+            }
         }
     }
 
@@ -454,7 +470,6 @@ public partial class ProfileView : ContentPage
 
         if (_apiHatasiVar)
         {
-            // Manuel giriş modu
             ilce = ManuelIlceEntry.Text?.Trim();
             mahalle = ManuelMahalleEntry.Text?.Trim();
 
@@ -466,7 +481,6 @@ public partial class ProfileView : ContentPage
         }
         else
         {
-            // Normal API modu
             if (_secilenIlce == null || _secilenMahalle == null)
             {
                 await ModernAlertService.ShowInfoAsync("Lütfen ilçe ve mahalle seçiniz.", "Uyarı");
@@ -476,10 +490,10 @@ public partial class ProfileView : ContentPage
             mahalle = _secilenMahalle.Name;
         }
 
-        string sokak = SokakEntry.Text?.Trim() ?? "";
-        string no = AptNoEntry.Text?.Trim() ?? "";
+        string sokak = SokakEntry.Text?.Trim();
+        string no = AptNoEntry.Text?.Trim();
 
-        bool basarili = await _apiService.AdresKaydetAsync(
+        string tamAdres = await _apiService.AdresKaydetAsync(
             _aktifKullanici.id,
             _aktifKullanici.ad_soyad,
             ilce,
@@ -488,13 +502,12 @@ public partial class ProfileView : ContentPage
             no
         );
 
-        if (basarili)
+        if (!string.IsNullOrEmpty(tamAdres))
         {
-            string tamAdres = $"{sokak}{(string.IsNullOrEmpty(sokak) ? "" : " ")}{no}{(string.IsNullOrEmpty(no) ? "" : " ")}{mahalle}, {ilce}, İstanbul";
             _aktifKullanici.adres = tamAdres;
             SecilenAdresLabel.Text = tamAdres;
             AdresSecimPaneli.IsVisible = false;
-            await ModernAlertService.ShowInfoAsync("Adresiniz başarıyla kaydedildi.", "Başarılı");
+            await ModernAlertService.ShowInfoAsync("Adresiniz başarıyla güncellendi.", "Başarılı");
 
             // Paneli sıfırla
             _apiHatasiVar = false;
@@ -504,7 +517,7 @@ public partial class ProfileView : ContentPage
         }
         else
         {
-            await ModernAlertService.ShowInfoAsync("Adres kaydedilirken bir hata oluştu.", "Hata");
+            await ModernAlertService.ShowInfoAsync("Adres güncellenirken bir hata oluştu.", "Hata");
         }
     }
 

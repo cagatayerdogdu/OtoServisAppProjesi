@@ -4,6 +4,7 @@ using OtoServisApp.Models;
 using Plugin.Firebase.CloudMessaging;
 using System.Diagnostics;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace OtoServisApp.Services
 {
@@ -1103,7 +1104,7 @@ namespace OtoServisApp.Services
         /// <summary>
         /// Kullanıcının adres bilgisini kaydeder.
         /// </summary>
-        public async Task<bool> AdresKaydetAsync(int kullaniciId, string adSoyad, string ilce, string mahalle, string sokak, string no)
+        public async Task<string> AdresKaydetAsync(int kullaniciId, string adSoyad, string ilce, string mahalle, string sokak, string no)
         {
             try
             {
@@ -1117,12 +1118,24 @@ namespace OtoServisApp.Services
                     no = no
                 };
                 var response = await _httpClient.PostAsJsonAsync("adres/kaydet", payload);
-                return response.IsSuccessStatusCode;
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<AdresKayitResponse>();
+                    return result?.TamAdres;
+                }
             }
-            catch
+            catch (Exception ex)
             {
-                return false;
+                Debug.WriteLine($"Adres kaydedilemedi: {ex.Message}");
             }
+            return null;
+        }
+
+        // Yardımcı sınıf
+        public class AdresKayitResponse
+        {
+            [JsonPropertyName("tam_adres")]
+            public string TamAdres { get; set; }
         }
 
     } /* En Dıştaki public class ApiService bitişi */

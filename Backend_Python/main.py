@@ -2870,32 +2870,60 @@ class AdresKayitModel(BaseModel):
     sokak: Optional[str] = None
     no: Optional[str] = None
 
+# aynı kullanıcı için daha önce bir adres kaydı varsa güncelleyecek, yoksa yeni oluşturacak. 
+# Ayrıca kullanicilar tablosundaki adres alanını da her durumda güncelleyecek.
+
 @app.post("/adres/kaydet")
 def adres_kaydet(adres_data: AdresKayitModel, db: Session = Depends(get_db)):
-    """Yeni bir adres kaydı oluşturur ve kullanicilar tablosundaki adres alanını günceller."""
+    """Kullanıcının adresini kaydeder veya günceller."""
     # Tam adresi birleştir
-    tam_adres = f"{adres_data.sokak + ' ' if adres_data.sokak else ''}{adres_data.no + ' ' if adres_data.no else ''}{adres_data.mahalle}, {adres_data.ilce}, İstanbul"
+    sokak_kismi = adres_data.sokak + " " if adres_data.sokak else ""
+    no_kismi = adres_data.no + " " if adres_data.no else ""
+    tam_adres = f"{sokak_kismi}{no_kismi}{adres_data.mahalle}, {adres_data.ilce}, İstanbul"
     
-    # Yeni adres kaydını oluştur
-    yeni_adres = models.Adres(
-        kullanici_id=adres_data.kullanici_id,
-        ad_soyad=adres_data.ad_soyad,
-        il="İstanbul",
-        ilce=adres_data.ilce,
-        mahalle=adres_data.mahalle,
-        sokak=adres_data.sokak,
-        no=adres_data.no,
-        tam_adres=tam_adres
-    )
-    db.add(yeni_adres)
+    # Kullanıcının mevcut adres kaydını ara
+    mevcut_adres = db.query(models.Adres).filter(
+        models.Adres.kullanici_id == adres_data.kullanici_id
+    ).first()
     
-    # Kullanicilar tablosundaki adres alanını güncelle
-    kullanici = db.query(models.Kullanici).filter(models.Kullanici.id == adres_data.kullanici_id).first()
-    if kullanici:
-        kullanici.adres = tam_adres
-    
-    db.commit()
-    db.refresh(yeni_adres)
-    
-    log_kaydet(db, "Adres Kaydetme", f"{adres_data.ad_soyad} için yeni adres kaydedildi.", "INFO", adres_data.kullanici_id)
-    return {"mesaj": "Adres başarıyla kaydedildi", "adres_id": yeni_adres.id}
+    if mevcut_adres:
+        # Güncelle
+        mevcut_adres.ad_soyad = adres_data.ad_soyad
+        mevcut_adres.il = "İstanbul"
+        mevcut_adres.ilce = adres_data.ilce
+        mevcut_adres.mahalle = adres_data.mahalle
+        mevcut_adres.sokak = adres_data.sokak
+        mevcut_adres.no = adres_data.no
+        mevcut_adres.tam_adres = tam_adres
+        db.commit()
+        
+        # Kullanicilar tablosundaki adres alanını güncelle
+        kullanici = db.query(models.Kullanici).filter(models.Kullanici.id == adres_data.kullanici_id).first()
+        if kullanici:
+            kullanici.adres = tam_adres
+            db.commit()
+            
+        return {"mesaj": "Adres başarıyla güncellendi", "adres_id": mevcut_adres.id, "tam_adres": tam_adres}
+    else:
+        # Yeni kayıt oluştur
+        yeni_adres = models.Adres(
+            kullanici_id=adres_data.kullanici_id,
+            ad_soyad=adres_data.ad_soyad,
+            il="İstanbul",
+            ilce=adres_data.ilce,
+            mahalle=adres_data.mahalle,
+            sokak=adres_data.sokak,
+            no=adres_data.no,
+            tam_adres=tam_adres
+        )
+        db.add(yeni_adres)
+        db.commit()
+        db.refresh(yeni_adres)
+        
+        # Kullanicilar tablosundaki adres alanını güncelle
+        kullanici = db.query(models.Kullanici).filter(models.Kullanici.id == adres_data.kullanici_id).first()
+        if kullanici:
+            kullanici.adres = tam_adres
+            db.commit()
+            
+        return {"mesaj": "Adres başarıyla kaydedildi", "adres_id": yeni_adres.id, "tam_adres": tam_adres}
