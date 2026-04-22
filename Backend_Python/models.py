@@ -57,6 +57,9 @@ class Kullanici(Base):
     # BÜTÜN ANA TABLOLARIN (Kullanici, Arac, ServisTalebi) EN ALTINA ŞU İKİ SATIRI EKLE:
     # kayit_durumu = Column(String(1), default="A", comment="A: Aktif Kayit, X: Silinmis (Soft Delete)") aktif_mi kolonundan zaten takip ediyormuşuz.
     silinme_tarihi = Column(DateTime, nullable=True, comment="Kaydin X durumuna cekildigi tarih")
+    
+    adresler = relationship("Adres", back_populates="kullanici")
+
 
 class Arac(Base):
     __tablename__ = "araclar"
@@ -235,3 +238,25 @@ class TamamlananIs(Base):
     guncelleme_tarihi = Column(DateTime, onupdate=func.now())
 
     hizmet = relationship("Hizmet")
+    
+
+# ==============================================================================
+# TABLO: Adres API si için gerekli adresler tablosu
+# ==============================================================================
+class Adres(Base):
+    __tablename__ = "adresler"
+    __table_args__ = {'comment': 'Kullanıcıların adres bilgilerinin tutulduğu tablo.'}
+
+    id = Column(Integer, primary_key=True, index=True, comment="Adres tekil kimliği (PK)")
+    kullanici_id = Column(Integer, ForeignKey("kullanicilar.id"), nullable=False, comment="Adresin ait olduğu kullanıcı ID'si")
+    ad_soyad = Column(String(100), nullable=False, comment="Kullanıcının adı ve soyadı")
+    il = Column(String(50), default="İstanbul", comment="İl adı (sabit: İstanbul)")
+    ilce = Column(String(100), nullable=False, comment="İlçe adı")
+    mahalle = Column(String(100), nullable=False, comment="Mahalle adı")
+    sokak = Column(String(200), nullable=True, comment="Cadde/Sokak adı (manuel)")
+    no = Column(String(50), nullable=True, comment="Apartman/Daire No (manuel)")
+    tam_adres = Column(Text, nullable=False, comment="Birleştirilmiş tam adres")
+    kayit_tarihi = Column(DateTime, server_default=func.now(), comment="Adresin kayıt tarihi")
+    guncelleme_tarihi = Column(DateTime, onupdate=func.now(), comment="Adresin son güncelleme tarihi")
+
+    kullanici = relationship("Kullanici", back_populates="adresler")

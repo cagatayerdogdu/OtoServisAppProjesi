@@ -2842,3 +2842,72 @@ async def otomatik_hatirlatma_gorevi():
 
         await asyncio.sleep(24 * 3600)  # 24 saat bekle
         
+
+# ==============================================================================
+# Adres API si için gerekli endpoint
+# ==============================================================================
+TURKIYE_API_BASE_URL = "https://api.turkiyeapi.dev/v1"
+
+@app.get("/adres/ilceler")
+def ilceleri_getir(il_plaka: int = 34):
+    """İstanbul (34) için ilçeleri getirir."""
+    try:
+        response = requests.get(f"{TURKIYE_API_BASE_URL}/provinces/{il_plaka}", timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        # API'den dönen yanıtın içinden districts dizisini çıkarıp döndürüyoruz
+        return {"districts": data.get("data", {}).get("districts", [])}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"İlçeler alınamadı: {str(e)}")
+
+@app.get("/adres/mahalleler")
+def mahalleleri_getir():
+    """İstanbul'un tüm mahallelerini ilçeleriyle birlikte getirir."""
+    try:
+        # extend=true parametresi tüm mahalleleri getirir
+        response = requests.get(f"{TURKIYE_API_BASE_URL}/provinces/34?extend=true", timeout=15)
+        response.raise_for_status()
+        data = response.json()
+        # API'den dönen ham veriyi frontend'e iletelim, işleme orada yapalım
+        return data.get("data", {})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Mahalleler alınamadı: {str(e)}")
+
+# Adres kaydetme endpoint'i
+class AdresKayitModel(BaseModel):
+    kullanici_id: int
+    ad_soyad: str
+    ilce: str
+    mahalle: str
+    sokak: Optional[str] = None
+    no: Optional[str] = None
+
+@app.post("/adres/kaydet")
+def adres_kaydet(adres_data: AdresKayitModel, db: Session = Depends(get_db)):
+    """Yeni bir adres kaydı oluşturur ve kullanicilar tablosundaki adres alanını günceller."""
+    # Tam adresi birleştir
+    tam_adres = f"{adres_data.sokak + ' ' if adres_data.sokak else ''}{adres_data.no + ' ' if adres_data.no else ''}{adres_data.mahalle}, {adres_data.ilce}, İstanbul"
+    
+    # Yeni adres kaydını oluştur
+    yeni_adres = models.Adres(
+        kullanici_id=adres_data.kullanici_id,
+        ad_soyad=adres_data.ad_soyad,
+        il="İstanbul",
+        ilce=adres_data.ilce,
+        mahalle=adres_data.mahalle,
+        sokak=adres_data.sokak,
+        no=adres_data.no,
+        tam_adres=tam_adres
+    )
+    db.add(yeni_adres)
+    
+    # Kullanicilar tablosundaki adres alanını güncelle
+    kullanici = db.query(models.Kullanici).filter(models.Kullanici.id == adres_data.kullanici_id).first()
+    if kullanici:
+        kullanici.adres = tam_adres
+    
+    db.commit()
+    db.refresh(yeni_adres)
+    
+    log_kaydet(db, "Adres Kaydetme", f"{adres_data.ad_soyad} için yeni adres kaydedildi.", "INFO", adres_data.kullanici_id)
+    return {"mesaj": "Adres başarıyla kaydedildi", "adres_id": yeni_adres.id}

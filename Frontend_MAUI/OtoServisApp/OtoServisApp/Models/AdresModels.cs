@@ -1,0 +1,37 @@
+﻿using System.Text.Json.Serialization;
+using System.Collections.Generic;
+
+namespace OtoServisApp.Models;
+
+public class District
+{
+    [JsonPropertyName("id")]
+    public int Id { get; set; }
+
+    [JsonPropertyName("name")]
+    public string Name { get; set; }
+
+    [JsonPropertyName("neighborhoods")]
+    public List<Neighborhood> Neighborhoods { get; set; } = new();
+}
+
+public class Neighborhood
+{
+    [JsonPropertyName("id")]
+    public int Id { get; set; }
+
+    [JsonPropertyName("name")]
+    public string Name { get; set; }
+}
+
+public class ProvinceData
+{
+    [JsonPropertyName("districts")]
+    public List<District> Districts { get; set; } = new();
+}
+
+public class TurkiyeApiProvinceResponse
+{
+    [JsonPropertyName("data")]
+    public ProvinceData Data { get; set; }
+}

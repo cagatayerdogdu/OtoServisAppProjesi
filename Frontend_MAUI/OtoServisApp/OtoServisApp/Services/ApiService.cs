@@ -1076,6 +1076,76 @@ namespace OtoServisApp.Services
 
         /****** Vitrinimiz Bitişi *****/
 
+        /// <summary>
+        /// İstanbul'un ilçelerini getirir.
+        /// </summary>
+        public async Task<List<District>> IlceleriGetirAsync()
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync("adres/ilceler");
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var result = JsonSerializer.Deserialize<TurkiyeApiProvinceResponse>(content, options);
+                    return result?.Data?.Districts ?? new List<District>();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"İlçeler alınamadı: {ex.Message}");
+            }
+            return new List<District>();
+        }
+
+        /// <summary>
+        /// İstanbul'un tüm mahallelerini ilçeleriyle birlikte getirir.
+        /// </summary>
+        public async Task<ProvinceData> MahalleleriGetirAsync()
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync("adres/mahalleler");
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var result = JsonSerializer.Deserialize<TurkiyeApiProvinceResponse>(content, options);
+                    return result?.Data;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Mahalleler alınamadı: {ex.Message}");
+            }
+            return new ProvinceData { Districts = new List<District>() };
+        }
+        /* İstanbul içi Adresler endpointi metodu */
+        /// <summary>
+        /// Kullanıcının adres bilgisini kaydeder.
+        /// </summary>
+        public async Task<bool> AdresKaydetAsync(int kullaniciId, string adSoyad, string ilce, string mahalle, string sokak, string no)
+        {
+            try
+            {
+                var payload = new
+                {
+                    kullanici_id = kullaniciId,
+                    ad_soyad = adSoyad,
+                    ilce = ilce,
+                    mahalle = mahalle,
+                    sokak = sokak,
+                    no = no
+                };
+                var response = await _httpClient.PostAsJsonAsync("adres/kaydet", payload);
+                return response.IsSuccessStatusCode;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
     } /* En Dıştaki public class ApiService bitişi */
 

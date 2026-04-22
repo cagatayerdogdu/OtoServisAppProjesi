@@ -8,6 +8,15 @@ public partial class ProfileView : ContentPage
     private Kullanici _aktifKullanici;
     private readonly ApiService _apiService;
     private bool _isActivationMode = false;
+    /* Adres API için gerekliler */
+    private List<District> _ilceler;
+    private District _secilenIlce;
+    private ProvinceData _istanbulMahalleData;
+    private List<Neighborhood> _aktifMahalleler;
+    private Neighborhood _secilenMahalle;
+    //private bool _adresPanelYukleniyor = false;
+    private bool _apiHatasiVar = false;
+    /***********/
 
     public ProfileView(Kullanici kullanici, bool isActivationMode = false)
     {
@@ -20,7 +29,7 @@ public partial class ProfileView : ContentPage
         NameEntry.Text = _aktifKullanici.ad_soyad;
         EmailEntry.Text = _aktifKullanici.eposta;
         PhoneEntry.Text = _aktifKullanici.telefon;
-        AddressEditor.Text = _aktifKullanici.adres;
+        //AddressEditor.Text = _aktifKullanici.adres;
 
         // AKTİVASYON MODU KONTROLÜ
         if (_isActivationMode)
@@ -32,7 +41,7 @@ public partial class ProfileView : ContentPage
             // Form alanlarını değiştirilemez yapıyoruz
             NameEntry.IsEnabled = false;
             PhoneEntry.IsEnabled = false;
-            AddressEditor.IsEnabled = false;
+            //AddressEditor.IsEnabled = false;
 
             // Buton metnini değiştir
             UpdateButton.Text = "KULLANICIMI AKTİF ET";
@@ -83,7 +92,7 @@ public partial class ProfileView : ContentPage
         // --- NORMAL PROFİL GÜNCELLEME İŞLEMLERİ ---
         string yeniAd = NameEntry.Text?.Trim();
         string yeniTelefon = PhoneEntry.Text?.Trim();
-        string yeniAdres = AddressEditor.Text?.Trim();
+        //string yeniAdres = AddressEditor.Text?.Trim();
 
         if (string.IsNullOrEmpty(yeniAd) || string.IsNullOrEmpty(yeniTelefon))
         {
@@ -98,7 +107,7 @@ public partial class ProfileView : ContentPage
         {
             ad_soyad = yeniAd,
             telefon = yeniTelefon,
-            adres = yeniAdres
+            //adres = yeniAdres
         };
 
         // API'ye güncelleme isteği atıyoruz
@@ -320,4 +329,210 @@ public partial class ProfileView : ContentPage
         }
     }
     // --- YENİ REVİZE BİTİŞİ ---
+
+    /* Adres API için gerekli metotlar */
+    private async void OnAdresSecimTapped(object sender, TappedEventArgs e)
+    {
+        AdresSecimPaneli.IsVisible = !AdresSecimPaneli.IsVisible;
+
+        if (AdresSecimPaneli.IsVisible && _ilceler == null)
+        {
+            await IlceleriYukle();
+        }
+    }
+
+    private async Task IlceleriYukle()
+    {
+        _apiHatasiVar = false; // Başlangıçta hata yok
+        ApiHataPaneli.IsVisible = false;
+        IlceSecimStack.IsVisible = true;
+        MahalleSecimStack.IsVisible = true;
+
+        try
+        {
+            _ilceler = await _apiService.IlceleriGetirAsync();
+            IlceListesi.ItemsSource = _ilceler;
+
+            if (!string.IsNullOrEmpty(_aktifKullanici.adres) && _aktifKullanici.adres.Contains("İstanbul"))
+            {
+                SecilenAdresLabel.Text = _aktifKullanici.adres;
+            }
+        }
+        catch (Exception ex)
+        {
+            // API Hatası: Fallback moduna geç
+            _apiHatasiVar = true;
+            ApiHataMesaji.Text = $"Adres servisine erişilemedi: {ex.Message}. Lütfen bilgileri manuel giriniz.";
+            ApiHataPaneli.IsVisible = true;
+            IlceSecimStack.IsVisible = false;
+            MahalleSecimStack.IsVisible = false;
+            SecilenIlceLabel.Text = "İlçe Seçiniz...";
+            SecilenMahalleLabel.Text = "Mahalle Seçiniz...";
+        }
+    }
+
+    private void OnIlceSecimTapped(object sender, TappedEventArgs e)
+    {
+        // eğer _apiHatasiVar true ise popup'ları açma
+        if (_apiHatasiVar)
+        {
+            ModernAlertService.ShowInfoAsync("Şu anda manuel giriş modundasınız. Lütfen ilçeyi yazınız.", "Bilgi");
+            return;
+        }
+        IlceListesiPopup.IsVisible = true;
+        MahalleListesiPopup.IsVisible = false;
+    }
+
+    private void OnIlcePopupKapatTapped(object sender, TappedEventArgs e)
+    {
+        IlceListesiPopup.IsVisible = false;
+    }
+
+    private async void OnIlceSecildi(object sender, SelectionChangedEventArgs e)
+    {
+        var secilen = e.CurrentSelection.FirstOrDefault() as District;
+        if (secilen != null)
+        {
+            _secilenIlce = secilen;
+            SecilenIlceLabel.Text = secilen.Name;
+            IlceListesiPopup.IsVisible = false;
+            IlceListesi.SelectedItem = null;
+
+            // İlçe seçilince mahalleleri filtrele
+            await MahalleleriFiltrele(secilen.Id);
+        }
+    }
+
+    private async Task MahalleleriFiltrele(int districtId)
+    {
+        if (_apiHatasiVar) return; // API hatalıysa mahalle yükleme
+
+        try
+        {
+            if (_istanbulMahalleData == null)
+            {
+                _istanbulMahalleData = await _apiService.MahalleleriGetirAsync();
+            }
+
+            var secilenDistrictData = _istanbulMahalleData?.Districts?.FirstOrDefault(d => d.Id == districtId);
+            _aktifMahalleler = secilenDistrictData?.Neighborhoods ?? new List<Neighborhood>();
+            MahalleListesi.ItemsSource = _aktifMahalleler;
+
+            _secilenMahalle = null;
+            SecilenMahalleLabel.Text = "Mahalle Seçiniz...";
+        }
+        catch (Exception ex)
+        {
+            // Mahalle yükleme hatası, yine fallback'e geç
+            _apiHatasiVar = true;
+            ApiHataMesaji.Text = $"Mahalle bilgileri alınamadı: {ex.Message}. Lütfen manuel giriniz.";
+            ApiHataPaneli.IsVisible = true;
+            IlceSecimStack.IsVisible = false;
+            MahalleSecimStack.IsVisible = false;
+        }
+    }
+
+    private void OnMahalleSecimTapped(object sender, TappedEventArgs e)
+    {
+        // eğer _apiHatasiVar true ise popup'ları açma
+        if (_apiHatasiVar)
+        {
+            ModernAlertService.ShowInfoAsync("Şu anda manuel giriş modundasınız. Lütfen ilçeyi yazınız.", "Bilgi");
+            return;
+        }
+
+        if (_secilenIlce == null)
+        {
+            ModernAlertService.ShowInfoAsync("Lütfen önce ilçe seçiniz.", "Uyarı");
+            return;
+        }
+        MahalleListesiPopup.IsVisible = true;
+        IlceListesiPopup.IsVisible = false;
+    }
+
+    private void OnMahallePopupKapatTapped(object sender, TappedEventArgs e)
+    {
+        MahalleListesiPopup.IsVisible = false;
+    }
+
+    private void OnMahalleSecildi(object sender, SelectionChangedEventArgs e)
+    {
+        var secilen = e.CurrentSelection.FirstOrDefault() as Neighborhood;
+        if (secilen != null)
+        {
+            _secilenMahalle = secilen;
+            SecilenMahalleLabel.Text = secilen.Name;
+            MahalleListesiPopup.IsVisible = false;
+            MahalleListesi.SelectedItem = null;
+        }
+    }
+
+    private async void OnAdresKaydetTapped(object sender, TappedEventArgs e)
+    {
+        string ilce, mahalle;
+
+        if (_apiHatasiVar)
+        {
+            // Manuel giriş modu
+            ilce = ManuelIlceEntry.Text?.Trim();
+            mahalle = ManuelMahalleEntry.Text?.Trim();
+
+            if (string.IsNullOrEmpty(ilce) || string.IsNullOrEmpty(mahalle))
+            {
+                await ModernAlertService.ShowInfoAsync("Lütfen ilçe ve mahalle bilgilerini giriniz.", "Uyarı");
+                return;
+            }
+        }
+        else
+        {
+            // Normal API modu
+            if (_secilenIlce == null || _secilenMahalle == null)
+            {
+                await ModernAlertService.ShowInfoAsync("Lütfen ilçe ve mahalle seçiniz.", "Uyarı");
+                return;
+            }
+            ilce = _secilenIlce.Name;
+            mahalle = _secilenMahalle.Name;
+        }
+
+        string sokak = SokakEntry.Text?.Trim();
+        string no = AptNoEntry.Text?.Trim();
+
+        bool basarili = await _apiService.AdresKaydetAsync(
+            _aktifKullanici.id,
+            _aktifKullanici.ad_soyad,
+            ilce,
+            mahalle,
+            sokak,
+            no
+        );
+
+        if (basarili)
+        {
+            string tamAdres = $"{(string.IsNullOrEmpty(sokak) ? "" : sokak + " ")}{(string.IsNullOrEmpty(no) ? "" : no + " ")}{mahalle}, {ilce}, İstanbul";
+            _aktifKullanici.adres = tamAdres;
+            SecilenAdresLabel.Text = tamAdres;
+            AdresSecimPaneli.IsVisible = false;
+            await ModernAlertService.ShowInfoAsync("Adresiniz başarıyla kaydedildi.", "Başarılı");
+
+            // Paneli sıfırla
+            _apiHatasiVar = false;
+            ApiHataPaneli.IsVisible = false;
+            IlceSecimStack.IsVisible = true;
+            MahalleSecimStack.IsVisible = true;
+        }
+        else
+        {
+            await ModernAlertService.ShowInfoAsync("Adres kaydedilirken bir hata oluştu.", "Hata");
+        }
+    }
+
+    // İsteğe bağlı: Kullanıcı API hatası varken paneli kapatıp tekrar açarsa, tekrar API'yi denemesi için
+    private void OnAdresPaneliKapanirken()
+    {
+        // Eğer panel kapatılırsa ve API hatası varsa, bir sonraki açılışta tekrar API denenebilir.
+        // Burada ek bir şey yapmaya gerek yok, IlceleriYukle her seferinde yeniden dener.
+    }
+
+    // --- YENİ Adres API metotları BİTİŞİ ---
 }
