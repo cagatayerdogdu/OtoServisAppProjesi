@@ -354,7 +354,6 @@ public partial class ProfileView : ContentPage
 
             if (_ilceler == null || _ilceler.Count == 0)
             {
-                // API 200 döndü ama liste boş → hata olarak işaretle
                 throw new Exception("İlçe listesi alınamadı (boş liste).");
             }
 
@@ -394,7 +393,7 @@ public partial class ProfileView : ContentPage
         IlceListesiPopup.IsVisible = false;
     }
 
-    private async void OnIlceSecildi(object sender, SelectionChangedEventArgs e)
+    private void OnIlceSecildi(object sender, SelectionChangedEventArgs e)
     {
         var secilen = e.CurrentSelection.FirstOrDefault() as District;
         if (secilen != null)
@@ -404,37 +403,13 @@ public partial class ProfileView : ContentPage
             IlceListesiPopup.IsVisible = false;
             IlceListesi.SelectedItem = null;
 
-            // İlçe seçilince mahalleleri filtrele
-            await MahalleleriFiltrele(secilen.Id);
-        }
-    }
-
-    private async Task MahalleleriFiltrele(int districtId)
-    {
-        if (_apiHatasiVar) return; // API hatalıysa mahalle yükleme
-
-        try
-        {
-            if (_istanbulMahalleData == null)
-            {
-                _istanbulMahalleData = await _apiService.MahalleleriGetirAsync();
-            }
-
-            var secilenDistrictData = _istanbulMahalleData?.Districts?.FirstOrDefault(d => d.Id == districtId);
-            _aktifMahalleler = secilenDistrictData?.Neighborhoods ?? new List<Neighborhood>();
+            // Seçilen ilçenin mahallelerini doğrudan kullan
+            _aktifMahalleler = secilen.Neighborhoods ?? new List<Neighborhood>();
             MahalleListesi.ItemsSource = _aktifMahalleler;
 
+            // Mahalle seçimini sıfırla
             _secilenMahalle = null;
             SecilenMahalleLabel.Text = "Mahalle Seçiniz...";
-        }
-        catch (Exception ex)
-        {
-            // Mahalle yükleme hatası, yine fallback'e geç
-            _apiHatasiVar = true;
-            ApiHataMesaji.Text = $"Mahalle bilgileri alınamadı: {ex.Message}. Lütfen manuel giriniz.";
-            ApiHataPaneli.IsVisible = true;
-            IlceSecimStack.IsVisible = false;
-            MahalleSecimStack.IsVisible = false;
         }
     }
 

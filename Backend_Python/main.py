@@ -2748,8 +2748,8 @@ async def eski_fotograflari_temizle_gorevi():
             #         print(f"Vitrin fotoğrafı silinirken hata: {e}")
             
             db.commit()
-            print(f"✅ Eski fotoğraf temizliği tamamlandı. {len(eski_hasar_fotolar)} hasar, {len(eski_vitrin_fotolari)} vitrin fotoğrafı silindi.")
-            
+            # print(f"✅ Eski fotoğraf temizliği tamamlandı. {len(eski_hasar_fotolar)} hasar, {len(eski_vitrin_fotolari)} vitrin fotoğrafı silindi.")
+            print(f"✅ Eski fotoğraf temizliği tamamlandı. {len(eski_hasar_fotolar)} hasar  fotoğrafı silindi.")
         except Exception as e:
             print(f"❌ Eski fotoğraf temizleme hatası: {e}")
         finally:
@@ -2852,7 +2852,7 @@ TURKIYE_API_BASE_URL = "https://api.turkiyeapi.dev/v1"
 def ilceleri_getir(il_plaka: int = 34):
     """İstanbul (34) için ilçeleri getirir."""
     try:
-        response = requests.get(f"{TURKIYE_API_BASE_URL}/provinces/{il_plaka}", timeout=10)
+        response = requests.get(f"{TURKIYE_API_BASE_URL}/provinces/{il_plaka}", params={"extend": "true"}, timeout=15)
         response.raise_for_status()
         data = response.json()
         print(f"TurkiyeAPI yanıtı: {data}")  # Sunucu loguna yazdır
@@ -2860,19 +2860,6 @@ def ilceleri_getir(il_plaka: int = 34):
     except Exception as e:
         print(f"İlçe proxy hatası: {str(e)}")
         raise HTTPException(status_code=500, detail=f"İlçeler alınamadı: {str(e)}")
-
-@app.get("/adres/mahalleler")
-def mahalleleri_getir():
-    """İstanbul'un tüm mahallelerini ilçeleriyle birlikte getirir."""
-    try:
-        # extend=true parametresi tüm mahalleleri getirir
-        response = requests.get(f"{TURKIYE_API_BASE_URL}/provinces/34?extend=true", timeout=15)
-        response.raise_for_status()
-        data = response.json()
-        # API'den dönen ham veriyi frontend'e iletelim, işleme orada yapalım
-        return data.get("data", {})
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Mahalleler alınamadı: {str(e)}")
 
 # Adres kaydetme endpoint'i
 class AdresKayitModel(BaseModel):
