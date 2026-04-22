@@ -319,7 +319,7 @@ namespace OtoServisApp.Services
             }
         }
 
-        public async Task<string> KullaniciKayitAsync(object yeniKullanici)
+        /*public async Task<string> KullaniciKayitAsync(object yeniKullanici)
         {
             try
             {
@@ -332,8 +332,61 @@ namespace OtoServisApp.Services
             {
                 return $"Bağlantı Hatası: Sunucuya ulaşılamadı. ({ex.Message})";
             }
+        }*/
+
+        /************** OTP DOĞRULAMA İLE KULLANCI KAYDET **************/
+        /// <summary>
+        /// Belirtilen e-posta adresine doğrulama kodu gönderir.
+        /// </summary>
+        public async Task<bool> EpostaDogrulamaKoduGonderAsync(string eposta)
+        {
+            try
+            {
+                var content = new FormUrlEncodedContent(new[]
+                {
+            new KeyValuePair<string, string>("eposta", eposta)
+        });
+                var response = await _httpClient.PostAsync("kayit/eposta-dogrulama-kodu", content);
+                return response.IsSuccessStatusCode;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
+        /// <summary>
+        /// Doğrulama kodunu kontrol eder ve kullanıcı kaydını tamamlar.
+        /// Başarılı olursa "OK", aksi takdirde hata mesajı döner.
+        /// </summary>
+        public async Task<string> DogrulaVeKaydetAsync(string adSoyad, string telefon, string eposta, string sifre, bool mailIstiyorMu, string dogrulamaKodu)
+        {
+            try
+            {
+                var content = new FormUrlEncodedContent(new[]
+                {
+            new KeyValuePair<string, string>("ad_soyad", adSoyad),
+            new KeyValuePair<string, string>("telefon", telefon),
+            new KeyValuePair<string, string>("eposta", eposta),
+            new KeyValuePair<string, string>("sifre", sifre),
+            new KeyValuePair<string, string>("mail_istiyor_mu", mailIstiyorMu.ToString()),
+            new KeyValuePair<string, string>("dogrulama_kodu", dogrulamaKodu)
+        });
+
+                var response = await _httpClient.PostAsync("kayit/dogrula-ve-kaydet", content);
+
+                if (response.IsSuccessStatusCode)
+                    return "OK";
+
+                var error = await response.Content.ReadAsStringAsync();
+                return error;
+            }
+            catch (Exception ex)
+            {
+                return $"Bağlantı hatası: {ex.Message}";
+            }
+        }
+        /******************************/
         public async Task<string> SifreSifirlamaTalepEtAsync(string eposta)
         {
             try

@@ -42,29 +42,19 @@
                         </Grid>
                     </Border>
 
-                    <!-- E-posta ve Kod Gönderme Butonu -->
-                    <HorizontalStackLayout Spacing="10">
-                        <Entry x:Name="EmailEntry" 
-                               Placeholder="E-posta Adresiniz" 
-                               Keyboard="Email"
-                               TextColor="#111111"
-                               BackgroundColor="#F9F9F9"
-                               HorizontalOptions="FillAndExpand"/>
-                        <Border BackgroundColor="#00BCD4" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="45" WidthRequest="100">
-                            <Border.GestureRecognizers>
-                                <TapGestureRecognizer Tapped="OnSendVerificationCodeClicked"/>
-                            </Border.GestureRecognizers>
-                            <Label x:Name="SendCodeLabel" Text="Kod Gönder" TextColor="White" FontSize="13" VerticalOptions="Center" HorizontalOptions="Center"/>
-                        </Border>
-                    </HorizontalStackLayout>
-
-                    <!-- Doğrulama Kodu -->
-                    <Entry x:Name="VerificationCodeEntry" 
-                           Placeholder="Doğrulama Kodu" 
-                           IsVisible="False" 
-                           Keyboard="Numeric"
-                           BackgroundColor="#F9F9F9"
-                           TextColor="#111111"/>
+                    <!-- E-posta -->
+                    <Border Stroke="#CCCCCC" StrokeThickness="1.5" BackgroundColor="#F9F9F9" StrokeShape="RoundRectangle 8" Padding="15,5">
+                        <Grid ColumnDefinitions="Auto, *" ColumnSpacing="10">
+                            <Label Grid.Column="0" Text="{x:Static helpers:IconFont.Envelope}" FontFamily="FASolid" FontSize="18" VerticalOptions="Center" TextColor="#555555"/>
+                            <Entry Grid.Column="1" x:Name="EmailEntry" 
+                                   Placeholder="E-posta Adresi" 
+                                   Keyboard="Email" 
+                                   TextColor="#111111" 
+                                   BackgroundColor="Transparent"
+                                   IsSpellCheckEnabled="False"
+                                   IsTextPredictionEnabled="False"/>
+                        </Grid>
+                    </Border>
 
                     <!-- Şifre -->
                     <Border Stroke="#CCCCCC" StrokeThickness="1.5" BackgroundColor="#F9F9F9" StrokeShape="RoundRectangle 8" Padding="15,5">
