@@ -2734,6 +2734,7 @@ async def otomatik_hatirlatma_gorevi():
         await asyncio.sleep(24 * 3600)  # 24 saat bekle
         
 
+# Sahte e-posta ile kayıt engelleme	✅ OTP ile doğrulama
 # Geçici doğrulama kodlarını saklamak için (production'da Redis önerilir)
 email_dogrulama_kodlari = {}
 
@@ -2761,10 +2762,10 @@ async def eposta_dogrulama_kodu_gonder(eposta: str = Form(...), db: Session = De
     # 6 haneli rastgele kod
     kod = str(random.randint(100000, 999999))
     
-    # Kodu geçici olarak sakla (5 dakika geçerli)
+    # Kodu geçici olarak sakla (10 dakika geçerli)
     email_dogrulama_kodlari[eposta] = {
         "kod": kod,
-        "son_kullanma": datetime.now() + timedelta(minutes=5)
+        "son_kullanma": datetime.now() + timedelta(minutes=10)
     }
     
     # Doğrulama mailini gönder
@@ -2780,7 +2781,7 @@ async def eposta_dogrulama_kodu_gonder(eposta: str = Form(...), db: Session = De
                     {kod}
                 </div>
                 
-                <p style="font-size: 13px; color: #666;">Bu kod 5 dakika geçerlidir.</p>
+                <p style="font-size: 13px; color: #666;">Bu kod 10 dakika geçerlidir.</p>
                 <p style="font-size: 12px; color: #999; margin-top: 30px;">Bu mail otomatik olarak gönderilmiştir, lütfen cevaplamayınız.</p>
             </div>
         </body>
