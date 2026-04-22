@@ -130,6 +130,23 @@ public static class ModernAlertService
         throw new InvalidOperationException("Sayfa tipi ContentPage değil.");
     }
 
+    /* OTP Doğrulama Kodu için Giriş Kutusu */
+    public static Task<string?> ShowPromptAsync(string mesaj, string baslik = "Bilgi")
+    {
+        var tcs = new TaskCompletionSource<string?>();
+        MainThread.BeginInvokeOnMainThread(async () =>
+        {
+            var alertView = new ModernAlertView();
+            var currentPage = GetCurrentPage();
+            var rootGrid = GetOrCreateRootGrid(currentPage);
+            rootGrid.Children.Add(alertView);
+            var result = await alertView.ShowPromptAsync(mesaj, baslik);
+            rootGrid.Children.Remove(alertView);
+            tcs.SetResult(result);
+        });
+        return tcs.Task;
+    }
+
     // Eski kodlar hata vermesin diye boş Initialize metodu										
     public static void Initialize(Page page) { }
 }

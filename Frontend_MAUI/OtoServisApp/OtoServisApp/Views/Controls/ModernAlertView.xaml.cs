@@ -7,68 +7,76 @@ namespace OtoServisApp.Views.Controls;
 public partial class ModernAlertView : ContentView
 {
     private TaskCompletionSource<bool?> _tcs;
+    private TaskCompletionSource<string?> _promptTcs;
 
     public ModernAlertView()
     {
         InitializeComponent();
-        InputTransparent = false; // Arka plan tıklamalarını engelle
+        InputTransparent = false;
     }
 
     public Task<bool?> ShowAsync(string baslik, string mesaj, string butonTipi = "Tamam")
     {
-        try
+        _tcs = new TaskCompletionSource<bool?>();
+        MesajLabel.Text = string.IsNullOrEmpty(baslik) ? mesaj : $"{baslik}\n\n{mesaj}";
+        EntryBorder.IsVisible = false;
+        ShowButtons(butonTipi);
+        IsVisible = true;
+        return _tcs.Task;
+    }
+
+    public Task<string?> ShowPromptAsync(string mesaj, string baslik = "Bilgi")
+    {
+        _promptTcs = new TaskCompletionSource<string?>();
+        MesajLabel.Text = string.IsNullOrEmpty(baslik) ? mesaj : $"{baslik}\n\n{mesaj}";
+        EntryBorder.IsVisible = true;
+        PromptEntry.Text = string.Empty;
+        ShowButtons("Prompt");
+        IsVisible = true;
+        return _promptTcs.Task;
+    }
+
+    private void ShowButtons(string butonTipi)
+    {
+        TekButonBorder.IsVisible = false;
+        ButonlarGrid.IsVisible = false;
+        ButonlarGrid.Children.Clear();
+
+        switch (butonTipi)
         {
-            _tcs?.TrySetCanceled();
-            _tcs = new TaskCompletionSource<bool?>();
+            case "Tamam":
+                TekButonBorder.IsVisible = true;
+                TekButonLabel.Text = "Tamam";
+                break;
 
-            // Başlık ve mesaj birleştiriliyor
-            string tamMesaj = string.IsNullOrEmpty(baslik) ? mesaj : $"{baslik}\n\n{mesaj}";
-            MesajLabel.Text = tamMesaj;
+            case "Prompt":
+                ButonlarGrid.IsVisible = true;
+                ButonEkle("Onayla", true, true);
+                ButonEkle("İptal", false, false);
+                break;
 
-            // Butonları hazırla
-            TekButonBorder.IsVisible = false;
-            ButonlarGrid.IsVisible = false;
-            ButonlarGrid.Children.Clear();
+            case "EvetHayir":
+                ButonlarGrid.IsVisible = true;
+                ButonEkle("Evet", true, true);
+                ButonEkle("Hayır", false, false);
+                break;
 
-            switch (butonTipi)
-            {
-                case "Tamam":
-                    TekButonBorder.IsVisible = true;
-                    TekButonLabel.Text = "Tamam";
-                    break;
+            case "EvetIptal":
+                ButonlarGrid.IsVisible = true;
+                ButonEkle("Evet", true, true);
+                ButonEkle("İptal", null, false);
+                break;
 
-                case "EvetHayir":
-                    ButonlarGrid.IsVisible = true;
-                    ButonEkle("Evet", true, isPositive: true);
-                    ButonEkle("Hayır", false, isPositive: false);
-                    break;
-
-                case "EvetIptal":
-                    ButonlarGrid.IsVisible = true;
-                    ButonEkle("Evet", true, isPositive: true);
-                    ButonEkle("İptal", null, isPositive: false);
-                    break;
-
-                case "SilVazgec":
-                    ButonlarGrid.IsVisible = true;
-                    ButonEkle("Sil", true, isPositive: false); // "Sil" olumsuz kategoride kırmızı
-                    ButonEkle("Vazgeç", false, isPositive: true);   // mavi
-                    break;
-            }
-
-            IsVisible = true;
-            return _tcs.Task;
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"ModernAlertView Hatası: {ex.Message}");
-            return Task.FromResult<bool?>(null);
+            case "SilVazgec":
+                ButonlarGrid.IsVisible = true;
+                ButonEkle("Sil", true, false);
+                ButonEkle("Vazgeç", false, true);
+                break;
         }
     }
 
     private void ButonEkle(string metin, bool? sonuc, bool isPositive)
     {
-        // Sabit arka plan rengi: #F8FAFC
         var border = new Border
         {
             BackgroundColor = Color.FromArgb("#F8FAFC"),
@@ -79,7 +87,6 @@ public partial class ModernAlertView : ContentView
             InputTransparent = false
         };
 
-        // Yazı rengi: olumlu için #0EA5E9, olumsuz için #D32F2F
         Color textColor = isPositive ? Color.FromArgb("#0EA5E9") : Color.FromArgb("#D32F2F");
 
         var label = new Label
@@ -99,15 +106,19 @@ public partial class ModernAlertView : ContentView
         tapGesture.Tapped += (s, e) =>
         {
             IsVisible = false;
-            _tcs?.TrySetResult(sonuc);
+            if (_promptTcs != null)
+            {
+                _promptTcs.TrySetResult(sonuc == true ? PromptEntry.Text : null);
+            }
+            else
+            {
+                _tcs?.TrySetResult(sonuc);
+            }
         };
         border.GestureRecognizers.Add(tapGesture);
 
         ButonlarGrid.Children.Add(border);
-        if (ButonlarGrid.Children.Count == 1)
-            Grid.SetColumn(border, 0);
-        else
-            Grid.SetColumn(border, 1);
+        Grid.SetColumn(border, ButonlarGrid.Children.Count - 1);
     }
 
     private void OnTekButonTapped(object sender, TappedEventArgs e)
@@ -121,3 +132,4 @@ public partial class ModernAlertView : ContentView
         // Boş bırakıyoruz, arka plana tıklamayı yut, hiçbir işlem yapma ve arka plana geçme.
     }
 }
+

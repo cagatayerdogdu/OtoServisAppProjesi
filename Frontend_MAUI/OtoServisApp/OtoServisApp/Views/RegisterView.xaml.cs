@@ -69,12 +69,9 @@ public partial class RegisterView : ContentPage
         }
 
         // 2. Aşama: Kullanıcıdan kodu al
-        string? dogrulamaKodu = await DisplayPromptAsync(
-            "E-posta Doğrulama",
+        string? dogrulamaKodu = await ModernAlertService.ShowPromptAsync(
             $"Lütfen {eposta} adresine gönderilen 6 haneli doğrulama kodunu giriniz:",
-            "Onayla",
-            "İptal",
-            keyboard: Keyboard.Numeric);
+            "E-posta Doğrulama");
 
         if (string.IsNullOrEmpty(dogrulamaKodu))
         {

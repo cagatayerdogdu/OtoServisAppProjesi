@@ -7,7 +7,6 @@
              InputTransparent="False"
              ZIndex="9999">
 
-    <!-- Arka plan tıklamalarını yutmak için TapGestureRecognizer ekliyoruz -->
     <Grid>
         <Grid.GestureRecognizers>
             <TapGestureRecognizer Tapped="OnBackgroundTapped" />
@@ -26,6 +25,7 @@
             </Border.Shadow>
 
             <VerticalStackLayout Spacing="15" InputTransparent="False">
+                <!-- Mesaj -->
                 <Label x:Name="MesajLabel" 
                        Text="Mesaj içeriği burada görünecek." 
                        TextColor="White" 
@@ -35,6 +35,24 @@
                        LineBreakMode="WordWrap"
                        InputTransparent="True"/>
 
+                <!-- Giriş Alanı (Prompt) -->
+                <Border x:Name="EntryBorder" 
+                        BackgroundColor="White" 
+                        StrokeThickness="0" 
+                        StrokeShape="RoundRectangle 10" 
+                        HeightRequest="45" 
+                        Padding="15,0"
+                        IsVisible="False"
+                        InputTransparent="False">
+                    <Entry x:Name="PromptEntry" 
+                           TextColor="#00BCD4" 
+                           FontSize="16" 
+                           BackgroundColor="Transparent"
+                           HorizontalTextAlignment="Center"
+                           Keyboard="Numeric"/>
+                </Border>
+
+                <!-- Çoklu Buton Grid'i -->
                 <Grid x:Name="ButonlarGrid" 
                       ColumnDefinitions="*, *" 
                       ColumnSpacing="10" 
@@ -42,6 +60,7 @@
                       IsVisible="False"
                       InputTransparent="False"/>
 
+                <!-- Tek Buton -->
                 <Border x:Name="TekButonBorder" 
                         BackgroundColor="White" 
                         StrokeThickness="0" 
