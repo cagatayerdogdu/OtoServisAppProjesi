@@ -2855,9 +2855,10 @@ def ilceleri_getir(il_plaka: int = 34):
         response = requests.get(f"{TURKIYE_API_BASE_URL}/provinces/{il_plaka}", timeout=10)
         response.raise_for_status()
         data = response.json()
-        # API'den dönen yanıtın içinden districts dizisini çıkarıp döndürüyoruz
-        return {"districts": data.get("data", {}).get("districts", [])}
+        print(f"TurkiyeAPI yanıtı: {data}")  # Sunucu loguna yazdır
+        return data
     except Exception as e:
+        print(f"İlçe proxy hatası: {str(e)}")
         raise HTTPException(status_code=500, detail=f"İlçeler alınamadı: {str(e)}")
 
 @app.get("/adres/mahalleler")

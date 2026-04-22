@@ -1087,9 +1087,24 @@ namespace OtoServisApp.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
+                    Debug.WriteLine($"İlçeler API Yanıtı: {content}");
+
                     var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
                     var result = JsonSerializer.Deserialize<TurkiyeApiProvinceResponse>(content, options);
-                    return result?.Data?.Districts ?? new List<District>();
+
+                    if (result?.Data?.Districts != null && result.Data.Districts.Count > 0)
+                    {
+                        return result.Data.Districts;
+                    }
+                    else
+                    {
+                        Debug.WriteLine("API yanıtında districts bulunamadı veya boş.");
+                        return new List<District>();
+                    }
+                }
+                else
+                {
+                    Debug.WriteLine($"API Hata Kodu: {response.StatusCode}");
                 }
             }
             catch (Exception ex)

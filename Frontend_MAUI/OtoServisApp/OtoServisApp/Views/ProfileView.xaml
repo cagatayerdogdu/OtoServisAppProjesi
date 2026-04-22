@@ -193,8 +193,8 @@
 
                             <!-- 5. Apartman / No (Manuel Giriş) -->
                             <VerticalStackLayout Grid.Row="4" Spacing="5">
-                                <Label Text="Apartman / Daire No" TextColor="#888888" FontSize="12"/>
-                                <Entry x:Name="AptNoEntry" Placeholder="Örn: A Blok D:5" BackgroundColor="#FAFAFA" TextColor="#2C3E50"/>
+                                <Label Text="No" TextColor="#888888" FontSize="12"/>
+                                <Entry x:Name="AptNoEntry" Placeholder="Örn: No.34" BackgroundColor="#FAFAFA" TextColor="#2C3E50"/>
                             </VerticalStackLayout>
 
                             <!-- 6. Kaydet Butonu -->

@@ -32,6 +32,9 @@ public class ProvinceData
 
 public class TurkiyeApiProvinceResponse
 {
+    [JsonPropertyName("success")]
+    public bool Success { get; set; }
+
     [JsonPropertyName("data")]
     public ProvinceData Data { get; set; }
 }

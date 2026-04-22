@@ -351,10 +351,13 @@ public partial class ProfileView : ContentPage
         try
         {
             _ilceler = await _apiService.IlceleriGetirAsync();
+
             if (_ilceler == null || _ilceler.Count == 0)
             {
-                throw new Exception("İlçe listesi boş döndü.");
+                // API 200 döndü ama liste boş → hata olarak işaretle
+                throw new Exception("İlçe listesi alınamadı (boş liste).");
             }
+
             IlceListesi.ItemsSource = _ilceler;
 
             if (!string.IsNullOrEmpty(_aktifKullanici.adres) && _aktifKullanici.adres.Contains("İstanbul"))
