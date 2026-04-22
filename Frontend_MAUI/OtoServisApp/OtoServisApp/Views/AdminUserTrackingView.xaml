@@ -8,7 +8,12 @@
              BackgroundColor="#F5F6FA">
 
     <Grid RowDefinitions="Auto, *, Auto" Margin="10">
-        <Label Grid.Row="0" Text="Uzun Süredir Girmeyenler" FontSize="18" FontAttributes="Bold" Margin="10,10,10,20" TextColor="#2C3E50"/>
+        <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="10,10,10,20">
+            <Label Grid.Column="0" Text="Uzun Süredir Girmeyenler" FontSize="18" FontAttributes="Bold" TextColor="#2C3E50" VerticalOptions="Center"/>
+            <Border Grid.Column="1" BackgroundColor="#E74C3C" StrokeThickness="0" StrokeShape="RoundRectangle 20" Padding="15,5" HorizontalOptions="End" VerticalOptions="Center">
+                <Label x:Name="ToplamLabel" Text="0 Kişi" FontSize="13" FontAttributes="Bold" TextColor="White"/>
+            </Border>
+        </Grid>
 
         <CollectionView Grid.Row="1" x:Name="TrackingList">
             <CollectionView.ItemTemplate>

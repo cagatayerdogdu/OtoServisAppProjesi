@@ -10,7 +10,12 @@
     <Grid RowDefinitions="Auto, Auto, *, Auto">
 
         <VerticalStackLayout Grid.Row="0" Margin="20,15" Spacing="5">
-            <Label Text="Müşteri ve Yetkili Listesi" FontSize="20" FontAttributes="Bold" TextColor="#2C3E50"/>
+            <Grid ColumnDefinitions="*, Auto">
+                <Label Grid.Column="0" Text="Müşteri ve Yetkili Listesi" FontSize="20" FontAttributes="Bold" TextColor="#2C3E50" VerticalOptions="Center"/>
+                <Border Grid.Column="1" BackgroundColor="#00BCD4" StrokeThickness="0" StrokeShape="RoundRectangle 20" Padding="15,5" HorizontalOptions="End" VerticalOptions="Center">
+                    <Label x:Name="ToplamAktifLabel" Text="0 Aktif" FontSize="13" FontAttributes="Bold" TextColor="White"/>
+                </Border>
+            </Grid>
             <Label Text="Kullanıcı durumlarını ve rollerini buradan yönetin." FontSize="13" TextColor="#7F8C8D"/>
         </VerticalStackLayout>
 

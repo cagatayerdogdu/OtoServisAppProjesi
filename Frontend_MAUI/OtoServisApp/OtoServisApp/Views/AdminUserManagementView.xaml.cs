@@ -53,7 +53,7 @@ public partial class AdminUserManagementView : ContentPage
                 // Ana Thread üzerinde güvenli atama işlemi
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
-                    Kullanicilar.Clear();
+                    //Kullanicilar.Clear();
 
                     /*if (result?.kullanicilar != null)
                     {
@@ -63,8 +63,19 @@ public partial class AdminUserManagementView : ContentPage
                         }
                     }*/
                     // en üstte ObservableCollection ı çağırdığımız için bunu da yaz demişti kullanmadım. şundan istemiş; foreach ile ekleme sorun değil, 5 eleman için fark etmez. Ama ileride çok sayıda kullanıcı olursa performans için AddRange kullanmak daha iyidir. Üsttekini kapatıp alttaki eklemeyi yaptım.
+
+                    //if (result?.kullanicilar != null)
+                        //Kullanicilar.AddRange(result.kullanicilar);
+
                     if (result?.kullanicilar != null)
+                    {
+                        Kullanicilar.Clear();
                         Kullanicilar.AddRange(result.kullanicilar);
+
+                        // Aktif kullanıcı sayısını hesapla ve göster
+                        int aktifSayisi = result.kullanicilar.Count(k => k.aktif_mi);
+                        ToplamAktifLabel.Text = $"{aktifSayisi} Aktif";
+                    }
 
                     _toplamSayfa = (result?.toplam_sayfa > 0) ? result.toplam_sayfa : 1;
                     PageInfoLabel.Text = $"Sayfa {_gecerliSayfa} / {_toplamSayfa}";

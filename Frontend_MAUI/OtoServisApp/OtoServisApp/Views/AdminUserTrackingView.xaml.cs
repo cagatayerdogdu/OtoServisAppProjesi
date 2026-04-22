@@ -52,10 +52,13 @@ public partial class AdminUserTrackingView : ContentPage
 
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
-                    Musteriler.Clear();
-                    foreach (var m in data.liste)
+                    if (data?.liste != null)
                     {
-                        Musteriler.Add(m);
+                        Musteriler.Clear();
+                        Musteriler.AddRange(data.liste);
+
+                        // Toplam kayıt sayısını göster (backend'den toplam_kayit geliyor olmalı)
+                        ToplamLabel.Text = $"{data.toplam_kayit} Kişi";
                     }
 
                     // DEBUG: Kaç eleman eklendiğini göster
@@ -212,5 +215,6 @@ public class TakipMusteri
 public class TakipResponse
 {
     public List<TakipMusteri> liste { get; set; }
+    public int toplam_kayit { get; set; }
     public int toplam_sayfa { get; set; }
 }
