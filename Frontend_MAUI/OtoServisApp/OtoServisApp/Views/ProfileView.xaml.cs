@@ -343,7 +343,7 @@ public partial class ProfileView : ContentPage
 
     private async Task IlceleriYukle()
     {
-        _apiHatasiVar = false; // Başlangıçta hata yok
+        _apiHatasiVar = false;
         ApiHataPaneli.IsVisible = false;
         IlceSecimStack.IsVisible = true;
         MahalleSecimStack.IsVisible = true;
@@ -351,6 +351,10 @@ public partial class ProfileView : ContentPage
         try
         {
             _ilceler = await _apiService.IlceleriGetirAsync();
+            if (_ilceler == null || _ilceler.Count == 0)
+            {
+                throw new Exception("İlçe listesi boş döndü.");
+            }
             IlceListesi.ItemsSource = _ilceler;
 
             if (!string.IsNullOrEmpty(_aktifKullanici.adres) && _aktifKullanici.adres.Contains("İstanbul"))
@@ -360,9 +364,8 @@ public partial class ProfileView : ContentPage
         }
         catch (Exception ex)
         {
-            // API Hatası: Fallback moduna geç
             _apiHatasiVar = true;
-            ApiHataMesaji.Text = $"Adres servisine erişilemedi: {ex.Message}. Lütfen bilgileri manuel giriniz.";
+            ApiHataMesaji.Text = $"Adres servisine erişilemedi. Lütfen bilgileri manuel giriniz.\n({ex.Message})";
             ApiHataPaneli.IsVisible = true;
             IlceSecimStack.IsVisible = false;
             MahalleSecimStack.IsVisible = false;
@@ -495,8 +498,8 @@ public partial class ProfileView : ContentPage
             mahalle = _secilenMahalle.Name;
         }
 
-        string sokak = SokakEntry.Text?.Trim();
-        string no = AptNoEntry.Text?.Trim();
+        string sokak = SokakEntry.Text?.Trim() ?? "";
+        string no = AptNoEntry.Text?.Trim() ?? "";
 
         bool basarili = await _apiService.AdresKaydetAsync(
             _aktifKullanici.id,
@@ -509,7 +512,7 @@ public partial class ProfileView : ContentPage
 
         if (basarili)
         {
-            string tamAdres = $"{(string.IsNullOrEmpty(sokak) ? "" : sokak + " ")}{(string.IsNullOrEmpty(no) ? "" : no + " ")}{mahalle}, {ilce}, İstanbul";
+            string tamAdres = $"{sokak}{(string.IsNullOrEmpty(sokak) ? "" : " ")}{no}{(string.IsNullOrEmpty(no) ? "" : " ")}{mahalle}, {ilce}, İstanbul";
             _aktifKullanici.adres = tamAdres;
             SecilenAdresLabel.Text = tamAdres;
             AdresSecimPaneli.IsVisible = false;

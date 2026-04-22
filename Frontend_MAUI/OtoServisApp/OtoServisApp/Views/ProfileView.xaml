@@ -100,25 +100,25 @@
                         </Border>
 
                         <!-- Adres Seçim Paneli (Başlangıçta gizli) -->
-                        <Grid x:Name="AdresSecimPaneli" IsVisible="False" RowDefinitions="Auto, Auto, Auto, Auto, Auto" RowSpacing="10" Margin="0,10,0,10">
+                        <Grid x:Name="AdresSecimPaneli" IsVisible="False" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto" RowSpacing="10" Margin="0,10,0,10">
 
-                            <!-- İl (Sabit) -->
+                            <!-- 0. İl (Sabit) -->
                             <Border Grid.Row="0" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" BackgroundColor="#F5F5F5" Padding="15,5">
                                 <Label Text="İl: İstanbul" TextColor="#2C3E50" FontAttributes="Bold"/>
                             </Border>
 
-                            <!-- API Hata Uyarısı ve Manuel Giriş Alanları (Başlangıçta Gizli) -->
-                            <VerticalStackLayout x:Name="ApiHataPaneli" IsVisible="False" Spacing="10">
+                            <!-- 1. API Hata Paneli (Başlangıçta gizli) -->
+                            <VerticalStackLayout x:Name="ApiHataPaneli" Grid.Row="1" IsVisible="False" Spacing="10">
                                 <Border BackgroundColor="#FFEBEE" Stroke="#D32F2F" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10">
                                     <Label x:Name="ApiHataMesaji" Text="Adres servisine şu anda erişilemiyor. Lütfen adres bilgilerinizi aşağıya manuel olarak giriniz." 
-               TextColor="#D32F2F" FontSize="13" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+                   TextColor="#D32F2F" FontSize="13" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
                                 </Border>
                                 <Entry x:Name="ManuelIlceEntry" Placeholder="İlçe" BackgroundColor="#FAFAFA" TextColor="#2C3E50"/>
                                 <Entry x:Name="ManuelMahalleEntry" Placeholder="Mahalle" BackgroundColor="#FAFAFA" TextColor="#2C3E50"/>
                             </VerticalStackLayout>
 
-                            <!-- İlçe Seçimi -->
-                            <VerticalStackLayout Grid.Row="1" x:Name="IlceSecimStack" Spacing="5">
+                            <!-- 2. İlçe Seçimi (Normal mod) -->
+                            <VerticalStackLayout x:Name="IlceSecimStack" Grid.Row="1" Spacing="5">
                                 <Label Text="İlçe" TextColor="#888888" FontSize="12"/>
                                 <Border x:Name="SecilenIlceBorder" BackgroundColor="#FAFAFA" Stroke="#CCCCCC" StrokeThickness="1" StrokeShape="RoundRectangle 8" HeightRequest="45" Padding="15,0">
                                     <Border.GestureRecognizers>
@@ -151,8 +151,8 @@
                                 </CollectionView>
                             </Grid>
 
-                            <!-- Mahalle Seçimi -->
-                            <VerticalStackLayout Grid.Row="2" x:Name="MahalleSecimStack" Spacing="5">
+                            <!-- 3. Mahalle Seçimi (Normal mod) -->
+                            <VerticalStackLayout x:Name="MahalleSecimStack" Grid.Row="2" Spacing="5">
                                 <Label Text="Mahalle" TextColor="#888888" FontSize="12"/>
                                 <Border x:Name="SecilenMahalleBorder" BackgroundColor="#FAFAFA" Stroke="#CCCCCC" StrokeThickness="1" StrokeShape="RoundRectangle 8" HeightRequest="45" Padding="15,0">
                                     <Border.GestureRecognizers>
@@ -185,19 +185,19 @@
                                 </CollectionView>
                             </Grid>
 
-                            <!-- Sokak / Cadde (Manuel Giriş) -->
+                            <!-- 4. Sokak / Cadde (Manuel Giriş) -->
                             <VerticalStackLayout Grid.Row="3" Spacing="5">
                                 <Label Text="Cadde / Sokak" TextColor="#888888" FontSize="12"/>
-                                <Entry x:Name="SokakEntry" Placeholder="Örn: Atatürk Caddesi" BackgroundColor="#FAFAFA" TextColor="#2C3E50"/>
+                                <Entry x:Name="SokakEntry" Placeholder="Örn: Fatih Sultan Mehmet Caddesi" BackgroundColor="#FAFAFA" TextColor="#2C3E50"/>
                             </VerticalStackLayout>
 
-                            <!-- Apartman / No (Manuel Giriş) -->
+                            <!-- 5. Apartman / No (Manuel Giriş) -->
                             <VerticalStackLayout Grid.Row="4" Spacing="5">
                                 <Label Text="Apartman / Daire No" TextColor="#888888" FontSize="12"/>
                                 <Entry x:Name="AptNoEntry" Placeholder="Örn: A Blok D:5" BackgroundColor="#FAFAFA" TextColor="#2C3E50"/>
                             </VerticalStackLayout>
 
-                            <!-- Kaydet Butonu -->
+                            <!-- 6. Kaydet Butonu -->
                             <Border Grid.Row="5" BackgroundColor="#00BCD4" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="45" Margin="0,10,0,0">
                                 <Border.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="OnAdresKaydetTapped" />

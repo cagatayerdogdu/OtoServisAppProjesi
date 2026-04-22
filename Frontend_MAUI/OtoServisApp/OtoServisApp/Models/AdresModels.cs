@@ -12,7 +12,7 @@ public class District
     public string Name { get; set; }
 
     [JsonPropertyName("neighborhoods")]
-    public List<Neighborhood> Neighborhoods { get; set; } = new();
+    public List<Neighborhood> Neighborhoods { get; set; }
 }
 
 public class Neighborhood
@@ -27,7 +27,7 @@ public class Neighborhood
 public class ProvinceData
 {
     [JsonPropertyName("districts")]
-    public List<District> Districts { get; set; } = new();
+    public List<District> Districts { get; set; }
 }
 
 public class TurkiyeApiProvinceResponse
