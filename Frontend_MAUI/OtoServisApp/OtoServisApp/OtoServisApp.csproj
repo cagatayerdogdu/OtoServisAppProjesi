@@ -94,4 +94,10 @@
     <Folder Include="Resources\Splash\" />
   </ItemGroup>
 
+  <!-- Android için özel ikon kopyalama (mipmap klasörlerine) -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0-android'">
+    <AndroidResource Include="Resources\AppIcon\logo.png" LogicalName="mipmap\ic_launcher.png" />
+    <AndroidResource Include="Resources\AppIcon\logo.png" LogicalName="mipmap\ic_launcher_round.png" />
+  </ItemGroup>
+  
 </Project>
