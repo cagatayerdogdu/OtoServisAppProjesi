@@ -26,6 +26,9 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 fonts.AddFont("FontAwesomeSolid.otf", "FASolid");
                 fonts.AddFont("fa-brands-400.ttf", "FABrands");
+
+                // Geçici çözüm: Font ailesini doğrudan dosya adıyla da dene
+                //fonts.AddFont("FontAwesomeSolid.otf", "FontAwesomeSolid");
             });
 
         // Firebase başlatma
