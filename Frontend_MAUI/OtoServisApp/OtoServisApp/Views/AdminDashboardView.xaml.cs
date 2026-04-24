@@ -55,4 +55,8 @@ public partial class AdminDashboardView : ContentPage
         await Navigation.PushAsync(new AdminUserTrackingView());
     }
 
+    private async void OnVeriTemizlemeTapped(object sender, EventArgs e)
+    {
+        await Navigation.PushAsync(new AdminLogsDeleteView());
+    }
 }

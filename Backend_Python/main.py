@@ -2037,6 +2037,60 @@ def get_admin_logs(
         "mevcut_sayfa": sayfa,
         "loglar": sonuc_loglar
     }
+    
+
+class TopluSilIstegi(BaseModel):
+    tablo: str  # "log" veya "bildirim"
+    kriter: str  # "bugun", "tek_tarih", "iki_tarih_arasi", "once"
+    baslangic_tarihi: Optional[date] = None
+    bitis_tarihi: Optional[date] = None
+
+@app.post("/admin/toplu-sil")
+def toplu_sil(istek: TopluSilIstegi, db: Session = Depends(get_db)):
+    """Seçilen tablodan, verilen tarih kriterine göre kayıtları siler."""
+    try:
+        if istek.tablo == "log":
+            model = models.SistemLog
+            tarih_kolonu = models.SistemLog.insert_tarihi
+        elif istek.tablo == "bildirim":
+            model = models.SistemBildirimleri
+            tarih_kolonu = models.SistemBildirimleri.olusturulma_tarihi
+        else:
+            raise HTTPException(status_code=400, detail="Geçersiz tablo seçimi.")
+
+        query = db.query(model)
+
+        # Tarih kriterlerine göre filtrele
+        if istek.kriter == "bugun":
+            bugun = date.today()
+            query = query.filter(tarih_kolonu >= datetime.combine(bugun, datetime.min.time()),
+                                 tarih_kolonu <= datetime.combine(bugun, datetime.max.time()))
+        elif istek.kriter == "tek_tarih":
+            if not istek.baslangic_tarihi:
+                raise HTTPException(status_code=400, detail="Tek tarih seçeneği için başlangıç tarihi zorunludur.")
+            query = query.filter(tarih_kolonu >= datetime.combine(istek.baslangic_tarihi, datetime.min.time()),
+                                 tarih_kolonu <= datetime.combine(istek.baslangic_tarihi, datetime.max.time()))
+        elif istek.kriter == "iki_tarih_arasi":
+            if not istek.baslangic_tarihi or not istek.bitis_tarihi:
+                raise HTTPException(status_code=400, detail="İki tarih arası için başlangıç ve bitiş tarihi zorunludur.")
+            query = query.filter(tarih_kolonu >= datetime.combine(istek.baslangic_tarihi, datetime.min.time()),
+                                 tarih_kolonu <= datetime.combine(istek.bitis_tarihi, datetime.max.time()))
+        elif istek.kriter == "once":
+            if not istek.baslangic_tarihi:
+                raise HTTPException(status_code=400, detail="Seçili tarihten önce için başlangıç tarihi zorunludur.")
+            query = query.filter(tarih_kolonu <= datetime.combine(istek.baslangic_tarihi, datetime.max.time()))
+        else:
+            raise HTTPException(status_code=400, detail="Geçersiz kriter.")
+
+        silinen_sayi = query.delete(synchronize_session='fetch')
+        db.commit()
+
+        log_kaydet(db, "Toplu Veri Silme", f"{istek.tablo} tablosundan {silinen_sayi} kayıt silindi.", "WARNING")
+        return {"mesaj": f"{silinen_sayi} kayıt başarıyla silindi.", "silinen_sayi": silinen_sayi}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.put("/admin/talepler/{talep_id}")
 def admin_talep_guncelle_kullanilmiyor(talep_id: int, durum: str, tahmini_tutar: float, db: Session = Depends(get_db)):

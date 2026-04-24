@@ -1138,6 +1138,40 @@ namespace OtoServisApp.Services
             public string TamAdres { get; set; }
         }
 
+        // Admin sistem logları sil.
+        public async Task<int> TopluSilAsync(string tablo, string kriter, DateTime? baslangic = null, DateTime? bitis = null)
+        {
+            try
+            {
+                var payload = new
+                {
+                    tablo = tablo,
+                    kriter = kriter,
+                    baslangic_tarihi = baslangic?.ToString("yyyy-MM-dd"),
+                    bitis_tarihi = bitis?.ToString("yyyy-MM-dd")
+                };
+                var response = await _httpClient.PostAsJsonAsync("admin/toplu-sil", payload);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<TopluSilResponse>();
+                    return result?.silinen_sayi ?? 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Toplu silme hatası: {ex.Message}");
+            }
+            return -1; // hata durumu
+        }
+
+        // Yardımcı sınıf TopluSilAsync
+        public class TopluSilResponse
+        {
+            [JsonPropertyName("silinen_sayi")]
+            public int silinen_sayi { get; set; }
+        }
+
+
     } /* En Dıştaki public class ApiService bitişi */
 
     // Yardımcı sınıf (ApiService.cs içinde aynı dosyaya ekleyin)

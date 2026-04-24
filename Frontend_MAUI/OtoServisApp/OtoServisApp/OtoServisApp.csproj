@@ -112,5 +112,11 @@
     <PackageReference Include="Xamarin.AndroidX.Activity.Ktx" Version="1.8.2.2" />
     <PackageReference Include="Xamarin.AndroidX.Lifecycle.ViewModel.Ktx" Version="2.7.0.2" />
   </ItemGroup>
+
+  <ItemGroup>
+    <MauiXaml Update="Views\AdminLogsDeleteView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+  </ItemGroup>
     
 </Project>

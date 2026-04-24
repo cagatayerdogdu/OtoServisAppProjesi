@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:helpers="clr-namespace:OtoServisApp.Helpers"
+             x:Class="OtoServisApp.Views.AdminLogsDeleteView"
+             BackgroundColor="#F0F2F5"
+             Title="Veri Temizleme">
+
+    <Grid RowDefinitions="Auto, *, Auto">
+        <!-- Üst Kontroller -->
+        <Border Grid.Row="0" BackgroundColor="#FAFAFA" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10" Margin="10,10,10,5">
+            <VerticalStackLayout Spacing="10">
+                <!-- Tarih Kriteri Seçimi -->
+                <Grid ColumnDefinitions="*, Auto, Auto" ColumnSpacing="8">
+                    <Border Grid.Column="0" Stroke="#CCCCCC" StrokeThickness="1" BackgroundColor="White" StrokeShape="RoundRectangle 8" HeightRequest="35" Padding="0">
+                        <Button x:Name="SecilenTarihKriteriButonu" Text="Bugün" BackgroundColor="Transparent" TextColor="#111111" FontSize="11" Clicked="OnTarihKriteriKutusuAcKapat" BorderWidth="0" Margin="0" Padding="0"/>
+                    </Border>
+                    <Border Grid.Column="1" x:Name="BaslangicKutusu" IsVisible="False" Stroke="#CCCCCC" StrokeThickness="1" BackgroundColor="White" StrokeShape="RoundRectangle 8" HeightRequest="35" Padding="5,0">
+                        <DatePicker x:Name="BaslangicDatePicker" Format="dd.MM.yyyy" TextColor="#111111" BackgroundColor="Transparent" FontSize="12" VerticalOptions="Center"/>
+                    </Border>
+                    <Border Grid.Column="2" x:Name="BitisKutusu" IsVisible="False" Stroke="#CCCCCC" StrokeThickness="1" BackgroundColor="White" StrokeShape="RoundRectangle 8" HeightRequest="35" Padding="5,0">
+                        <DatePicker x:Name="BitisDatePicker" Format="dd.MM.yyyy" TextColor="#111111" BackgroundColor="Transparent" FontSize="12" VerticalOptions="Center"/>
+                    </Border>
+                </Grid>
+
+                <!-- Tablo Seçimi (RadioButton) -->
+                <VerticalStackLayout Spacing="5">
+                    <Label Text="Silinecek Tablo:" FontSize="12" FontAttributes="Bold" TextColor="#333333"/>
+                    <HorizontalStackLayout Spacing="15">
+                        <RadioButton x:Name="RadioLog" Content="Sistem Logları" GroupName="TabloSecimi" IsChecked="True"/>
+                        <RadioButton x:Name="RadioBildirim" Content="Sistem Bildirimleri" GroupName="TabloSecimi"/>
+                        <RadioButton Content="Seçimi Temizle" GroupName="TabloSecimi" CheckedChanged="OnSecimTemizleChecked"/>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+
+                <!-- Sil Butonu -->
+                <Border BackgroundColor="#FF9800" StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="40" Padding="0">
+                    <Button Text="Seçili Verileri Sil" Clicked="OnSilClicked" BackgroundColor="Transparent" TextColor="White" FontAttributes="Bold" FontSize="14" BorderWidth="0" Margin="0" Padding="0"/>
+                </Border>
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- Tarih Kriteri Popup Listesi -->
+        <Border x:Name="TarihSecimKutusu" IsVisible="False" BackgroundColor="White" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 12" 
+                Padding="5" HorizontalOptions="Start" VerticalOptions="Start" Margin="10,50,0,0" WidthRequest="200" HeightRequest="180" ZIndex="99">
+            <CollectionView x:Name="TarihKriterListesi" SelectionMode="Single" SelectionChanged="OnTarihKriteriSecildi">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Label Text="{Binding .}" Padding="10" FontSize="12" TextColor="#111111"/>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Border>
+
+        <!-- Orta Kısım Boş (İleride bilgi gösterilebilir) -->
+        <Label Grid.Row="1" Text="Seçim yaparak silme işlemini başlatabilirsiniz." 
+               TextColor="#888888" HorizontalOptions="Center" VerticalOptions="Center"/>
+
+        <!-- Alt Bilgi -->
+        <Border Grid.Row="2" BackgroundColor="White" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10" Margin="10,0,10,10">
+            <Label Text="⚠️ Silinen veriler geri alınamaz!" TextColor="#FF9800" FontAttributes="Bold" HorizontalOptions="Center"/>
+        </Border>
+
+        <!-- Loading Overlay -->
+        <Grid x:Name="LoadingOverlay" BackgroundColor="#CCFFFFFF" IsVisible="False" InputTransparent="False" Grid.RowSpan="3">
+            <Border BackgroundColor="White" Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 15" Padding="30" HorizontalOptions="Center" VerticalOptions="Center">
+                <VerticalStackLayout Spacing="15" HorizontalOptions="Center">
+                    <ActivityIndicator IsRunning="{Binding Source={x:Reference LoadingOverlay}, Path=IsVisible}" Color="#00BCD4" WidthRequest="50" HeightRequest="50" HorizontalOptions="Center"/>
+                    <Label x:Name="LoadingTitle" Text="Veriler Siliniyor..." FontSize="16" FontAttributes="Bold" TextColor="#333333" HorizontalOptions="Center"/>
+                    <Label Text="Lütfen işlem bitene kadar bekleyiniz." FontSize="13" TextColor="#666666" HorizontalTextAlignment="Center" HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+    </Grid>
+</ContentPage>
