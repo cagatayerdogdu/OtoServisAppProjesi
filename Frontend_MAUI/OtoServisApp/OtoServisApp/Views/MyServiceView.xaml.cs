@@ -33,6 +33,14 @@ public partial class MyServiceView : ContentPage
         _apiService = new ApiService();
 
         GuncelleButonDurumlari();
+
+
+        // Talep güncelleme/işlem mesajını dinle
+        MessagingCenter.Subscribe<object>(this, "TalepGuncellendi", async (sender) =>
+        {
+            // Mevcut sayfayı koruyarak listeyi yenile (loading göstermeden)
+            await TalepleriYukle(_mevcutSayfa);
+        });
     }
 
     protected override async void OnAppearing()
@@ -225,6 +233,7 @@ public partial class MyServiceView : ContentPage
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
+        MessagingCenter.Unsubscribe<object>(this, "TalepGuncellendi");
         _aramaCts?.Cancel();
     }
 

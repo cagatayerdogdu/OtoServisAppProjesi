@@ -34,7 +34,7 @@
 
   <ItemGroup>
     <!-- App Icon -->
-    <MauiIcon Include="Resources\AppIcon\logo.png" Color="#1A222B" BaseSize="1024,1024" />
+    <MauiIcon Include="Resources\AppIcon\logo.png" Color="#0EA5E9" BaseSize="1024,1024" />
 
     <!-- Splash Screen -->
     <MauiSplashScreen Include="Resources\Splash\logo.png" Color="#1A222B" BaseSize="512,512" />
@@ -54,6 +54,50 @@
     <AndroidResource Remove="Platforms\Android\Resources\values\styles.xml" />
   </ItemGroup>
 
+  <!-- Manuel mipmap simgeleri (Android için) -->
+
+  <ItemGroup>
+    <AndroidResource Include="Resources\Drawable\mipmap-hdpi\ic_launcher.png" />
+    <AndroidResource Include="Resources\Drawable\mipmap-hdpi\ic_launcher_round.png" />
+    <AndroidResource Include="Resources\Drawable\mipmap-mdpi\ic_launcher.png" />
+    <AndroidResource Include="Resources\Drawable\mipmap-mdpi\ic_launcher_round.png" />
+    <AndroidResource Include="Resources\Drawable\mipmap-xhdpi\ic_launcher.png" />
+    <AndroidResource Include="Resources\Drawable\mipmap-xhdpi\ic_launcher_round.png" />
+    <AndroidResource Include="Resources\Drawable\mipmap-xxhdpi\ic_launcher.png" />
+    <AndroidResource Include="Resources\Drawable\mipmap-xxhdpi\ic_launcher_round.png" />
+    <AndroidResource Include="Resources\Drawable\mipmap-xxxhdpi\ic_launcher.png" />
+    <AndroidResource Include="Resources\Drawable\mipmap-xxxhdpi\ic_launcher_round.png" />
+    <AndroidResource Include="Resources\Drawable\notification_icon.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Platforms\Android\AndroidManifest.xml" />
+    <None Remove="Platforms\Android\Resources\values\strings.xml" />
+    <None Remove="Resources\AppIcon\appiconfg.svg" />
+    <None Remove="Resources\Drawable\mipmap-hdpi\ic_launcher.png" />
+    <None Remove="Resources\Drawable\mipmap-hdpi\ic_launcher_round.png" />
+    <None Remove="Resources\Drawable\mipmap-mdpi\ic_launcher.png" />
+    <None Remove="Resources\Drawable\mipmap-mdpi\ic_launcher_round.png" />
+    <None Remove="Resources\Drawable\mipmap-xhdpi\ic_launcher.png" />
+    <None Remove="Resources\Drawable\mipmap-xhdpi\ic_launcher_round.png" />
+    <None Remove="Resources\Drawable\mipmap-xxhdpi\ic_launcher.png" />
+    <None Remove="Resources\Drawable\mipmap-xxhdpi\ic_launcher_round.png" />
+    <None Remove="Resources\Drawable\mipmap-xxxhdpi\ic_launcher.png" />
+    <None Remove="Resources\Drawable\mipmap-xxxhdpi\ic_launcher_round.png" />
+    <None Remove="Resources\Drawable\notification_icon.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Platforms\Android\Resources\mipmap-hdpi\" />
+    <Folder Include="Platforms\Android\Resources\mipmap-mdpi\" />
+    <Folder Include="Platforms\Android\Resources\mipmap-xhdpi\" />
+    <Folder Include="Platforms\Android\Resources\mipmap-xxhdpi\" />
+    <Folder Include="Platforms\Android\Resources\mipmap-xxxhdpi\" />
+    <Folder Include="Resources\AppIcon\" />
+    <Folder Include="Resources\Splash\" />
+    <Folder Include="Resources\Fonts\" />
+  </ItemGroup>
+    
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Maui" Version="7.0.1" />
     <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
@@ -68,12 +112,5 @@
     <PackageReference Include="Xamarin.AndroidX.Activity.Ktx" Version="1.8.2.2" />
     <PackageReference Include="Xamarin.AndroidX.Lifecycle.ViewModel.Ktx" Version="2.7.0.2" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Platforms\Android\Resources\Drawable\" />
-    <Folder Include="Resources\AppIcon\" />
-    <Folder Include="Resources\Splash\" />
-    <Folder Include="Resources\Fonts\" />
-  </ItemGroup>
-
+    
 </Project>
