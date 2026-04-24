@@ -31,12 +31,14 @@ public partial class AdminServiceView : ContentPage
         _apiService = new ApiService();
         GuncelleButonDurumlari();
 
+        /* Çalışmadı.
         // Talep güncelleme/işlem mesajını dinle
         MessagingCenter.Subscribe<object>(this, "TalepGuncellendi", async (sender) =>
         {
             // Mevcut sayfayı koruyarak listeyi yenile (loading göstermeden)
             await TalepleriYukle(_mevcutSayfa);
         });
+        */
     }
 
     protected override async void OnAppearing()
@@ -45,6 +47,8 @@ public partial class AdminServiceView : ContentPage
 
         if (_ilkYukleme)
         {
+            // İlk yükleme: loading overlay ile çek
+            _ilkYukleme = false;
             LoadingOverlay.IsVisible = true;
             LoadingTitle.Text = "Talepler Yükleniyor...";
             LoadingSubText.Text = "Lütfen bekleyiniz.";
@@ -66,9 +70,14 @@ public partial class AdminServiceView : ContentPage
                 LoadingOverlay.IsVisible = false;
             }
         }
+        else
+        {
+            // Geri dönüldüğünde SESSİZCE yenile (loading gösterme)
+            await TalepleriYukle(_mevcutSayfa, silent: true);
+        }
     }
 
-    private async Task TalepleriYukle(int sayfa)
+    private async Task TalepleriYukle(int sayfa, bool silent = false)
     {
         if (_yukleniyor) return;
         _yukleniyor = true;

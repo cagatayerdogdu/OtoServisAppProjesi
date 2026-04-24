@@ -96,7 +96,7 @@
                 <Button Text="Sistem Logları (İzleme)" ImageSource="{FontImage FontFamily=FASolid, Glyph={x:Static helpers:IconFont.Desktop}, Color=White, Size=20}" ContentLayout="Left, 10" Clicked="OnSistemLoglariClicked" BackgroundColor="Transparent" TextColor="#FAFAFA" FontAttributes="Bold" FontSize="15" BorderWidth="0" Margin="0" Padding="0"/>
             </Border>
 
-            <Border BackgroundColor="#FF9800" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 10" HeightRequest="55" Margin="0,5,0,0" Padding="0">
+            <Border BackgroundColor="#34495E" Stroke="Transparent" StrokeThickness="0" StrokeShape="RoundRectangle 10" HeightRequest="55" Margin="0,5,0,0" Padding="0">
                 <Button Text="Veri Temizleme" ImageSource="{FontImage FontFamily=FASolid, Glyph={x:Static helpers:IconFont.Trash}, Color=White, Size=20}" ContentLayout="Left, 10" Clicked="OnVeriTemizlemeTapped" BackgroundColor="Transparent" TextColor="#FAFAFA" FontAttributes="Bold" FontSize="15" BorderWidth="0" Margin="0" Padding="0"/>
             </Border>
 

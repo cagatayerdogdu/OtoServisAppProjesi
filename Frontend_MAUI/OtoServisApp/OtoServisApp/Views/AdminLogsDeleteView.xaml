@@ -27,9 +27,9 @@
                 <VerticalStackLayout Spacing="5">
                     <Label Text="Silinecek Tablo:" FontSize="12" FontAttributes="Bold" TextColor="#333333"/>
                     <HorizontalStackLayout Spacing="15">
-                        <RadioButton x:Name="RadioLog" Content="Sistem Logları" GroupName="TabloSecimi" IsChecked="True"/>
-                        <RadioButton x:Name="RadioBildirim" Content="Sistem Bildirimleri" GroupName="TabloSecimi"/>
-                        <RadioButton Content="Seçimi Temizle" GroupName="TabloSecimi" CheckedChanged="OnSecimTemizleChecked"/>
+                        <RadioButton x:Name="RadioLog" Content="Sistem Logları" GroupName="TabloSecimi" IsChecked="True" TextColor="#333333"/>
+                        <RadioButton x:Name="RadioBildirim" Content="Sistem Bildirimleri" GroupName="TabloSecimi" TextColor="#333333"/>
+                        <RadioButton Content="Seçimi Temizle" GroupName="TabloSecimi" CheckedChanged="OnSecimTemizleChecked" TextColor="#333333"/>
                     </HorizontalStackLayout>
                 </VerticalStackLayout>
 
