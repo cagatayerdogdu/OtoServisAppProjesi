@@ -234,7 +234,7 @@ public partial class EditServiceRequestView : ContentPage
             }
 
             // Listeyi yenilemek için genel mesaj (MyServiceDetailView için)
-            MessagingCenter.Send(this, "TalepDetayGuncellendi", _talep);
+            //MessagingCenter.Send(this, "TalepDetayGuncellendi", _talep);
 
             await Navigation.PopAsync(); // Önceki ekrana dön
         }

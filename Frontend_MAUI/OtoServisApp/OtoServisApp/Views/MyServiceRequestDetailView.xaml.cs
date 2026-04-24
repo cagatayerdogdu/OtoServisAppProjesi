@@ -21,45 +21,38 @@ public partial class MyServiceRequestDetailView : ContentPage
         _apiService = new ApiService();
 
         BindingContext = _talep;
-
-        // Edit sayfasından gelecek güncel talep mesajını dinle
-        MessagingCenter.Unsubscribe<EditServiceRequestView, ServisTalebi>(this, "TalepDetayGuncellendi");
-        MessagingCenter.Subscribe<EditServiceRequestView, ServisTalebi>(this, "TalepDetayGuncellendi", (sender, guncelTalep) =>
-        {
-            MainThread.BeginInvokeOnMainThread(async () =>
-            {
-                // 1. Gelen güncel talebi yakala
-                _talep = guncelTalep;
-
-                // 2. Referans verileri önbelleğe al (yoksa)
-                if (_tumHizmetler == null)
-                    _tumHizmetler = await _apiService.HizmetleriGetirAsync();
-                if (_tumMarkalar == null)
-                    _tumMarkalar = await _apiService.MarkalariGetirAsync();
-
-                // 3. Eksik alanları zenginleştir
-                await TalebiZenginlestir(_talep);
-
-                // 4. UI'ı güncelle
-                BindingContext = null;
-                BindingContext = _talep;
-            });
-        });
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
 
-        // Sayfa ilk açılışında veya geri dönüldüğünde veriyi yenile
-        if (_tumHizmetler == null)
-            _tumHizmetler = await _apiService.HizmetleriGetirAsync();
-        if (_tumMarkalar == null)
-            _tumMarkalar = await _apiService.MarkalariGetirAsync();
+        try
+        {
+            // Referans verileri önbelleğe al
+            if (_tumHizmetler == null)
+                _tumHizmetler = await _apiService.HizmetleriGetirAsync();
+            if (_tumMarkalar == null)
+                _tumMarkalar = await _apiService.MarkalariGetirAsync();
 
-        await TalebiZenginlestir(_talep);
-        BindingContext = null;
-        BindingContext = _talep;
+            // Güncel talebi API'den çek
+            var guncelTalep = await _apiService.TalepGetirAsync(_talep.id);
+            if (guncelTalep != null)
+            {
+                _talep = guncelTalep;
+
+                // Eksik alanları zenginleştir (hizmet adı, araç adı)
+                await TalebiZenginlestir(_talep);
+
+                // UI'ı tamamen tazele
+                BindingContext = null;
+                BindingContext = _talep;
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Detay güncellenirken hata: {ex.Message}");
+        }
     }
 
     private async Task TalebiZenginlestir(ServisTalebi talep)
