@@ -51,7 +51,7 @@ public partial class MyServiceView : ContentPage
         if (_ilkYukleme)
         {
             // İlk yükleme: loading overlay ile çek
-            _ilkYukleme = false;
+            //_ilkYukleme = false;
             LoadingOverlay.IsVisible = true;
             LoadingTitle.Text = "Talepler Yükleniyor...";
             await Task.Delay(5);
@@ -72,14 +72,14 @@ public partial class MyServiceView : ContentPage
                 LoadingOverlay.IsVisible = false;
             }
         }
-        else
+        /*else
         {
             // Geri dönüldüğünde SESSİZCE yenile (loading gösterme)
             await TalepleriYukle(_mevcutSayfa, silent: true);
-        }
+        }*/
     }
 
-    private async Task TalepleriYukle(int sayfa, bool silent = false)
+    private async Task TalepleriYukle(int sayfa/*, bool silent = false*/)
     {
         if (_yukleniyor) return;
         _yukleniyor = true;

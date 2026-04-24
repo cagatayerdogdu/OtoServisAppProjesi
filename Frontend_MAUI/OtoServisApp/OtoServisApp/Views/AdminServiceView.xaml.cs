@@ -29,26 +29,22 @@ public partial class AdminServiceView : ContentPage
     {
         InitializeComponent();
         _apiService = new ApiService();
-        GuncelleButonDurumlari();
-
-        /* Çalışmadı.
-        // Talep güncelleme/işlem mesajını dinle
-        MessagingCenter.Subscribe<object>(this, "TalepGuncellendi", async (sender) =>
-        {
-            // Mevcut sayfayı koruyarak listeyi yenile (loading göstermeden)
-            await TalepleriYukle(_mevcutSayfa);
-        });
-        */
+        GuncelleButonDurumlari();                
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
 
+        // Her göründüğünde abone ol
+        MessagingCenter.Subscribe<object>(this, "TalepGuncellendi", async (sender) =>
+        {
+            // Mevcut sayfayı koruyarak listeyi sessizce yenile
+            await TalepleriYukle(_mevcutSayfa);
+        });
+
         if (_ilkYukleme)
         {
-            // İlk yükleme: loading overlay ile çek
-            _ilkYukleme = false;
             LoadingOverlay.IsVisible = true;
             LoadingTitle.Text = "Talepler Yükleniyor...";
             LoadingSubText.Text = "Lütfen bekleyiniz.";
@@ -70,14 +66,9 @@ public partial class AdminServiceView : ContentPage
                 LoadingOverlay.IsVisible = false;
             }
         }
-        else
-        {
-            // Geri dönüldüğünde SESSİZCE yenile (loading gösterme)
-            await TalepleriYukle(_mevcutSayfa, silent: true);
-        }
     }
 
-    private async Task TalepleriYukle(int sayfa, bool silent = false)
+    private async Task TalepleriYukle(int sayfa)
     {
         if (_yukleniyor) return;
         _yukleniyor = true;
@@ -86,11 +77,17 @@ public partial class AdminServiceView : ContentPage
 
         try
         {
-            if (_ilkYukleme)
+            /*if (_ilkYukleme)
             {
                 _tumHizmetler = await _apiService.HizmetleriGetirAsync();
                 _tumMarkalar = await _apiService.MarkalariGetirAsync();
                 _ilkYukleme = false;
+            }*/
+            // Referans verileri (hizmet ve marka) null ise yükle
+            if (_tumHizmetler == null || _tumMarkalar == null)
+            {
+                _tumHizmetler = await _apiService.HizmetleriGetirAsync();
+                _tumMarkalar = await _apiService.MarkalariGetirAsync();
             }
 
             var (yeniTalepler, toplamKayit) = await _apiService.AdminTalepleriniSayfaliGetirAsync(
@@ -146,14 +143,22 @@ public partial class AdminServiceView : ContentPage
     {
         if (talepler == null || talepler.Count == 0) return;
 
+        // Referans veriler null ise bir kez daha yüklemeyi dene
+        if (_tumHizmetler == null) _tumHizmetler = await _apiService.HizmetleriGetirAsync();
+        if (_tumMarkalar == null) _tumMarkalar = await _apiService.MarkalariGetirAsync();
+
         var aracHavuzu = new ConcurrentDictionary<int, Arac>();
 
         var detayGorevleri = talepler.Select(async talep =>
         {
+            // Hizmet adı
             var hizmet = _tumHizmetler?.FirstOrDefault(h => h.id == talep.hizmet_id);
             if (hizmet != null)
                 talep.hizmet_adi = hizmet.ad;
+            else
+                talep.hizmet_adi = $"Hizmet ID: {talep.hizmet_id}";
 
+            // Araç bilgisi
             if (!aracHavuzu.TryGetValue(talep.arac_id, out var arac))
             {
                 arac = await _apiService.AracGetirAsync(talep.arac_id);
@@ -164,10 +169,18 @@ public partial class AdminServiceView : ContentPage
             if (arac != null)
             {
                 string gosterimAd = "";
-                if (arac.marka_id != null && arac.model_id != null && _tumMarkalar != null)
+                /*if (arac.marka_id != null && arac.model_id != null && _tumMarkalar != null)
                 {
                     var marka = _tumMarkalar.FirstOrDefault(m => m.id == arac.marka_id);
                     var model = marka?.modeller?.FirstOrDefault(m => m.id == arac.model_id);
+                    if (marka != null && model != null)
+                        gosterimAd = $"{marka.ad} {model.ad}";
+                }*/
+
+                if (_tumMarkalar != null && arac.marka_id.HasValue && arac.model_id.HasValue)
+                {
+                    var marka = _tumMarkalar.FirstOrDefault(m => m.id == arac.marka_id.Value);
+                    var model = marka?.modeller?.FirstOrDefault(m => m.id == arac.model_id.Value);
                     if (marka != null && model != null)
                         gosterimAd = $"{marka.ad} {model.ad}";
                 }
@@ -185,6 +198,7 @@ public partial class AdminServiceView : ContentPage
 
         await Task.WhenAll(detayGorevleri);
 
+        // Toplu fotoğraf durumu
         var talepIdleri = talepler.Select(t => t.id).ToList();
         var fotoDurumlari = await _apiService.TopluFotografDurumuGetirAsync(talepIdleri);
         foreach (var talep in talepler)
