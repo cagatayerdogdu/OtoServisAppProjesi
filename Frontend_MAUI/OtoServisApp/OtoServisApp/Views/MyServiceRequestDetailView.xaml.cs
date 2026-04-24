@@ -10,6 +10,10 @@ public partial class MyServiceRequestDetailView : ContentPage
     private Kullanici _aktifKullanici;
     private readonly ApiService _apiService;
 
+    // Önbellek için
+    private List<Hizmet> _tumHizmetler;
+    private List<Marka> _tumMarkalar;
+
     public MyServiceRequestDetailView(ServisTalebi talep, Kullanici kullanici)
     {
         InitializeComponent();
@@ -19,23 +23,62 @@ public partial class MyServiceRequestDetailView : ContentPage
 
         BindingContext = _talep;
 
-        // Detay güncelleme mesajını dinle
-        MessagingCenter.Subscribe<object, ServisTalebi>(this, "TalepDetayGuncellendi", (sender, guncelTalep) =>
-        {
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                _talep = guncelTalep;
-                BindingContext = _talep;
-            });
-        });
     }
 
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
-        // Her göründüğünde güncel _talep'i bağla
-        BindingContext = _talep;
+
+        // 1. API'den güncel talebi çek
+        var guncelTalep = await _apiService.TalepGetirAsync(_talep.id);
+        if (guncelTalep != null)
+        {
+            // 2. Gerekli referans verileri çek (ilk defa veya önbellek)
+            if (_tumHizmetler == null)
+                _tumHizmetler = await _apiService.HizmetleriGetirAsync();
+            if (_tumMarkalar == null)
+                _tumMarkalar = await _apiService.MarkalariGetirAsync();
+
+            // 3. Eksik alanları zenginleştir
+            await TalebiZenginlestir(guncelTalep);
+
+            // 4. UI'ı güncelle
+            _talep = guncelTalep;
+            BindingContext = guncelTalep;
+        }
     }
+
+    private async Task TalebiZenginlestir(ServisTalebi talep)
+    {
+        // Hizmet adı
+        var hizmet = _tumHizmetler?.FirstOrDefault(h => h.id == talep.hizmet_id);
+        if (hizmet != null)
+            talep.hizmet_adi = hizmet.ad;
+
+        // Araç adı (marka/model + özel marka)
+        var arac = await _apiService.AracGetirAsync(talep.arac_id);
+        if (arac != null)
+        {
+            string gosterimAd = "";
+            if (arac.marka_id != null && arac.model_id != null && _tumMarkalar != null)
+            {
+                var marka = _tumMarkalar.FirstOrDefault(m => m.id == arac.marka_id);
+                var model = marka?.modeller?.FirstOrDefault(m => m.id == arac.model_id);
+                if (marka != null && model != null)
+                    gosterimAd = $"{marka.ad} {model.ad}";
+            }
+            if (string.IsNullOrWhiteSpace(gosterimAd) && !string.IsNullOrWhiteSpace(arac.ozel_marka))
+                gosterimAd = $"{arac.ozel_marka} {arac.ozel_model}";
+            if (string.IsNullOrWhiteSpace(gosterimAd))
+                gosterimAd = $"Araç ID: {arac.id}";
+            talep.arac_adi_tam = gosterimAd;
+        }
+        else
+        {
+            talep.arac_adi_tam = "Sistemden Silinmiş Araç";
+        }
+    }
+
 
     private async void OnViewPhotosTapped(object sender, TappedEventArgs e)
     {
@@ -100,6 +143,5 @@ public partial class MyServiceRequestDetailView : ContentPage
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
-        MessagingCenter.Unsubscribe<object, ServisTalebi>(this, "TalepDetayGuncellendi");
     }
 }

@@ -228,7 +228,7 @@ public partial class EditServiceRequestView : ContentPage
 
             // YENİ:
             // Detay sayfasına güncellenmiş talebi gönder
-            MessagingCenter.Send<object, ServisTalebi>(this, "TalepDetayGuncellendi", _talep);
+            //MessagingCenter.Send<object, ServisTalebi>(this, "TalepDetayGuncellendi", _talep);
             // Listeyi yenilemek için genel mesaj (MyServiceView için)
             MessagingCenter.Send<object>(this, "TalepGuncellendi");
 

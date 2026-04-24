@@ -1171,6 +1171,18 @@ namespace OtoServisApp.Services
             public int silinen_sayi { get; set; }
         }
 
+        //MyServiceRequestDetailView sayfasında Edit sayfasındaki değişiklikleri anlık almak için.
+        public async Task<ServisTalebi> TalepGetirAsync(int talepId)
+        {
+            try
+            {
+                return await _httpClient.GetFromJsonAsync<ServisTalebi>($"servis-talepleri/{talepId}");
+            }
+            catch
+            {
+                return null;
+            }
+        }
 
     } /* En Dıştaki public class ApiService bitişi */
 
