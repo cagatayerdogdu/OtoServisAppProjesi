@@ -210,26 +210,9 @@ public partial class EditServiceRequestView : ContentPage
             // ESKİ:
             // MessagingCenter.Send<object>(this, "TalepGuncellendi");
 
-            // _talep nesnesini manuel güncelle (API'den dönen veriyi beklemeden)
-            if (_talep.durum == "Bekliyor")
-            {
-                _talep.hizmet_id = _secilenHizmet.id;
-                _talep.hizmet_adi = _secilenHizmet.ad;
-                _talep.arac_id = _secilenArac.Id;
-                _talep.talep_tarihi = TarihPicker.Date.ToString("yyyy-MM-dd");
-                _talep.adres = AdresEditor.Text;
-                _talep.notlar = NotlarEditor.Text;
-            }
-            else if (_talep.durum == "Onaylandı" || _talep.durum == "İşlemde")
-            {
-                _talep.duzeltme_istendi_mi = true;
-                _talep.duzeltme_notu = DuzeltmeNotuEditor.Text;
-            }
-
             // YENİ:
             // Detay sayfasına güncellenmiş talebi gönder
             //MessagingCenter.Send<object, ServisTalebi>(this, "TalepDetayGuncellendi", _talep);
-            // Listeyi yenilemek için genel mesaj (MyServiceView için)
             MessagingCenter.Send<object>(this, "TalepGuncellendi");
 
             // 5. Sonuç Mesajını Göster ve Çık
@@ -249,6 +232,9 @@ public partial class EditServiceRequestView : ContentPage
             {
                 await ModernAlertService.ShowInfoAsync("Talep bilgileriniz başarıyla güncellendi.", "Başarılı");
             }
+
+            // Listeyi yenilemek için genel mesaj (MyServiceDetailView için)
+            MessagingCenter.Send(this, "TalepDetayGuncellendi", _talep);
 
             await Navigation.PopAsync(); // Önceki ekrana dön
         }

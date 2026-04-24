@@ -10,7 +10,6 @@ public partial class MyServiceRequestDetailView : ContentPage
     private Kullanici _aktifKullanici;
     private readonly ApiService _apiService;
 
-    // Önbellek için
     private List<Hizmet> _tumHizmetler;
     private List<Marka> _tumMarkalar;
 
@@ -23,29 +22,44 @@ public partial class MyServiceRequestDetailView : ContentPage
 
         BindingContext = _talep;
 
+        // Edit sayfasından gelecek güncel talep mesajını dinle
+        MessagingCenter.Unsubscribe<EditServiceRequestView, ServisTalebi>(this, "TalepDetayGuncellendi");
+        MessagingCenter.Subscribe<EditServiceRequestView, ServisTalebi>(this, "TalepDetayGuncellendi", (sender, guncelTalep) =>
+        {
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                // 1. Gelen güncel talebi yakala
+                _talep = guncelTalep;
+
+                // 2. Referans verileri önbelleğe al (yoksa)
+                if (_tumHizmetler == null)
+                    _tumHizmetler = await _apiService.HizmetleriGetirAsync();
+                if (_tumMarkalar == null)
+                    _tumMarkalar = await _apiService.MarkalariGetirAsync();
+
+                // 3. Eksik alanları zenginleştir
+                await TalebiZenginlestir(_talep);
+
+                // 4. UI'ı güncelle
+                BindingContext = null;
+                BindingContext = _talep;
+            });
+        });
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
 
-        // 1. API'den güncel talebi çek
-        var guncelTalep = await _apiService.TalepGetirAsync(_talep.id);
-        if (guncelTalep != null)
-        {
-            // 2. Gerekli referans verileri çek (ilk defa veya önbellek)
-            if (_tumHizmetler == null)
-                _tumHizmetler = await _apiService.HizmetleriGetirAsync();
-            if (_tumMarkalar == null)
-                _tumMarkalar = await _apiService.MarkalariGetirAsync();
+        // Sayfa ilk açılışında veya geri dönüldüğünde veriyi yenile
+        if (_tumHizmetler == null)
+            _tumHizmetler = await _apiService.HizmetleriGetirAsync();
+        if (_tumMarkalar == null)
+            _tumMarkalar = await _apiService.MarkalariGetirAsync();
 
-            // 3. Eksik alanları zenginleştir
-            await TalebiZenginlestir(guncelTalep);
-
-            // 4. UI'ı güncelle
-            _talep = guncelTalep;
-            BindingContext = guncelTalep;
-        }
+        await TalebiZenginlestir(_talep);
+        BindingContext = null;
+        BindingContext = _talep;
     }
 
     private async Task TalebiZenginlestir(ServisTalebi talep)
@@ -55,7 +69,7 @@ public partial class MyServiceRequestDetailView : ContentPage
         if (hizmet != null)
             talep.hizmet_adi = hizmet.ad;
 
-        // Araç adı (marka/model + özel marka)
+        // Araç adı
         var arac = await _apiService.AracGetirAsync(talep.arac_id);
         if (arac != null)
         {
@@ -79,7 +93,7 @@ public partial class MyServiceRequestDetailView : ContentPage
         }
     }
 
-
+    // --- Aşağıdaki metotlar aynen kalacak ---
     private async void OnViewPhotosTapped(object sender, TappedEventArgs e)
     {
         if (_talep != null)
@@ -137,11 +151,5 @@ public partial class MyServiceRequestDetailView : ContentPage
                 }
             }
         }
-    }
-
-    // Sayfadan ayrılırken abonelikten çıkmak için
-    protected override void OnDisappearing()
-    {
-        base.OnDisappearing();
     }
 }
