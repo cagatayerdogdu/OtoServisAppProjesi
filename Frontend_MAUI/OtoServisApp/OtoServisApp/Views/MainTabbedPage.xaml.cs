@@ -64,17 +64,6 @@ public partial class MainTabbedPage : Microsoft.Maui.Controls.TabbedPage
         Children.Add(CreateTab(new MyServiceView(kullanici), "Taleplerim", IconFont.Wrench));
         Children.Add(CreateTab(new VehiclesView(kullanici), "Araçlarım", IconFont.Car));
         Children.Add(CreateTab(new ProfileView(kullanici), "Profil", IconFont.User));
-
-        if (App.BekleyenBildirimVarMi)
-        {
-            MainThread.BeginInvokeOnMainThread(async () =>
-            {
-                var currentNav = this.CurrentPage as NavigationPage; // MainTabbedPage ise
-                if (currentNav != null)
-                    await currentNav.Navigation.PushAsync(new NotificationsView());
-                App.BekleyenBildirimVarMi = false;
-            });
-        }
     }
 
     private NavigationPage CreateTab(ContentPage page, string title, string icon)
@@ -93,6 +82,23 @@ public partial class MainTabbedPage : Microsoft.Maui.Controls.TabbedPage
         };
 
         return navPage;
+    }
+
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+
+        if (App.BekleyenBildirimVarMi)
+        {
+            App.BekleyenBildirimVarMi = false;
+            // Sayfa tamamen yüklendikten sonra push et
+            await Task.Delay(200); // kısa bir gecikme garantisi 0.2 saniye
+            var currentNav = CurrentPage as NavigationPage;
+            if (currentNav != null)
+            {
+                await currentNav.Navigation.PushAsync(new NotificationsView());
+            }
+        }
     }
 
     private bool _isBackPressedOnce = false;

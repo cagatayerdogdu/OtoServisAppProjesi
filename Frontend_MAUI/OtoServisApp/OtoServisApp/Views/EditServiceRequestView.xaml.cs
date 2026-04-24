@@ -191,7 +191,7 @@ public partial class EditServiceRequestView : ContentPage
         LoadingSubText.Text = "Lütfen işlemin bitmesini bekleyiniz.";
 
         // Arayüz motoruna "Loading" çizimi için 50ms nefes aldırıyoruz (Ölümcül donmayı engeller)
-        await Task.Delay(10);
+        await Task.Delay(50);
 
         try
         {
@@ -206,6 +206,31 @@ public partial class EditServiceRequestView : ContentPage
 
             // 4. Fotoğrafları Yükle (Varsa)
             string fotoHataMesajlari = await FotograflariYukleAsync();
+
+            // ESKİ:
+            // MessagingCenter.Send<object>(this, "TalepGuncellendi");
+
+            // _talep nesnesini manuel güncelle (API'den dönen veriyi beklemeden)
+            if (_talep.durum == "Bekliyor")
+            {
+                _talep.hizmet_id = _secilenHizmet.id;
+                _talep.hizmet_adi = _secilenHizmet.ad;
+                _talep.arac_id = _secilenArac.Id;
+                _talep.talep_tarihi = TarihPicker.Date.ToString("yyyy-MM-dd");
+                _talep.adres = AdresEditor.Text;
+                _talep.notlar = NotlarEditor.Text;
+            }
+            else if (_talep.durum == "Onaylandı" || _talep.durum == "İşlemde")
+            {
+                _talep.duzeltme_istendi_mi = true;
+                _talep.duzeltme_notu = DuzeltmeNotuEditor.Text;
+            }
+
+            // YENİ:
+            // Detay sayfasına güncellenmiş talebi gönder
+            MessagingCenter.Send<object, ServisTalebi>(this, "TalepDetayGuncellendi", _talep);
+            // Listeyi yenilemek için genel mesaj (MyServiceView için)
+            MessagingCenter.Send<object>(this, "TalepGuncellendi");
 
             // 5. Sonuç Mesajını Göster ve Çık
             bool fotografEklendi = SecilenFotograflar != null && SecilenFotograflar.Count > 0;
@@ -224,12 +249,7 @@ public partial class EditServiceRequestView : ContentPage
             {
                 await ModernAlertService.ShowInfoAsync("Talep bilgileriniz başarıyla güncellendi.", "Başarılı");
             }
-            // ESKİ:
-            // MessagingCenter.Send<object>(this, "TalepGuncellendi");
 
-            // YENİ:
-            MessagingCenter.Send<object>(this, "TalepGuncellendi"); // Liste için (aynı kalacak)
-            MessagingCenter.Send<object, ServisTalebi>(this, "TalepDetayGuncellendi", _talep); // Detay sayfası için
             await Navigation.PopAsync(); // Önceki ekrana dön
         }
         catch (Exception ex)

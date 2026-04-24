@@ -30,6 +30,13 @@ public partial class MyServiceRequestDetailView : ContentPage
         });
     }
 
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        // Her göründüğünde güncel _talep'i bağla
+        BindingContext = _talep;
+    }
+
     private async void OnViewPhotosTapped(object sender, TappedEventArgs e)
     {
         if (_talep != null)
