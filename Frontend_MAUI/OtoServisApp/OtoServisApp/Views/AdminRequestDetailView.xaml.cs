@@ -23,6 +23,16 @@ public partial class AdminRequestDetailView : ContentPage
         _talep = talep;
         _apiService = new ApiService();
         BindingContext = _talep;
+
+        MessagingCenter.Subscribe<object, ServisTalebi>(this, "TalepDetayGuncellendi", (sender, guncelTalep) =>
+        {
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                _talep = guncelTalep;
+                KartDurumLabel.Text = guncelTalep.durum; // Durum label'ını manuel güncelle
+                BindingContext = _talep;
+            });
+        });
     }
 
     protected override void OnAppearing()
@@ -83,7 +93,12 @@ public partial class AdminRequestDetailView : ContentPage
         if (basarili)
         {
             await ModernAlertService.ShowInfoAsync("Talep güncellendi.", "Başarılı");
+            // Mevcut:
+            // MessagingCenter.Send<object>(this, "TalepGuncellendi");
+
+            // Yeni:
             MessagingCenter.Send<object>(this, "TalepGuncellendi");
+            MessagingCenter.Send<object, ServisTalebi>(this, "TalepDetayGuncellendi", _talep);
             await Navigation.PopAsync();
         }
         else
@@ -169,5 +184,13 @@ public partial class AdminRequestDetailView : ContentPage
         {
             PhoneDialer.Default.Open(phoneNumber);
         }
+    }
+
+
+    // Sayfadan ayrılırken abonelikten çıkmak için
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        MessagingCenter.Unsubscribe<object, ServisTalebi>(this, "TalepDetayGuncellendi");
     }
 }

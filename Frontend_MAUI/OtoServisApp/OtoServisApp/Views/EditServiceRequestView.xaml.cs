@@ -224,7 +224,12 @@ public partial class EditServiceRequestView : ContentPage
             {
                 await ModernAlertService.ShowInfoAsync("Talep bilgileriniz başarıyla güncellendi.", "Başarılı");
             }
-            MessagingCenter.Send<object>(this, "TalepGuncellendi");
+            // ESKİ:
+            // MessagingCenter.Send<object>(this, "TalepGuncellendi");
+
+            // YENİ:
+            MessagingCenter.Send<object>(this, "TalepGuncellendi"); // Liste için (aynı kalacak)
+            MessagingCenter.Send<object, ServisTalebi>(this, "TalepDetayGuncellendi", _talep); // Detay sayfası için
             await Navigation.PopAsync(); // Önceki ekrana dön
         }
         catch (Exception ex)

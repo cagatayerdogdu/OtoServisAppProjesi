@@ -64,6 +64,17 @@ public partial class MainTabbedPage : Microsoft.Maui.Controls.TabbedPage
         Children.Add(CreateTab(new MyServiceView(kullanici), "Taleplerim", IconFont.Wrench));
         Children.Add(CreateTab(new VehiclesView(kullanici), "Araçlarım", IconFont.Car));
         Children.Add(CreateTab(new ProfileView(kullanici), "Profil", IconFont.User));
+
+        if (App.BekleyenBildirimVarMi)
+        {
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                var currentNav = this.CurrentPage as NavigationPage; // MainTabbedPage ise
+                if (currentNav != null)
+                    await currentNav.Navigation.PushAsync(new NotificationsView());
+                App.BekleyenBildirimVarMi = false;
+            });
+        }
     }
 
     private NavigationPage CreateTab(ContentPage page, string title, string icon)

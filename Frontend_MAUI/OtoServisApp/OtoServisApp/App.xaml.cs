@@ -11,6 +11,8 @@ namespace OtoServisApp
 {
     public partial class App : Application
     {
+        public static bool BekleyenBildirimVarMi = false;
+
         private readonly HttpClient _httpClient = new HttpClient();
 
         public App()
@@ -94,20 +96,25 @@ namespace OtoServisApp
 
             CrossFirebaseCloudMessaging.Current.NotificationTapped += (sender, args) =>
             {
+                if (Application.Current?.MainPage == null)
+                {
+                    BekleyenBildirimVarMi = true;
+                    return;
+                }
+
                 MainThread.BeginInvokeOnMainThread(async () =>
                 {
                     if (Application.Current?.MainPage is TabbedPage tabbedPage)
                     {
                         var currentNav = tabbedPage.CurrentPage as NavigationPage;
                         if (currentNav != null)
-                        {
                             await currentNav.Navigation.PushAsync(new NotificationsView());
-                        }
                     }
                     else if (Application.Current?.MainPage is NavigationPage navPage)
                     {
                         await navPage.Navigation.PushAsync(new NotificationsView());
                     }
+                    BekleyenBildirimVarMi = false;
                 });
             };
 

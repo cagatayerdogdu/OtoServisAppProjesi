@@ -18,6 +18,16 @@ public partial class MyServiceRequestDetailView : ContentPage
         _apiService = new ApiService();
 
         BindingContext = _talep;
+
+        // Detay güncelleme mesajını dinle
+        MessagingCenter.Subscribe<object, ServisTalebi>(this, "TalepDetayGuncellendi", (sender, guncelTalep) =>
+        {
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                _talep = guncelTalep;
+                BindingContext = _talep;
+            });
+        });
     }
 
     private async void OnViewPhotosTapped(object sender, TappedEventArgs e)
@@ -77,5 +87,12 @@ public partial class MyServiceRequestDetailView : ContentPage
                 }
             }
         }
+    }
+
+    // Sayfadan ayrılırken abonelikten çıkmak için
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        MessagingCenter.Unsubscribe<object, ServisTalebi>(this, "TalepDetayGuncellendi");
     }
 }
