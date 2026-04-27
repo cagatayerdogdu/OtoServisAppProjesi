@@ -213,7 +213,7 @@ public partial class EditServiceRequestView : ContentPage
             // YENİ:
             // Detay sayfasına güncellenmiş talebi gönder
             //MessagingCenter.Send<object, ServisTalebi>(this, "TalepDetayGuncellendi", _talep);
-            MessagingCenter.Send<object>(this, "TalepGuncellendi");
+            //MessagingCenter.Send<object>(this, "TalepGuncellendi");
 
             // 5. Sonuç Mesajını Göster ve Çık
             bool fotografEklendi = SecilenFotograflar != null && SecilenFotograflar.Count > 0;
@@ -236,7 +236,20 @@ public partial class EditServiceRequestView : ContentPage
             // Listeyi yenilemek için genel mesaj (MyServiceDetailView için)
             //MessagingCenter.Send(this, "TalepDetayGuncellendi", _talep);
 
-            await Navigation.PopAsync(); // Önceki ekrana dön
+            //await Navigation.PopAsync(); // Önceki ekrana dön
+            // YENİ KOD:
+            // Başarılı kayıt sonrası:
+            MessagingCenter.Send<object>(this, "TalepGuncellendi");
+
+            // Eski detay sayfasını yığından kaldır (eğer varsa)
+            if (Navigation.NavigationStack.Count >= 2 &&
+                Navigation.NavigationStack[Navigation.NavigationStack.Count - 2] is MyServiceRequestDetailView eskiDetay)
+            {
+                Navigation.RemovePage(eskiDetay);
+            }
+
+            await Navigation.PopAsync(); // Edit'ten çık → direkt Taleplerim ekranına dön
+
         }
         catch (Exception ex)
         {

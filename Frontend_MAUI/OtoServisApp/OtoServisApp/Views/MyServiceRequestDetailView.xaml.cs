@@ -20,6 +20,7 @@ public partial class MyServiceRequestDetailView : ContentPage
         _aktifKullanici = kullanici;
         _apiService = new ApiService();
 
+        // HEMEN BINDINGCONTEXT ATA (sayfa ilk açıldığında boş görünmesin)
         BindingContext = _talep;
     }
 
@@ -30,39 +31,40 @@ public partial class MyServiceRequestDetailView : ContentPage
         try
         {
             // Referans verileri önbelleğe al
-            if (_tumHizmetler == null)
-                _tumHizmetler = await _apiService.HizmetleriGetirAsync();
-            if (_tumMarkalar == null)
-                _tumMarkalar = await _apiService.MarkalariGetirAsync();
+            _tumHizmetler ??= await _apiService.HizmetleriGetirAsync();
+            _tumMarkalar ??= await _apiService.MarkalariGetirAsync();
 
             // Güncel talebi API'den çek
             var guncelTalep = await _apiService.TalepGetirAsync(_talep.id);
             if (guncelTalep != null)
             {
-                _talep = guncelTalep;
+                // Mevcut _talep nesnesinin ALANLARINI güncelle (referans aynı kalsın)
+                _talep.hizmet_id = guncelTalep.hizmet_id;
+                _talep.arac_id = guncelTalep.arac_id;
+                _talep.talep_tarihi = guncelTalep.talep_tarihi;
+                _talep.adres = guncelTalep.adres;
+                _talep.notlar = guncelTalep.notlar;
+                _talep.durum = guncelTalep.durum;
+                _talep.tahmini_tutar = guncelTalep.tahmini_tutar;
+                _talep.duzeltme_istendi_mi = guncelTalep.duzeltme_istendi_mi;
+                _talep.duzeltme_notu = guncelTalep.duzeltme_notu;
+                _talep.foto_var_mi = guncelTalep.foto_var_mi;
 
-                // Eksik alanları zenginleştir (hizmet adı, araç adı)
+                // Eksik alanları zenginleştir
                 await TalebiZenginlestir(_talep);
-
-                // UI'ı tamamen tazele
-                BindingContext = null;
-                BindingContext = _talep;
             }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Detay güncellenirken hata: {ex.Message}");
+            Debug.WriteLine($"Detay güncellenirken hata: {ex.Message}");
         }
     }
 
     private async Task TalebiZenginlestir(ServisTalebi talep)
     {
-        // Hizmet adı
         var hizmet = _tumHizmetler?.FirstOrDefault(h => h.id == talep.hizmet_id);
-        if (hizmet != null)
-            talep.hizmet_adi = hizmet.ad;
+        if (hizmet != null) talep.hizmet_adi = hizmet.ad;
 
-        // Araç adı
         var arac = await _apiService.AracGetirAsync(talep.arac_id);
         if (arac != null)
         {
@@ -71,22 +73,16 @@ public partial class MyServiceRequestDetailView : ContentPage
             {
                 var marka = _tumMarkalar.FirstOrDefault(m => m.id == arac.marka_id);
                 var model = marka?.modeller?.FirstOrDefault(m => m.id == arac.model_id);
-                if (marka != null && model != null)
-                    gosterimAd = $"{marka.ad} {model.ad}";
+                if (marka != null && model != null) gosterimAd = $"{marka.ad} {model.ad}";
             }
             if (string.IsNullOrWhiteSpace(gosterimAd) && !string.IsNullOrWhiteSpace(arac.ozel_marka))
                 gosterimAd = $"{arac.ozel_marka} {arac.ozel_model}";
-            if (string.IsNullOrWhiteSpace(gosterimAd))
-                gosterimAd = $"Araç ID: {arac.id}";
+            if (string.IsNullOrWhiteSpace(gosterimAd)) gosterimAd = $"Araç ID: {arac.id}";
             talep.arac_adi_tam = gosterimAd;
         }
-        else
-        {
-            talep.arac_adi_tam = "Sistemden Silinmiş Araç";
-        }
+        else talep.arac_adi_tam = "Sistemden Silinmiş Araç";
     }
 
-    // --- Aşağıdaki metotlar aynen kalacak ---
     private async void OnViewPhotosTapped(object sender, TappedEventArgs e)
     {
         if (_talep != null)
