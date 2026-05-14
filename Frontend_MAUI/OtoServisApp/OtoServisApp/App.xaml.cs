@@ -71,12 +71,13 @@ namespace OtoServisApp
             }
 
             // Geçerli bir ikon belirle (önce kendi ikonumuzu dene, yoksa sistem ikonu kullan)
-            int iconId = Android.Resource.Drawable.IcDialogInfo; // varsayılan
-            try
+            int iconId = Resource.Drawable.notification_icon; 
+            //Android.Resource.Drawable.IcDialogInfo; // varsayılan
+            /*try
             {
-                iconId = Resource.Drawable.notification_icon;
+                iconId = Resource.Drawable.app_notification_icon;
             }
-            catch { }
+            catch { }*/
 
             var builder = new Android.App.Notification.Builder(context, channelId)
                 .SetContentTitle(args.Notification.Title)

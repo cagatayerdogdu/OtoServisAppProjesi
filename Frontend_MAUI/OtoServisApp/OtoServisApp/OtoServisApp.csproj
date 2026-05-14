@@ -34,7 +34,7 @@
 
   <ItemGroup>
     <!-- App Icon -->
-    <MauiIcon Include="Resources\AppIcon\logo.png" Color="#0EA5E9" BaseSize="1024,1024" />
+    <MauiIcon Include="Resources\AppIcon\logo.png" Color="#1A222B" BaseSize="1024,1024" />
 
     <!-- Splash Screen -->
     <MauiSplashScreen Include="Resources\Splash\logo.png" Color="#1A222B" BaseSize="512,512" />
@@ -54,8 +54,12 @@
     <AndroidResource Remove="Platforms\Android\Resources\values\styles.xml" />
   </ItemGroup>
 
-  <!-- Manuel mipmap simgeleri (Android için) -->
+  <!-- SADECE ANDROID İÇİN -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0-android'">
+    <AndroidResource Include="Platforms\Android\Resources\drawable\appnotificationicon.png" />
+  </ItemGroup>
 
+  <!-- Manuel mipmap simgeleri (Android için) -->
   <ItemGroup>
     <AndroidResource Include="Resources\Drawable\mipmap-hdpi\ic_launcher.png" />
     <AndroidResource Include="Resources\Drawable\mipmap-hdpi\ic_launcher_round.png" />
@@ -111,12 +115,6 @@
     <PackageReference Include="Xamarin.AndroidX.Collection.Ktx" Version="1.4.0.4" />
     <PackageReference Include="Xamarin.AndroidX.Activity.Ktx" Version="1.8.2.2" />
     <PackageReference Include="Xamarin.AndroidX.Lifecycle.ViewModel.Ktx" Version="2.7.0.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <MauiXaml Update="Views\AdminLogsDeleteView.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
   </ItemGroup>
     
 </Project>

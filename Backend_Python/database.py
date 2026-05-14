@@ -31,7 +31,12 @@ except Exception as e:
 
 SQLALCHEMY_DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+#engine = create_engine(SQLALCHEMY_DATABASE_URL)
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    pool_pre_ping=True,   # Her sorgudan önce bağlantıyı kontrol et, kopmuşsa yeniden bağlan
+    pool_recycle=3600     # Bağlantıları her 1 saatte bir otomatik yenile (MySQL wait_timeout süresinden kısa olmalı)
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
